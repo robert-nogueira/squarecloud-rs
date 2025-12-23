@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use reqwest::{
-    Client, Response,
+    Client, Request, Response,
     header::{HeaderMap, HeaderValue},
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
@@ -48,7 +48,7 @@ impl<T> ApiResponse<T> {
 
 pub struct ApiClient {
     pub base_url: String,
-    http_client: Client,
+    pub(crate) http_client: Client,
 }
 
 impl ApiClient {
@@ -65,16 +65,24 @@ impl ApiClient {
         }
     }
 
-    pub async fn request<T: DeserializeOwned>(
+    pub async fn execute_request<T: DeserializeOwned>(
+        &self,
+        request: Request,
+    ) -> Result<ApiResponse<T>, reqwest::Error> {
+        let response = self.http_client.execute(request).await?;
+        let response: ApiResponse<T> = response.json().await?;
+        Ok(response)
+    }
+
+    pub async fn request_endpoint<T: DeserializeOwned>(
         &self,
         endpoint: Endpoint,
     ) -> Result<ApiResponse<T>, reqwest::Error> {
-        let response: Response = self
+        let response = self
             .http_client
-            .request(endpoint.method, format!("{} a", SETTINGS.base_url))
+            .request(endpoint.method, endpoint.path)
             .send()
             .await?;
-
         let response: ApiResponse<T> = response.json().await?;
         Ok(response)
     }
