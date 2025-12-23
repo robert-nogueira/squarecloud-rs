@@ -1,4 +1,4 @@
-use reqwest::Method;
+use reqwest::{Client, Method, RequestBuilder};
 
 #[derive(Clone)]
 pub struct EndpointTemplate {
@@ -22,5 +22,9 @@ impl Endpoint {
             method,
             path: final_path,
         }
+    }
+
+    pub fn request_builder(&self, http_client: &Client) -> RequestBuilder {
+        http_client.request(self.method.clone(), self.path.clone())
     }
 }
