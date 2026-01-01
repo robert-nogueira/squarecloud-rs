@@ -26,8 +26,25 @@ pub enum ApiError {
     Api { code: ApiErrorCode },
 }
 
+pub enum CommitError {
+    Api(ApiError),
+    Io(std::io::Error),
+}
+
 impl From<reqwest::Error> for ApiError {
     fn from(err: reqwest::Error) -> Self {
         ApiError::Transport(err)
+    }
+}
+
+impl From<std::io::Error> for CommitError {
+    fn from(err: std::io::Error) -> Self {
+        CommitError::Io(err)
+    }
+}
+
+impl From<reqwest::Error> for CommitError {
+    fn from(err: reqwest::Error) -> Self {
+        CommitError::Api(ApiError::from(err))
     }
 }

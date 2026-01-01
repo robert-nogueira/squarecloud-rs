@@ -1,9 +1,13 @@
 use std::sync::Arc;
 
-use reqwest::{Method, RequestBuilder};
+use reqwest::multipart::{Form, Part};
+use tokio::{fs::File, io::AsyncReadExt};
 
 use crate::{
-    http::{ApiClient, Endpoint, errors::ApiError},
+    http::{
+        ApiClient, Endpoint,
+        errors::{ApiError, CommitError},
+    },
     types::{
         analytics::Analytics,
         app::{AppInfo, AppStatus},
@@ -103,5 +107,22 @@ impl AppResource {
             .await?
             .into_result_t()
             .map_err(|code| ApiError::Api { code })
+    }
+
+    pub async fn commit(&self, mut file: File) -> Result<(), CommitError> {
+        let endpoint = Endpoint::app_commit(&self.id);
+        let mut file_content: Vec<u8> = vec![];
+        file.read_to_end(&mut file_content).await?;
+        let form = Form::new().part("file", Part::bytes(file_content));
+        let request = endpoint
+            .request_builder(&self.api.http_client)
+            .multipart(form)
+            .build()?;
+
+        self.api
+            .execute_request(request)
+            .await?
+            .into_result_t()
+            .map_err(|code| CommitError::Api(ApiError::Api { code }))
     }
 }
