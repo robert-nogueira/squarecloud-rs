@@ -15,6 +15,10 @@ impl Endpoint {
     }
 
     pub fn delete_app_envs(app_id: &str) -> Endpoint {
-        Self::build("/apps/{app_id}/envs", Method::DELETE, &[("app_id", app_id)])
+        Self::build(
+            "/apps/{app_id}/envs",
+            Method::DELETE,
+            &[("app_id", app_id)],
+        )
     }
 }

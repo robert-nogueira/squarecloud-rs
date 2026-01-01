@@ -19,7 +19,11 @@ impl Endpoint {
     }
 
     pub fn move_app_file(app_id: &str) -> Endpoint {
-        Self::build("/apps/{app_id}/files", Method::PATCH, &[("app_id", app_id)])
+        Self::build(
+            "/apps/{app_id}/files",
+            Method::PATCH,
+            &[("app_id", app_id)],
+        )
     }
 
     pub fn delete_app_file(app_id: &str) -> Endpoint {

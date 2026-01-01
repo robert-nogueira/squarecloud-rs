@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use super::{Endpoint, errors::ApiErrorCode};
 use crate::{
     resources::{
-        app::AppResource, database::DatabaseResource, snapshot::SnapshotResource,
-        workspace::WorkspaceResource,
+        app::AppResource, database::DatabaseResource,
+        snapshot::SnapshotResource, workspace::WorkspaceResource,
     },
     settings::SETTINGS,
 };
@@ -58,7 +58,8 @@ impl ApiClient {
             "Authorization",
             HeaderValue::from_str(&SETTINGS.api_token).unwrap(),
         );
-        let client: Client = Client::builder().default_headers(headers).build().unwrap();
+        let client: Client =
+            Client::builder().default_headers(headers).build().unwrap();
         ApiClient {
             base_url: SETTINGS.base_url.clone(),
             http_client: client,
