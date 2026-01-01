@@ -112,7 +112,7 @@ impl AppResource {
     pub async fn commit(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
-    ) -> Result<(), CommitError> {
+    ) -> Result<bool, CommitError> {
         let endpoint = Endpoint::app_commit(&self.id);
         let form = Form::new().part("file", Part::bytes(bytes));
 
@@ -121,16 +121,16 @@ impl AppResource {
             .multipart(form)
             .build()?;
         self.api
-            .execute_request(request)
+            .execute_request::<()>(request)
             .await?
-            .into_result_t()
+            .into_bool_result()
             .map_err(|code| CommitError::Api(ApiError::Api { code }))
     }
 
     pub async fn commit_file(
         &self,
         mut file: File,
-    ) -> Result<(), CommitError> {
+    ) -> Result<bool, CommitError> {
         let mut buffer: Vec<u8> = vec![];
         file.read_to_end(&mut buffer).await?;
         self.commit(buffer).await
