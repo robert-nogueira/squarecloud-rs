@@ -5,11 +5,11 @@ use super::Endpoint;
 use reqwest::Method;
 
 impl Endpoint {
-    pub fn create_database() -> Endpoint {
+    pub(crate) fn create_database() -> Endpoint {
         Self::build("/databases", Method::POST, &[])
     }
 
-    pub fn start_database(database_id: &str) -> Endpoint {
+    pub(crate) fn start_database(database_id: &str) -> Endpoint {
         Self::build(
             "/databases/{database_id}/start",
             Method::POST,
@@ -17,7 +17,7 @@ impl Endpoint {
         )
     }
 
-    pub fn stop_database(database_id: &str) -> Endpoint {
+    pub(crate) fn stop_database(database_id: &str) -> Endpoint {
         Self::build(
             "/databases/{database_id}/stop",
             Method::POST,
@@ -25,11 +25,11 @@ impl Endpoint {
         )
     }
 
-    pub fn all_database_status() -> Endpoint {
+    pub(crate) fn all_database_status() -> Endpoint {
         Self::build("/databases/status", Method::GET, &[])
     }
 
-    pub fn database_status(database_id: &str) -> Endpoint {
+    pub(crate) fn database_status(database_id: &str) -> Endpoint {
         Self::build(
             "/databases/{database_id}/status",
             Method::GET,
@@ -37,7 +37,7 @@ impl Endpoint {
         )
     }
 
-    pub fn database_metrics(database_id: &str) -> Endpoint {
+    pub(crate) fn database_metrics(database_id: &str) -> Endpoint {
         Self::build(
             "/databases/{database_id}/metrics",
             Method::GET,
@@ -45,7 +45,7 @@ impl Endpoint {
         )
     }
 
-    pub fn edit_database(database_id: &str) -> Endpoint {
+    pub(crate) fn edit_database(database_id: &str) -> Endpoint {
         Self::build(
             "/databases/{database_id}",
             Method::PATCH,
@@ -53,7 +53,7 @@ impl Endpoint {
         )
     }
 
-    pub fn delete_database(database_id: &str) -> Endpoint {
+    pub(crate) fn delete_database(database_id: &str) -> Endpoint {
         Self::build(
             "/databases/{database_id}",
             Method::DELETE,
@@ -61,7 +61,7 @@ impl Endpoint {
         )
     }
 
-    pub fn get_database_certificate(database_id: &str) -> Endpoint {
+    pub(crate) fn get_database_certificate(database_id: &str) -> Endpoint {
         Self::build(
             "/databases/{database_id}/certificate",
             Method::GET,

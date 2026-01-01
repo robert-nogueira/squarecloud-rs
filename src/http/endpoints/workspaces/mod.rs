@@ -5,15 +5,15 @@ use super::Endpoint;
 use reqwest::Method;
 
 impl Endpoint {
-    pub fn create_workspace() -> Endpoint {
+    pub(crate) fn create_workspace() -> Endpoint {
         Self::build("/workspaces", Method::POST, &[])
     }
 
-    pub fn delete_workspace() -> Endpoint {
+    pub(crate) fn delete_workspace() -> Endpoint {
         Self::build("/workspaces", Method::DELETE, &[])
     }
 
-    pub fn get_workspace(workspace_id: &str) -> Endpoint {
+    pub(crate) fn get_workspace(workspace_id: &str) -> Endpoint {
         Self::build(
             "/workspaces/{workspace_id}",
             Method::POST,
@@ -21,7 +21,7 @@ impl Endpoint {
         )
     }
 
-    pub fn left_workspace(workspace_id: &str) -> Endpoint {
+    pub(crate) fn left_workspace(workspace_id: &str) -> Endpoint {
         Self::build(
             "/workspaces/{workspace_id}/leave",
             Method::DELETE,
@@ -29,7 +29,7 @@ impl Endpoint {
         )
     }
 
-    pub fn list_workspaces(workspace_id: &str) -> Endpoint {
+    pub(crate) fn list_workspaces(workspace_id: &str) -> Endpoint {
         Self::build(
             "/workspaces/{workspace_id}",
             Method::GET,
