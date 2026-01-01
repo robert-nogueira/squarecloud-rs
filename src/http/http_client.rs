@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use reqwest::{
-    Client, Request, Response,
+    Client, Request,
     header::{HeaderMap, HeaderValue},
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
