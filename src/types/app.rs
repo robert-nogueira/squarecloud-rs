@@ -4,28 +4,28 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct AppInfo {
-    name: String,
-    id: String,
-    owner: String,
-    cluster: String,
-    ram: u32,
-    language: String,
-    domain: Option<String>,
-    custom: Option<String>,
+    pub name: String,
+    pub id: String,
+    pub owner: String,
+    pub cluster: String,
+    pub ram: u32,
+    pub language: String,
+    pub domain: Option<String>,
+    pub custom: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct AppNetwork {
-    total: String,
-    now: String,
+    pub total: String,
+    pub now: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct AppStatus {
-    cpu: String,
-    ram: String,
-    storage: String,
-    network: AppNetwork,
+    pub cpu: String,
+    pub ram: String,
+    pub storage: String,
+    pub network: AppNetwork,
     #[serde(with = "ts_milliseconds")]
-    uptime: DateTime<Utc>,
+    pub uptime: DateTime<Utc>,
 }

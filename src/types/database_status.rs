@@ -3,24 +3,24 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct DatabaseNetwork {
-    total: String,
-    now: String,
+    pub total: String,
+    pub now: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct DatabaseResumedStatus {
-    id: String,
-    running: bool,
-    cpu: String,
-    ram: String,
+    pub id: String,
+    pub running: bool,
+    pub cpu: String,
+    pub ram: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct DatabaseStatus {
-    cpu: String,
-    ram: String,
-    status: String,
-    network: DatabaseNetwork,
+    pub cpu: String,
+    pub ram: String,
+    pub status: String,
+    pub network: DatabaseNetwork,
     #[serde(with = "ts_milliseconds")]
-    uptime: DateTime<Utc>,
+    pub uptime: DateTime<Utc>,
 }

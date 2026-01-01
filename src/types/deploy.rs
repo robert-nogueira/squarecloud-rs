@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Deploy {
-    id: String,
-    state: String,
-    date: DateTime<Utc>,
+    pub id: String,
+    pub state: String,
+    pub date: DateTime<Utc>,
 }

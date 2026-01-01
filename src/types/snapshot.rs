@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct Snapshot {
-    name: String,
-    size: u64,
-    modified: DateTime<Utc>,
-    key: String,
+    pub name: String,
+    pub size: u64,
+    pub modified: DateTime<Utc>,
+    pub key: String,
 }

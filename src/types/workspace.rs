@@ -3,28 +3,28 @@ use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct WorkspaceMember {
-    id: String,
-    name: String,
-    group: String,
+    pub id: String,
+    pub name: String,
+    pub group: String,
     #[serde(rename = "joinedAt")]
-    joined_at: DateTime<Utc>,
+    pub joined_at: DateTime<Utc>,
 }
 
 #[derive(Serialize)]
 pub struct WorkspaceApp {
-    id: String,
-    name: String,
-    ram: u32,
-    language: String,
+    pub id: String,
+    pub name: String,
+    pub ram: u32,
+    pub language: String,
 }
 
 #[derive(Serialize)]
 pub struct Workspace {
-    id: String,
-    name: String,
-    owner: String,
-    members: Vec<WorkspaceMember>,
-    applications: Vec<WorkspaceApp>,
+    pub id: String,
+    pub name: String,
+    pub owner: String,
+    pub members: Vec<WorkspaceMember>,
+    pub applications: Vec<WorkspaceApp>,
     #[serde(rename = "createdAt")]
-    created_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
 }

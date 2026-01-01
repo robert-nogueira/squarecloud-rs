@@ -25,8 +25,8 @@ pub enum DnsRecordType {
 #[derive(Serialize, Deserialize)]
 pub struct DnsRecord {
     #[serde(rename = "type")]
-    record_type: DnsRecordType,
-    name: String,
-    value: String,
-    status: String,
+    pub record_type: DnsRecordType,
+    pub name: String,
+    pub value: String,
+    pub status: String,
 }
