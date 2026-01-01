@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use reqwest::multipart::{Form, Part};
 use tokio::{fs::File, io::AsyncReadExt};
@@ -109,20 +109,30 @@ impl AppResource {
             .map_err(|code| ApiError::Api { code })
     }
 
-    pub async fn commit(&self, mut file: File) -> Result<(), CommitError> {
+    pub async fn commit(
+        &self,
+        bytes: impl Into<Cow<'static, [u8]>>,
+    ) -> Result<(), CommitError> {
         let endpoint = Endpoint::app_commit(&self.id);
-        let mut file_content: Vec<u8> = vec![];
-        file.read_to_end(&mut file_content).await?;
-        let form = Form::new().part("file", Part::bytes(file_content));
+        let form = Form::new().part("file", Part::bytes(bytes));
+
         let request = endpoint
             .request_builder(&self.api.http_client)
             .multipart(form)
             .build()?;
-
         self.api
             .execute_request(request)
             .await?
             .into_result_t()
             .map_err(|code| CommitError::Api(ApiError::Api { code }))
+    }
+
+    pub async fn commit_file(
+        &self,
+        mut file: File,
+    ) -> Result<(), CommitError> {
+        let mut buffer: Vec<u8> = vec![];
+        file.read_to_end(&mut buffer).await?;
+        self.commit(buffer).await
     }
 }
