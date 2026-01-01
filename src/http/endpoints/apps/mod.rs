@@ -21,7 +21,11 @@ impl Endpoint {
     }
 
     pub fn app_status(app_id: &str) -> Endpoint {
-        Self::build("/apps/{app_id}/status", Method::GET, &[("app_id", app_id)])
+        Self::build(
+            "/apps/{app_id}/status",
+            Method::GET,
+            &[("app_id", app_id)],
+        )
     }
 
     pub fn app_logs(app_id: &str) -> Endpoint {
@@ -37,7 +41,11 @@ impl Endpoint {
     }
 
     pub fn app_start(app_id: &str) -> Endpoint {
-        Self::build("/apps/{app_id}/start", Method::POST, &[("app_id", app_id)])
+        Self::build(
+            "/apps/{app_id}/start",
+            Method::POST,
+            &[("app_id", app_id)],
+        )
     }
 
     pub fn app_restart(app_id: &str) -> Endpoint {
@@ -53,7 +61,11 @@ impl Endpoint {
     }
 
     pub fn app_commit(app_id: &str) -> Endpoint {
-        Self::build("/apps/{app_id}/commit", Method::POST, &[("app_id", app_id)])
+        Self::build(
+            "/apps/{app_id}/commit",
+            Method::POST,
+            &[("app_id", app_id)],
+        )
     }
 
     pub fn app_delete(app_id: &str) -> Endpoint {

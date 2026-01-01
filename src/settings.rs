@@ -8,8 +8,10 @@ pub struct Settings {
 impl Settings {
     fn load() -> Self {
         Settings {
-            api_token: dotenv::var("API_TOKEN").expect("Missing environment variable 'API_TOKEN'"),
-            base_url: dotenv::var("BASE_URL").expect("Missing environment variable 'BASE_URL'"),
+            api_token: dotenv::var("API_TOKEN")
+                .expect("Missing environment variable 'API_TOKEN'"),
+            base_url: dotenv::var("BASE_URL")
+                .expect("Missing environment variable 'BASE_URL'"),
         }
     }
 }

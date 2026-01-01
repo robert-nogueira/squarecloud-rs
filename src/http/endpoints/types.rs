@@ -13,7 +13,11 @@ pub struct Endpoint {
 }
 
 impl Endpoint {
-    pub(crate) fn build(path: &'static str, method: Method, params: &[(&str, &str)]) -> Endpoint {
+    pub(crate) fn build(
+        path: &'static str,
+        method: Method,
+        params: &[(&str, &str)],
+    ) -> Endpoint {
         let mut final_path = path.to_string();
         for (k, v) in params {
             final_path = final_path.replace(&format!("{{{}}}", k), v);
