@@ -9,10 +9,10 @@ pub enum FileType {
 
 #[derive(Serialize, Deserialize)]
 pub struct File {
-    name: String,
+    pub name: String,
     #[serde(rename = "type")]
-    file_type: FileType,
+    pub file_type: FileType,
     #[serde(with = "ts_milliseconds")]
     #[serde(rename = "lastModified")]
-    last_modified: DateTime<Utc>,
+    pub last_modified: DateTime<Utc>,
 }

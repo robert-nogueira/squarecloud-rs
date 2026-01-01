@@ -4,15 +4,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct PlanMemory {
-    limit: u64,
-    available: u64,
-    used: u64,
+    pub limit: u64,
+    pub available: u64,
+    pub used: u64,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Plan {
-    name: String,
-    memory: PlanMemory,
+    pub name: String,
+    pub memory: PlanMemory,
     #[serde(with = "ts_milliseconds")]
-    duration: DateTime<Utc>,
+    pub duration: DateTime<Utc>,
 }

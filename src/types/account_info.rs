@@ -1,6 +1,5 @@
-use serde::{Deserialize, Serialize};
-
 use super::plan::Plan;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct AppFromUser {
@@ -16,9 +15,9 @@ pub struct AppFromUser {
 
 #[derive(Serialize, Deserialize)]
 pub struct AccountInfo {
-    id: String,
-    name: String,
-    email: String,
-    plan: Plan,
-    applications: Vec<AppFromUser>,
+    pub id: String,
+    pub name: String,
+    pub email: String,
+    pub plan: Plan,
+    pub applications: Vec<AppFromUser>,
 }
