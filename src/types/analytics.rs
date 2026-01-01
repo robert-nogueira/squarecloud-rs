@@ -10,27 +10,16 @@ pub struct AnalyticsItem {
     pub date: String,
 }
 
-pub type AnalyticsVisits = Vec<AnalyticsItem>;
-pub type AnalyticsCountries = Vec<AnalyticsItem>;
-pub type AnalyticsDevices = Vec<AnalyticsItem>;
-pub type AnalyticsOS = Vec<AnalyticsItem>;
-pub type AnalyticsBrowsers = Vec<AnalyticsItem>;
-pub type AnalyticsProtocols = Vec<AnalyticsItem>;
-pub type AnalyticsMethods = Vec<AnalyticsItem>;
-pub type AnalyticsPaths = Vec<AnalyticsItem>;
-pub type AnalyticsReferers = Vec<AnalyticsItem>;
-pub type AnalyticsProviders = Vec<AnalyticsItem>;
-
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Analytics {
-    pub visits: AnalyticsVisits,
-    pub countries: AnalyticsCountries,
-    pub devices: AnalyticsDevices,
-    pub os: AnalyticsOS,
-    pub browsers: AnalyticsBrowsers,
-    pub protocols: AnalyticsProtocols,
-    pub methods: AnalyticsMethods,
-    pub paths: AnalyticsPaths,
-    pub referers: AnalyticsReferers,
-    pub providers: AnalyticsProviders,
+    pub visits: Vec<AnalyticsItem>,
+    pub countries: Vec<AnalyticsItem>,
+    pub devices: Vec<AnalyticsItem>,
+    pub os: Vec<AnalyticsItem>,
+    pub browsers: Vec<AnalyticsItem>,
+    pub protocols: Vec<AnalyticsItem>,
+    pub methods: Vec<AnalyticsItem>,
+    pub paths: Vec<AnalyticsItem>,
+    pub referers: Vec<AnalyticsItem>,
+    pub providers: Vec<AnalyticsItem>,
 }
