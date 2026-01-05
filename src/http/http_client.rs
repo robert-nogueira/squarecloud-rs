@@ -6,13 +6,17 @@ use reqwest::{
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
-use super::{Endpoint, errors::ApiErrorCode};
+use super::{
+    Endpoint,
+    errors::{ApiError, ApiErrorCode},
+};
 use crate::{
     resources::{
         app::AppResource, database::DatabaseResource,
         snapshot::SnapshotResource, workspace::WorkspaceResource,
     },
     settings::SETTINGS,
+    types::account_info::AccountInfo,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -86,6 +90,13 @@ impl ApiClient {
             .await?;
         let response: ApiResponse<T> = response.json().await?;
         Ok(response)
+    }
+
+    pub async fn me(&self) -> Result<AccountInfo, ApiError> {
+        self.request_endpoint(Endpoint::me())
+            .await?
+            .into_result_t()
+            .map_err(|code| ApiError::Api { code })
     }
 
     pub async fn app(self, id: &str) -> AppResource {
