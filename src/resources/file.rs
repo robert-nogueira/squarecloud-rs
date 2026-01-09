@@ -1,19 +1,29 @@
 use std::sync::Arc;
 
-use crate::http::{ApiClient, Endpoint, errors::ApiError};
+use crate::{
+    http::{ApiClient, Endpoint, errors::ApiError},
+    types::file::FileInfo,
+};
 
 pub struct FileResource {
     pub path: String,
+    pub info: FileInfo,
     pub app_id: String,
     api: Arc<ApiClient>,
 }
 
 impl FileResource {
-    pub fn new(api: Arc<ApiClient>, path: String, app_id: &str) -> Self {
+    pub fn new(
+        api: Arc<ApiClient>,
+        path: &str,
+        app_id: &str,
+        info: FileInfo,
+    ) -> Self {
         Self {
             api,
-            path,
+            info,
             app_id: app_id.to_string(),
+            path: path.to_string(),
         }
     }
 
