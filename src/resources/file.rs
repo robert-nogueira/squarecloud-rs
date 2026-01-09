@@ -27,6 +27,19 @@ impl FileResource {
         }
     }
 
+    pub async fn write_content(
+        &self,
+        content: &str,
+    ) -> Result<bool, ApiError> {
+        let endpoint =
+            Endpoint::put_app_file(&self.app_id, &self.path, content);
+        self.api
+            .request_endpoint::<bool>(endpoint)
+            .await?
+            .into_bool_result()
+            .map_err(|code| ApiError::Api { code })
+    }
+
     pub async fn read(&self) -> Result<Vec<u8>, ApiError> {
         let endpoint = Endpoint::read_app_file(&self.app_id, &self.path);
         self.api
