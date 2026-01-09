@@ -8,6 +8,7 @@ use crate::{
         ApiClient, Endpoint,
         errors::{ApiError, CommitError},
     },
+    resources::file::FileResource,
     types::{
         analytics::Analytics,
         app::{AppInfo, AppStatus},
@@ -15,8 +16,6 @@ use crate::{
         dns_record::DnsRecord,
     },
 };
-
-use super::file::FileResource;
 
 pub struct AppResource {
     pub id: String,
