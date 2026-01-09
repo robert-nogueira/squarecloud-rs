@@ -160,4 +160,17 @@ impl AppResource {
         }
         Ok(file_resources)
     }
+
+    pub async fn create_file(
+        &self,
+        path: &str,
+        content: &str,
+    ) -> Result<bool, ApiError> {
+        let endpoint = Endpoint::put_app_file(&self.id, path, content);
+        self.api
+            .request_endpoint::<bool>(endpoint)
+            .await?
+            .into_bool_result()
+            .map_err(|code| ApiError::Api { code })
+    }
 }
