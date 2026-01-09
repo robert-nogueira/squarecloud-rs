@@ -18,9 +18,16 @@ impl Endpoint {
             .build()
     }
 
-    pub(crate) fn put_app_file(app_id: &str) -> Endpoint {
+    pub(crate) fn put_app_file(
+        app_id: &str,
+        path: &str,
+        content: &str,
+    ) -> Endpoint {
+        let mut json_body = HashMap::with_capacity(2);
+        json_body.extend([("path", path), ("content", content)]);
         Self::builder("/apps/{app_id}/files", Method::PUT)
             .param("app_id", app_id)
+            .json(serde_json::to_value(json_body).unwrap())
             .build()
     }
 
