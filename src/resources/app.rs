@@ -138,7 +138,7 @@ impl AppResource {
         self.commit(buffer).await
     }
 
-    pub async fn files(
+    pub async fn file_list(
         &self,
         path: &str,
     ) -> Result<Vec<FileResource>, ApiError> {
