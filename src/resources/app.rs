@@ -16,6 +16,8 @@ use crate::{
     },
 };
 
+use super::file::FileResource;
+
 pub struct AppResource {
     pub id: String,
     api: Arc<ApiClient>,
@@ -27,6 +29,11 @@ impl AppResource {
             api: http,
             id: id.to_string(),
         }
+    }
+
+    pub async fn file(self, path: &str) -> FileResource {
+        let api_clone = Arc::clone(&self.api);
+        FileResource::new(api_clone, path.to_string(), &self.id)
     }
 
     pub async fn start(&self) -> Result<bool, ApiError> {
