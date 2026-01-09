@@ -5,10 +5,11 @@ impl Endpoint {
     pub(crate) fn redefine_database_credentials(
         database_id: &str,
     ) -> Endpoint {
-        Self::build(
+        Self::builder(
             "/databases/{database_id}/credentials/reset",
             Method::POST,
-            &[("database_id", database_id)],
         )
+        .param("database_id", database_id)
+        .build()
     }
 }

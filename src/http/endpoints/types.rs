@@ -12,22 +12,55 @@ pub struct Endpoint {
     pub method: Method,
 }
 
-impl Endpoint {
-    pub(crate) fn build(
-        path: &'static str,
-        method: Method,
-        params: &[(&str, &str)],
-    ) -> Endpoint {
-        let mut final_path = path.to_string();
-        for (k, v) in params {
-            final_path = final_path.replace(&format!("{{{}}}", k), v);
-        }
-        Endpoint {
+pub struct EndpointBuilder {
+    pub path_template: String,
+    pub method: Method,
+    pub params: Vec<(String, String)>,
+    pub queries: Vec<(String, String)>,
+}
+
+impl EndpointBuilder {
+    pub(crate) fn new(path_template: &str, method: Method) -> Self {
+        Self {
+            path_template: path_template.to_string(),
             method,
-            path: final_path,
+            params: vec![],
+            queries: vec![],
         }
     }
 
+    pub(crate) fn build(self) -> Endpoint {
+        let mut path = String::new();
+        for (k, v) in &self.params {
+            path = self.path_template.replace(&format!("{{{}}}", k), v);
+        }
+        if !self.queries.is_empty() {
+            path.push('&');
+            for (k, v) in &self.queries {
+                path.push_str(&format!("{k}={v}"));
+            }
+        }
+        Endpoint {
+            method: self.method,
+            path,
+        }
+    }
+
+    pub(crate) fn query(mut self, name: &str, value: &str) -> Self {
+        self.queries.push((name.to_string(), value.to_string()));
+        self
+    }
+
+    pub(crate) fn param(mut self, name: &str, value: &str) -> Self {
+        self.params.push((name.to_string(), value.to_string()));
+        self
+    }
+}
+
+impl Endpoint {
+    pub fn builder(path_template: &str, method: Method) -> EndpointBuilder {
+        EndpointBuilder::new(path_template, method)
+    }
     pub fn request_builder(&self, http_client: &Client) -> RequestBuilder {
         http_client.request(self.method.clone(), self.path.clone())
     }
