@@ -1,9 +1,6 @@
 use std::sync::Arc;
 
-use crate::{
-    http::{ApiClient, Endpoint, errors::ApiError},
-    types::file::File,
-};
+use crate::http::{ApiClient, Endpoint, errors::ApiError};
 
 pub struct FileResource {
     pub path: String,
@@ -32,7 +29,7 @@ impl FileResource {
     pub async fn move_to(
         &self,
         destination_path: &str,
-    ) -> Result<File, ApiError> {
+    ) -> Result<bool, ApiError> {
         let endpoint = Endpoint::move_app_file(
             &self.app_id,
             &self.path,
@@ -40,9 +37,9 @@ impl FileResource {
         );
 
         self.api
-            .request_endpoint(endpoint)
+            .request_endpoint::<bool>(endpoint)
             .await?
-            .into_result_t()
+            .into_bool_result()
             .map_err(|code| ApiError::Api { code })
     }
 }

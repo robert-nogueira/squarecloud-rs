@@ -8,7 +8,7 @@ pub enum FileType {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct File {
+pub struct FileInfo {
     pub name: String,
     #[serde(rename = "type")]
     pub file_type: FileType,
