@@ -4,9 +4,10 @@ use super::Endpoint;
 use reqwest::Method;
 
 impl Endpoint {
-    pub(crate) fn read_app_file(app_id: &str) -> Endpoint {
+    pub(crate) fn read_app_file(app_id: &str, path: &str) -> Endpoint {
         Self::builder("/apps/{app_id}/files/content", Method::GET)
             .param("app_id", app_id)
+            .query("path", path)
             .build()
     }
 

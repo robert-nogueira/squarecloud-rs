@@ -17,6 +17,15 @@ impl FileResource {
         }
     }
 
+    pub async fn read(&self) -> Result<Vec<u8>, ApiError> {
+        let endpoint = Endpoint::read_app_file(&self.app_id, &self.path);
+        self.api
+            .request_endpoint(endpoint)
+            .await?
+            .into_result_t()
+            .map_err(|code| ApiError::Api { code })
+    }
+
     pub async fn delete(&self) -> Result<bool, ApiError> {
         let endpoint = Endpoint::delete_app_file(&self.app_id);
         self.api
