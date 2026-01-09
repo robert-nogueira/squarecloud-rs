@@ -3,10 +3,10 @@ use reqwest::Method;
 
 impl Endpoint {
     pub(crate) fn me() -> Endpoint {
-        Self::build("/users/me", Method::GET, &[])
+        Self::builder("/users/me", Method::GET).build()
     }
 
     pub(crate) fn list_all_snapshots() -> Endpoint {
-        Self::build("/users/snapshots", Method::GET, &[])
+        Self::builder("/users/snapshots", Method::GET).build()
     }
 }

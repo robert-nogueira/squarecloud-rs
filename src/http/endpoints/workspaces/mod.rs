@@ -6,34 +6,28 @@ use reqwest::Method;
 
 impl Endpoint {
     pub(crate) fn create_workspace() -> Endpoint {
-        Self::build("/workspaces", Method::POST, &[])
+        Self::builder("/workspaces", Method::POST).build()
     }
 
     pub(crate) fn delete_workspace() -> Endpoint {
-        Self::build("/workspaces", Method::DELETE, &[])
+        Self::builder("/workspaces", Method::DELETE).build()
     }
 
     pub(crate) fn get_workspace(workspace_id: &str) -> Endpoint {
-        Self::build(
-            "/workspaces/{workspace_id}",
-            Method::POST,
-            &[("workspace_id", workspace_id)],
-        )
+        Self::builder("/workspaces/{workspace_id}", Method::POST)
+            .param("workspace_id", workspace_id)
+            .build()
     }
 
     pub(crate) fn left_workspace(workspace_id: &str) -> Endpoint {
-        Self::build(
-            "/workspaces/{workspace_id}/leave",
-            Method::DELETE,
-            &[("workspace_id", workspace_id)],
-        )
+        Self::builder("/workspaces/{workspace_id}/leave", Method::DELETE)
+            .param("workspace_id", workspace_id)
+            .build()
     }
 
     pub(crate) fn list_workspaces(workspace_id: &str) -> Endpoint {
-        Self::build(
-            "/workspaces/{workspace_id}",
-            Method::GET,
-            &[("workspace_id", workspace_id)],
-        )
+        Self::builder("/workspaces/{workspace_id}", Method::GET)
+            .param("workspace_id", workspace_id)
+            .build()
     }
 }
