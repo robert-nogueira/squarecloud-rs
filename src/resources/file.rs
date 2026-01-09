@@ -6,12 +6,20 @@ use crate::{
 };
 
 pub struct FileResource {
-    pub app_id: String,
     pub path: String,
+    pub app_id: String,
     api: Arc<ApiClient>,
 }
 
 impl FileResource {
+    pub fn new(api: Arc<ApiClient>, path: String, app_id: &str) -> Self {
+        Self {
+            api,
+            path,
+            app_id: app_id.to_string(),
+        }
+    }
+
     pub async fn delete(&self) -> Result<bool, ApiError> {
         let endpoint = Endpoint::delete_app_file(&self.app_id);
         self.api
