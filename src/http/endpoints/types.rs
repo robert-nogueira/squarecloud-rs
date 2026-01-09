@@ -1,4 +1,5 @@
 use reqwest::{Client, Method, RequestBuilder};
+use serde_json::Value;
 
 #[derive(Clone)]
 pub struct EndpointTemplate {
@@ -10,6 +11,7 @@ pub struct EndpointTemplate {
 pub struct Endpoint {
     pub path: String,
     pub method: Method,
+    pub json_body: Option<Value>,
 }
 
 pub struct EndpointBuilder {
@@ -17,6 +19,7 @@ pub struct EndpointBuilder {
     pub method: Method,
     pub params: Vec<(String, String)>,
     pub queries: Vec<(String, String)>,
+    pub json_body: Option<Value>,
 }
 
 impl EndpointBuilder {
@@ -26,6 +29,7 @@ impl EndpointBuilder {
             method,
             params: vec![],
             queries: vec![],
+            json_body: None,
         }
     }
 
@@ -42,8 +46,14 @@ impl EndpointBuilder {
         }
         Endpoint {
             method: self.method,
+            json_body: self.json_body,
             path,
         }
+    }
+
+    pub(crate) fn json(mut self, body: Value) -> Self {
+        self.json_body = Some(body);
+        self
     }
 
     pub(crate) fn query(mut self, name: &str, value: &str) -> Self {
@@ -62,6 +72,11 @@ impl Endpoint {
         EndpointBuilder::new(path_template, method)
     }
     pub fn request_builder(&self, http_client: &Client) -> RequestBuilder {
-        http_client.request(self.method.clone(), self.path.clone())
+        let mut request =
+            http_client.request(self.method.clone(), self.path.clone());
+        if let Some(body) = &self.json_body {
+            request = request.json(&body);
+        }
+        request
     }
 }
