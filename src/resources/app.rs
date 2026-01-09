@@ -14,6 +14,7 @@ use crate::{
         app::{AppInfo, AppStatus},
         deploy::Deploy,
         dns_record::DnsRecord,
+        file::FileInfo,
     },
 };
 
@@ -28,11 +29,6 @@ impl AppResource {
             api: http,
             id: id.to_string(),
         }
-    }
-
-    pub async fn file(self, path: &str) -> FileResource {
-        let api_clone = Arc::clone(&self.api);
-        FileResource::new(api_clone, path.to_string(), &self.id)
     }
 
     pub async fn start(&self) -> Result<bool, ApiError> {
@@ -140,5 +136,28 @@ impl AppResource {
         let mut buffer: Vec<u8> = vec![];
         file.read_to_end(&mut buffer).await?;
         self.commit(buffer).await
+    }
+
+    pub async fn files(
+        &self,
+        path: &str,
+    ) -> Result<Vec<FileResource>, ApiError> {
+        let endpoint = Endpoint::list_app_files(&self.id, path);
+        let files: Vec<FileInfo> = self
+            .api
+            .request_endpoint(endpoint)
+            .await?
+            .into_result_t()
+            .map_err(|code| ApiError::Api { code })?;
+        let mut file_resources: Vec<FileResource> = vec![];
+        for file in files {
+            file_resources.push(FileResource::new(
+                self.api.clone(),
+                path,
+                &self.id,
+                file,
+            ));
+        }
+        Ok(file_resources)
     }
 }

@@ -11,9 +11,10 @@ impl Endpoint {
             .build()
     }
 
-    pub(crate) fn list_app_files(app_id: &str) -> Endpoint {
+    pub(crate) fn list_app_files(app_id: &str, path: &str) -> Endpoint {
         Self::builder("/apps/{app_id}/files", Method::GET)
             .param("app_id", app_id)
+            .query("path", path)
             .build()
     }
 
