@@ -50,6 +50,12 @@ impl<T> ApiResponse<T> {
     }
 }
 
+impl Default for ApiClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub struct ApiClient {
     pub base_url: String,
     pub(crate) http_client: Client,
