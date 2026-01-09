@@ -19,7 +19,7 @@ impl Endpoint {
             .build()
     }
 
-    pub(crate) fn left_workspace(workspace_id: &str) -> Endpoint {
+    pub(crate) fn leave_workspace(workspace_id: &str) -> Endpoint {
         Self::builder("/workspaces/{workspace_id}/leave", Method::DELETE)
             .param("workspace_id", workspace_id)
             .build()
