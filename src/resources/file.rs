@@ -61,4 +61,12 @@ impl FileResource {
             .into_bool_result()
             .map_err(|code| ApiError::Api { code })
     }
+
+    pub fn find_by_path<'a>(
+        files: &'a Vec<FileResource>,
+        path: &str,
+    ) -> Option<&'a FileResource> {
+        let mut file = files.iter().filter(|file| file.path == path);
+        file.next()
+    }
 }
