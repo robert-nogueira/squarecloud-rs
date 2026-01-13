@@ -173,4 +173,13 @@ impl AppResource {
             .into_bool_result()
             .map_err(|code| ApiError::Api { code })
     }
+
+    pub async fn delete(&self) -> Result<bool, ApiError> {
+        let endpoint = Endpoint::app_delete(&self.id);
+        self.api
+            .request_endpoint::<bool>(endpoint)
+            .await?
+            .into_bool_result()
+            .map_err(|code| ApiError::Api { code })
+    }
 }
