@@ -12,11 +12,10 @@ use super::{
 };
 use crate::{
     resources::{
-        app::AppResource, database::DatabaseResource,
-        snapshot::SnapshotResource, workspace::WorkspaceResource,
+        AppResource, DatabaseResource, SnapshotResource, WorkspaceResource,
     },
     settings::SETTINGS,
-    types::account_info::AccountInfo,
+    types::AccountInfo,
 };
 
 #[derive(Serialize, Deserialize)]
