@@ -76,10 +76,9 @@ impl FileResource {
     }
 
     pub fn find_by_path<'a>(
-        files: &'a Vec<FileResource>,
-        path: &str,
+        files: &'a [FileResource],
+        path: &'a str,
     ) -> Option<&'a FileResource> {
-        let mut file = files.iter().filter(|file| file.path == path);
-        file.next()
+        files.iter().find(|file| file.path == path)
     }
 }
