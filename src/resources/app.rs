@@ -9,13 +9,7 @@ use crate::{
         errors::{ApiError, CommitError},
     },
     resources::file::FileResource,
-    types::{
-        analytics::Analytics,
-        app::{AppInfo, AppStatus},
-        deploy::Deploy,
-        dns_record::DnsRecord,
-        file::FileInfo,
-    },
+    types::{Analytics, AppInfo, AppStatus, Deploy, DnsRecord, FileInfo},
 };
 
 pub struct AppResource {

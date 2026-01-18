@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     http::{ApiClient, Endpoint, errors::ApiError},
-    types::file::FileInfo,
+    types::FileInfo,
 };
 
 pub struct FileResource {
