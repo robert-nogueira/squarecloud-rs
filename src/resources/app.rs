@@ -95,6 +95,13 @@ impl AppResource {
             .into_result_t()
     }
 
+    pub async fn list_deploys(&self) -> Result<Vec<Deploy>, ApiError> {
+        self.api
+            .request_endpoint(Endpoint::list_app_deploys(&self.id))
+            .await?
+            .into_result_t()
+    }
+
     pub async fn commit(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
