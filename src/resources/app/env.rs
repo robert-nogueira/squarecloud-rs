@@ -25,4 +25,16 @@ impl AppResource {
             .build()?;
         self.api.execute_request(request).await?.into_result_t()
     }
+
+    pub async fn delete_envs(
+        &self,
+        envs: &[String],
+    ) -> Result<HashMap<String, String>, ApiError> {
+        let endpoint = Endpoint::delete_app_envs(&self.id);
+        let request = endpoint
+            .request_builder(&self.api.http_client)
+            .json(envs)
+            .build()?;
+        self.api.execute_request(request).await?.into_result_t()
+    }
 }
