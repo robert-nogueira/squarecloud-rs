@@ -1,8 +1,9 @@
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use reqwest::{
     Client, Request,
     header::{HeaderMap, HeaderValue},
+    multipart::{Form, Part},
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 
@@ -99,6 +100,22 @@ impl ApiClient {
 
     pub async fn me(&self) -> Result<AccountInfo, ApiError> {
         self.request_endpoint(Endpoint::me()).await?.into_result_t()
+    }
+
+    pub async fn upload_app(
+        &self,
+        bytes: impl Into<Cow<'static, [u8]>>,
+    ) -> Result<bool, ApiError> {
+        let endpoint = Endpoint::upload_app();
+        let form = Form::new().part("file", Part::bytes(bytes));
+
+        let request = endpoint
+            .request_builder(&self.http_client)
+            .multipart(form)
+            .build()?;
+        self.execute_request::<()>(request)
+            .await?
+            .into_bool_result()
     }
 
     pub async fn app(self, id: &str) -> AppResource {
