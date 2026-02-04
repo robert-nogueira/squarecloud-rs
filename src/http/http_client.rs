@@ -33,18 +33,18 @@ pub enum ApiResponse<T> {
 }
 
 impl<T> ApiResponse<T> {
-    pub fn into_result_t(self) -> Result<T, ApiErrorCode> {
+    pub fn into_result_t(self) -> Result<T, ApiError> {
         match self {
-            ApiResponse::Error { code, .. } => Err(code),
+            ApiResponse::Error { code, .. } => Err(ApiError::Api { code }),
             ApiResponse::Success { response, .. } => {
                 response.ok_or_else(|| panic!("Expected response data"))
             }
         }
     }
-    pub fn into_bool_result(self) -> Result<bool, ApiErrorCode> {
+    pub fn into_bool_result(self) -> Result<bool, ApiError> {
         match self {
             ApiResponse::Success { success, .. } => Ok(success),
-            ApiResponse::Error { code, .. } => Err(code),
+            ApiResponse::Error { code, .. } => Err(ApiError::Api { code }),
         }
     }
 }
@@ -98,10 +98,7 @@ impl ApiClient {
     }
 
     pub async fn me(&self) -> Result<AccountInfo, ApiError> {
-        self.request_endpoint(Endpoint::me())
-            .await?
-            .into_result_t()
-            .map_err(|code| ApiError::Api { code })
+        self.request_endpoint(Endpoint::me()).await?.into_result_t()
     }
 
     pub async fn app(self, id: &str) -> AppResource {

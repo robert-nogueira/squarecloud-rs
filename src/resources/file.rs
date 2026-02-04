@@ -37,16 +37,11 @@ impl FileResource {
             .request_endpoint::<bool>(endpoint)
             .await?
             .into_bool_result()
-            .map_err(|code| ApiError::Api { code })
     }
 
     pub async fn read(&self) -> Result<Vec<u8>, ApiError> {
         let endpoint = Endpoint::read_app_file(&self.app_id, &self.path);
-        self.api
-            .request_endpoint(endpoint)
-            .await?
-            .into_result_t()
-            .map_err(|code| ApiError::Api { code })
+        self.api.request_endpoint(endpoint).await?.into_result_t()
     }
 
     pub async fn delete(&self) -> Result<bool, ApiError> {
@@ -55,7 +50,6 @@ impl FileResource {
             .request_endpoint::<bool>(endpoint)
             .await?
             .into_bool_result()
-            .map_err(|code| ApiError::Api { code })
     }
 
     pub async fn move_to(
@@ -72,7 +66,6 @@ impl FileResource {
             .request_endpoint::<bool>(endpoint)
             .await?
             .into_bool_result()
-            .map_err(|code| ApiError::Api { code })
     }
 
     pub fn find_by_path<'a>(
