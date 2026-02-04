@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use crate::{
-    http::{ApiClient, Endpoint, errors::ApiError},
+    Endpoint,
+    http::{ApiClient, errors::ApiError},
     types::FileInfo,
 };
 
