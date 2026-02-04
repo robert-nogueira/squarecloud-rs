@@ -5,7 +5,7 @@ use crate::{Endpoint, http::errors::ApiError, types::Env};
 use super::AppResource;
 
 impl AppResource {
-    pub async fn list_env_vars(&self) -> Result<Env, ApiError> {
+    pub async fn list_envs(&self) -> Result<Env, ApiError> {
         let response: Value = self
             .api
             .request_endpoint(Endpoint::list_app_envs(&self.id))
