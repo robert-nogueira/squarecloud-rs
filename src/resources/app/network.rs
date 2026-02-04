@@ -37,4 +37,11 @@ impl AppResource {
             .await?
             .into_bool_result()
     }
+
+    pub async fn purge_cache(&self) -> Result<bool, ApiError> {
+        self.api
+            .request_endpoint::<()>(Endpoint::purge_edge_cache(&self.id))
+            .await?
+            .into_bool_result()
+    }
 }
