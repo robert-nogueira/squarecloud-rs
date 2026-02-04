@@ -3,35 +3,25 @@ use std::sync::Arc;
 use crate::{
     Endpoint,
     http::{ApiClient, errors::ApiError},
-    types::FileInfo,
+    types::{FileContent, FileInfo},
 };
 
 pub struct FileResource {
     pub path: String,
-    pub info: FileInfo,
     pub app_id: String,
     api: Arc<ApiClient>,
 }
 
 impl FileResource {
-    pub fn new(
-        api: Arc<ApiClient>,
-        path: &str,
-        app_id: &str,
-        info: FileInfo,
-    ) -> Self {
+    pub fn new(api: Arc<ApiClient>, path: &str, app_id: &str) -> Self {
         Self {
             api,
-            info,
             app_id: app_id.to_string(),
             path: path.to_string(),
         }
     }
 
-    pub async fn write_content(
-        &self,
-        content: &str,
-    ) -> Result<bool, ApiError> {
+    pub async fn write(&self, content: &str) -> Result<bool, ApiError> {
         let endpoint =
             Endpoint::put_app_file(&self.app_id, &self.path, content);
         self.api
@@ -40,9 +30,11 @@ impl FileResource {
             .into_bool_result()
     }
 
-    pub async fn read(&self) -> Result<Vec<u8>, ApiError> {
-        let endpoint = Endpoint::read_app_file(&self.app_id, &self.path);
-        self.api.request_endpoint(endpoint).await?.into_result_t()
+    pub async fn read(&self, path: &str) -> Result<FileContent, ApiError> {
+        self.api
+            .request_endpoint(Endpoint::read_app_file(&self.app_id, path))
+            .await?
+            .into_result_t()
     }
 
     pub async fn delete(&self) -> Result<bool, ApiError> {
@@ -74,5 +66,13 @@ impl FileResource {
         path: &'a str,
     ) -> Option<&'a FileResource> {
         files.iter().find(|file| file.path == path)
+    }
+
+    pub async fn all_files(
+        &self,
+        path: &str,
+    ) -> Result<Vec<FileInfo>, ApiError> {
+        let endpoint = Endpoint::list_app_files(&self.app_id, path);
+        self.api.request_endpoint(endpoint).await?.into_result_t()
     }
 }

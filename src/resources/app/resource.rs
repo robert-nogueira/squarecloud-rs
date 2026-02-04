@@ -9,6 +9,7 @@ use crate::{
         ApiClient,
         errors::{ApiError, CommitError},
     },
+    resources::FileResource,
     types::{AppInfo, AppStatus},
 };
 
@@ -23,6 +24,10 @@ impl AppResource {
             api: http,
             id: id.to_string(),
         }
+    }
+
+    pub fn file(&self, path: &str) -> FileResource {
+        FileResource::new(self.api.clone(), path, &self.id)
     }
 
     pub async fn start(&self) -> Result<bool, ApiError> {
