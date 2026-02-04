@@ -16,13 +16,4 @@ impl DatabaseResource {
     pub fn new(http: Arc<ApiClient>) -> Self {
         Self { http }
     }
-
-    pub fn create(
-        &self,
-        name: &str,
-        memory: u32,
-        db_type: &str,
-        version: &str,
-    ) {
-    }
 }
