@@ -1,11 +1,12 @@
 use std::{borrow::Cow, sync::Arc};
 
 use reqwest::multipart::{Form, Part};
+use serde_json::{Value, json};
 use tokio::{fs::File, io::AsyncReadExt};
 
 use crate::{
     http::{
-        ApiClient, Endpoint,
+        ApiClient, ApiResponse, Endpoint,
         errors::{ApiError, CommitError},
     },
     resources::file::FileResource,
@@ -100,6 +101,22 @@ impl AppResource {
             .request_endpoint(Endpoint::list_app_deploys(&self.id))
             .await?
             .into_result_t()
+    }
+
+    pub async fn set_webhook_integration(
+        &self,
+        access_token: String,
+    ) -> Result<String, ApiError> {
+        let endpoint = Endpoint::set_webhook_integration(&self.id);
+        let request = endpoint
+            .request_builder(&self.api.http_client)
+            .json(&json!({"access_token": access_token}))
+            .build()?;
+        let response: ApiResponse<Value> =
+            self.api.execute_request(request).await?;
+        let value = response.into_result_t()?;
+        let webhook = value.get("webhook").and_then(Value::as_str).unwrap();
+        Ok(webhook.to_string())
     }
 
     pub async fn commit(
