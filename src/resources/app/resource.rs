@@ -96,13 +96,4 @@ impl AppResource {
             .into_bool_result()
             .map_err(|error| CommitError::Api(error))
     }
-
-    pub async fn commit_file(
-        &self,
-        mut file: File,
-    ) -> Result<bool, CommitError> {
-        let mut buffer: Vec<u8> = vec![];
-        file.read_to_end(&mut buffer).await?;
-        self.commit(buffer).await
-    }
 }
