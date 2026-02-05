@@ -18,4 +18,18 @@ impl WorkspaceResource {
             .await?
             .into_bool_result()
     }
+
+    pub async fn remove_app(&self, app_id: &str) -> Result<bool, ApiError> {
+        let endpoint = Endpoint::workspace_remove_app();
+        let request = endpoint
+            .request_builder(&self.client.http_client)
+            .json(&json!({
+		"workspaceId": self.id,
+		"appId": app_id}))
+            .build()?;
+        self.client
+            .execute_request::<()>(request)
+            .await?
+            .into_bool_result()
+    }
 }
