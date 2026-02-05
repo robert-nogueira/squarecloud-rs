@@ -130,7 +130,7 @@ impl ApiClient {
         WorkspaceResource::new(Arc::new(self))
     }
 
-    pub async fn database(self) -> DatabaseResource {
-        DatabaseResource::new(Arc::new(self))
+    pub async fn database(self, id: &str) -> DatabaseResource {
+        DatabaseResource::new(Arc::new(self), id)
     }
 }
