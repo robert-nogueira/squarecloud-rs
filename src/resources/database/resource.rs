@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use serde_json::{Map, Value, json};
+use serde_json::{Map, Value};
 
 use crate::{
     Endpoint,
