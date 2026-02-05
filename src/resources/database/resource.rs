@@ -1,6 +1,9 @@
 use std::sync::Arc;
 
-use crate::http::ApiClient;
+use crate::{
+    Endpoint,
+    http::{ApiClient, errors::ApiError},
+};
 
 pub struct DatabaseResource {
     api: Arc<ApiClient>,
@@ -13,5 +16,12 @@ impl DatabaseResource {
             api: http,
             id: id.to_string(),
         }
+    }
+
+    pub async fn start(&self) -> Result<bool, ApiError> {
+        self.api
+            .request_endpoint::<()>(Endpoint::start_database(&self.id))
+            .await?
+            .into_bool_result()
     }
 }
