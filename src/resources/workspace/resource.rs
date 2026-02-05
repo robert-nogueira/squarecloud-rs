@@ -26,6 +26,13 @@ impl WorkspaceResource {
             .into_result_t()
     }
 
+    pub async fn leave(&self) -> Result<bool, ApiError> {
+        self.client
+            .request_endpoint::<()>(Endpoint::leave_workspace(&self.id))
+            .await?
+            .into_bool_result()
+    }
+
     pub async fn delete(&self) -> Result<bool, ApiError> {
         self.client
             .request_endpoint::<()>(Endpoint::delete_workspace())
