@@ -13,4 +13,10 @@ impl Endpoint {
             .param("app_id", app_id)
             .build()
     }
+
+    pub(crate) fn restore_app_snapshot(app_id: &str) -> Endpoint {
+        Self::builder("/apps/{app_id}/snapshots/restore", Method::POST)
+            .param("app_id", app_id)
+            .build()
+    }
 }
