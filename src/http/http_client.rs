@@ -17,7 +17,7 @@ use crate::{
     settings::SETTINGS,
     types::{
         AccountInfo, AppInfo, AppStatus, Database, DatabaseResumedStatus,
-        DatabaseType, ServiceStatus, WorkspaceInfo,
+        DatabaseType, ServiceStatus, Snapshot, WorkspaceInfo,
     },
 };
 
@@ -179,5 +179,14 @@ impl ApiClient {
             .json(&json!({"name": name}))
             .build()?;
         self.execute_request(request).await?.into_result_t()
+    }
+
+    pub async fn all_snapshots(
+        &self,
+        scope: Option<&str>,
+    ) -> Result<Vec<Snapshot>, ApiError> {
+        self.request_endpoint(Endpoint::list_all_snapshots(scope))
+            .await?
+            .into_result_t()
     }
 }
