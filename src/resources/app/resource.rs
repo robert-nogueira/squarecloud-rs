@@ -1,7 +1,6 @@
 use std::{borrow::Cow, sync::Arc};
 
 use reqwest::multipart::{Form, Part};
-use tokio::{fs::File, io::AsyncReadExt};
 
 use crate::{
     Endpoint,
@@ -49,13 +48,6 @@ impl AppResource {
             .request_endpoint::<()>(Endpoint::app_stop(&self.id))
             .await?
             .into_bool_result()
-    }
-
-    pub async fn all_apps_status(&self) -> Result<Vec<AppStatus>, ApiError> {
-        self.client
-            .request_endpoint(Endpoint::all_apps_status())
-            .await?
-            .into_result_t()
     }
 
     pub async fn status(&self) -> Result<AppStatus, ApiError> {
