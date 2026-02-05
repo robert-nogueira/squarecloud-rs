@@ -20,7 +20,7 @@ impl AppResource {
         &self,
     ) -> Result<SnapshotReference, ApiError> {
         self.client
-            .request_endpoint(Endpoint::create_database_snapshot(&self.id))
+            .request_endpoint(Endpoint::app_create_snapshot(&self.id))
             .await?
             .into_result_t()
     }
