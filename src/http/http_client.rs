@@ -6,6 +6,7 @@ use reqwest::{
     multipart::{Form, Part},
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde_json::json;
 
 use super::{
     Endpoint,
@@ -16,7 +17,7 @@ use crate::{
         AppResource, DatabaseResource, SnapshotResource, WorkspaceResource,
     },
     settings::SETTINGS,
-    types::AccountInfo,
+    types::{AccountInfo, Database, DatabaseType},
 };
 
 #[derive(Serialize, Deserialize)]
@@ -116,6 +117,25 @@ impl ApiClient {
         self.execute_request::<()>(request)
             .await?
             .into_bool_result()
+    }
+
+    pub async fn create_database(
+        &self,
+        name: String,
+        memory: u32,
+        r#type: DatabaseType,
+        version: String,
+    ) -> Result<Database, ApiError> {
+        let endpoint = Endpoint::create_database();
+        let request = endpoint
+            .request_builder(&self.http_client)
+            .json(&json!({
+                "name": name,
+                "memory": memory,
+                "type": r#type,
+                "version": version}))
+            .build()?;
+        self.execute_request(request).await?.into_result_t()
     }
 
     pub async fn app(self, id: &str) -> AppResource {
