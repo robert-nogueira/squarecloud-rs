@@ -8,3 +8,9 @@ pub struct Snapshot {
     pub modified: DateTime<Utc>,
     pub key: String,
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct SnapshotReference {
+    pub url: String,
+    pub key: String,
+}
