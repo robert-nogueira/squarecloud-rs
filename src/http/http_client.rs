@@ -17,7 +17,9 @@ use crate::{
         AppResource, DatabaseResource, SnapshotResource, WorkspaceResource,
     },
     settings::SETTINGS,
-    types::{AccountInfo, AppStatus, Database, DatabaseType},
+    types::{
+        AccountInfo, AppStatus, Database, DatabaseResumedStatus, DatabaseType,
+    },
 };
 
 #[derive(Serialize, Deserialize)]
@@ -142,6 +144,14 @@ impl ApiClient {
                 "version": version}))
             .build()?;
         self.execute_request(request).await?.into_result_t()
+    }
+
+    pub async fn all_database_status(
+        &self,
+    ) -> Result<Vec<DatabaseResumedStatus>, ApiError> {
+        self.request_endpoint(Endpoint::all_database_status())
+            .await?
+            .into_result_t()
     }
 
     pub async fn app(self, id: &str) -> AppResource {
