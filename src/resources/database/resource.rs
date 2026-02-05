@@ -3,6 +3,7 @@ use std::sync::Arc;
 use crate::{
     Endpoint,
     http::{ApiClient, errors::ApiError},
+    types::DatabaseStatus,
 };
 
 pub struct DatabaseResource {
@@ -30,5 +31,12 @@ impl DatabaseResource {
             .request_endpoint::<()>(Endpoint::stop_database(&self.id))
             .await?
             .into_bool_result()
+    }
+
+    pub async fn status(&self) -> Result<DatabaseStatus, ApiError> {
+        self.client
+            .request_endpoint(Endpoint::database_status(&self.id))
+            .await?
+            .into_result_t()
     }
 }
