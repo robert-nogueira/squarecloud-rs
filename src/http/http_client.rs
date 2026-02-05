@@ -16,7 +16,8 @@ use crate::{
     resources::{AppResource, DatabaseResource, WorkspaceResource},
     settings::SETTINGS,
     types::{
-        AccountInfo, AppStatus, Database, DatabaseResumedStatus, DatabaseType,
+        AccountInfo, AppInfo, AppStatus, Database, DatabaseResumedStatus,
+        DatabaseType,
     },
 };
 
@@ -106,7 +107,7 @@ impl ApiClient {
     pub async fn upload_app(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
-    ) -> Result<bool, ApiError> {
+    ) -> Result<AppInfo, ApiError> {
         let endpoint = Endpoint::upload_app();
         let form = Form::new().part("file", Part::bytes(bytes));
 
@@ -114,9 +115,7 @@ impl ApiClient {
             .request_builder(&self.http_client)
             .multipart(form)
             .build()?;
-        self.execute_request::<()>(request)
-            .await?
-            .into_bool_result()
+        self.execute_request(request).await?.into_result_t()
     }
 
     pub async fn all_apps_status(&self) -> Result<Vec<AppStatus>, ApiError> {
