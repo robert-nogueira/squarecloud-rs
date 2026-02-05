@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct WorkspaceMember {
     pub id: String,
     pub name: String,
@@ -10,7 +10,7 @@ pub struct WorkspaceMember {
     pub joined_at: DateTime<Utc>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct WorkspaceApp {
     pub id: String,
     pub name: String,
@@ -18,7 +18,7 @@ pub struct WorkspaceApp {
     pub language: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Workspace {
     pub id: String,
     pub name: String,
