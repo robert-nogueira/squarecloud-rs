@@ -163,15 +163,15 @@ impl ApiClient {
         self.execute_request(request).await?.into_result_t()
     }
 
-    pub async fn app(self, id: &str) -> AppResource {
+    pub fn app(self, id: &str) -> AppResource {
         AppResource::new(Arc::new(self), id)
     }
 
-    pub async fn workspace(self, id: &str) -> WorkspaceResource {
+    pub fn workspace(self, id: &str) -> WorkspaceResource {
         WorkspaceResource::new(Arc::new(self), id)
     }
 
-    pub async fn database(self, id: &str) -> DatabaseResource {
+    pub fn database(self, id: &str) -> DatabaseResource {
         DatabaseResource::new(Arc::new(self), id)
     }
 }
