@@ -78,4 +78,11 @@ impl DatabaseResource {
             .await?
             .into_bool_result()
     }
+
+    pub async fn delete(&self) -> Result<bool, ApiError> {
+        self.client
+            .request_endpoint(Endpoint::delete_database(&self.id))
+            .await?
+            .into_result_t()
+    }
 }
