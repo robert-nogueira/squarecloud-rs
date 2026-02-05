@@ -3,6 +3,7 @@ use std::sync::Arc;
 use crate::{
     Endpoint,
     http::{ApiClient, errors::ApiError},
+    types::WorkspaceInfo,
 };
 
 pub struct WorkspaceResource {
@@ -16,6 +17,13 @@ impl WorkspaceResource {
             client: http,
             id: id.to_string(),
         }
+    }
+
+    pub async fn info(&self) -> Result<WorkspaceInfo, ApiError> {
+        self.client
+            .request_endpoint(Endpoint::get_workspace(&self.id))
+            .await?
+            .into_result_t()
     }
 
     pub async fn delete(&self) -> Result<bool, ApiError> {
