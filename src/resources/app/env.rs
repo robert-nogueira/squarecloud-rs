@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use serde_json::json;
+
 use crate::{Endpoint, http::errors::ApiError};
 
 use super::AppResource;
@@ -21,7 +23,19 @@ impl AppResource {
         let endpoint = Endpoint::post_app_envs(&self.id);
         let request = endpoint
             .request_builder(&self.client.http_client)
-            .json(envs)
+            .json(&json!({"envs": envs}))
+            .build()?;
+        self.client.execute_request(request).await?.into_result_t()
+    }
+
+    pub async fn overwrite_envs(
+        &self,
+        envs: &HashMap<String, String>,
+    ) -> Result<HashMap<String, String>, ApiError> {
+        let endpoint = Endpoint::overwrite_app_envs(&self.id);
+        let request = endpoint
+            .request_builder(&self.client.http_client)
+            .json(&json!({"envs": envs}))
             .build()?;
         self.client.execute_request(request).await?.into_result_t()
     }
