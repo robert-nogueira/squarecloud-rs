@@ -23,7 +23,9 @@ pub struct Workspace {
     pub id: String,
     pub name: String,
     pub owner: String,
+    #[serde(default)]
     pub members: Vec<WorkspaceMember>,
+    #[serde(default)]
     pub applications: Vec<WorkspaceApp>,
     #[serde(rename = "createdAt")]
     pub created_at: DateTime<Utc>,
