@@ -13,9 +13,7 @@ use super::{
     errors::{ApiError, ApiErrorCode},
 };
 use crate::{
-    resources::{
-        AppResource, DatabaseResource, SnapshotResource, WorkspaceResource,
-    },
+    resources::{AppResource, DatabaseResource, WorkspaceResource},
     settings::SETTINGS,
     types::{
         AccountInfo, AppStatus, Database, DatabaseResumedStatus, DatabaseType,
@@ -156,10 +154,6 @@ impl ApiClient {
 
     pub async fn app(self, id: &str) -> AppResource {
         AppResource::new(Arc::new(self), id)
-    }
-
-    pub async fn snapshot(self) -> SnapshotResource {
-        SnapshotResource::new(Arc::new(self))
     }
 
     pub async fn workspace(self) -> WorkspaceResource {
