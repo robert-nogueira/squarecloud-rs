@@ -189,4 +189,12 @@ impl ApiClient {
             .await?
             .into_result_t()
     }
+
+    pub async fn all_workspaces(
+        &self,
+    ) -> Result<Vec<WorkspaceInfo>, ApiError> {
+        self.request_endpoint(Endpoint::list_workspaces())
+            .await?
+            .into_result_t()
+    }
 }
