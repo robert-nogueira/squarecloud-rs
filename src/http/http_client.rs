@@ -155,8 +155,8 @@ impl ApiClient {
         AppResource::new(Arc::new(self), id)
     }
 
-    pub async fn workspace(self) -> WorkspaceResource {
-        WorkspaceResource::new(Arc::new(self))
+    pub async fn workspace(self, id: &str) -> WorkspaceResource {
+        WorkspaceResource::new(Arc::new(self), id)
     }
 
     pub async fn database(self, id: &str) -> DatabaseResource {
