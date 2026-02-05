@@ -9,7 +9,7 @@ use crate::{
 use super::DatabaseResource;
 
 impl DatabaseResource {
-    pub async fn list_snapshots(&self) -> Result<Snapshot, ApiError> {
+    pub async fn list_snapshots(&self) -> Result<Vec<Snapshot>, ApiError> {
         self.client
             .request_endpoint(Endpoint::list_database_snapshots(&self.id))
             .await?
