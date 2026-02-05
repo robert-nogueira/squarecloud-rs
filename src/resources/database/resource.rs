@@ -24,4 +24,11 @@ impl DatabaseResource {
             .await?
             .into_bool_result()
     }
+
+    pub async fn stop(&self) -> Result<bool, ApiError> {
+        self.api
+            .request_endpoint::<()>(Endpoint::stop_database(&self.id))
+            .await?
+            .into_bool_result()
+    }
 }
