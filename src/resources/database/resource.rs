@@ -1,5 +1,7 @@
 use std::sync::Arc;
 
+use serde_json::{Map, Value, json};
+
 use crate::{
     Endpoint,
     http::{ApiClient, errors::ApiError},
@@ -45,5 +47,35 @@ impl DatabaseResource {
             .request_endpoint(Endpoint::database_metrics(&self.id))
             .await?
             .into_result_t()
+    }
+
+    pub async fn edit(
+        &self,
+        name: Option<&str>,
+        ram: Option<u32>,
+    ) -> Result<bool, ApiError> {
+        if name.is_none() && ram.is_none() {
+            return Ok(false);
+        }
+        let mut map = Map::new();
+        if name.is_some() {
+            map.insert(
+                "name".to_string(),
+                Value::String(name.unwrap().to_string()),
+            );
+        }
+        if ram.is_some() {
+            map.insert("ram".to_string(), Value::Number(ram.unwrap().into()));
+        }
+        let payload = Value::Object(map);
+        let endpoint = Endpoint::edit_database(&self.id);
+        let request = endpoint
+            .request_builder(&self.client.http_client)
+            .json(&payload)
+            .build()?;
+        self.client
+            .execute_request::<()>(request)
+            .await?
+            .into_bool_result()
     }
 }
