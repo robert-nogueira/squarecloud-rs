@@ -1,6 +1,11 @@
+use std::sync::Arc;
+
 use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+use crate::http::ApiClient;
+use crate::resources::AppResource;
 
 #[derive(Serialize, Deserialize)]
 pub struct AppInfo {
@@ -12,6 +17,12 @@ pub struct AppInfo {
     pub language: String,
     pub domain: Option<String>,
     pub custom: Option<String>,
+}
+
+impl AppInfo {
+    pub fn into_resource(&self, api: Arc<ApiClient>) -> AppResource {
+        AppResource::new(api, &self.id)
+    }
 }
 
 #[derive(Serialize, Deserialize)]
