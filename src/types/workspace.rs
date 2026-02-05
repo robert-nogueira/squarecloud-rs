@@ -23,7 +23,7 @@ pub struct WorkspaceApp {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct Workspace {
+pub struct WorkspaceInfo {
     pub id: String,
     pub name: String,
     pub owner: String,
@@ -35,7 +35,7 @@ pub struct Workspace {
     pub created_at: DateTime<Utc>,
 }
 
-impl Workspace {
+impl WorkspaceInfo {
     pub fn into_resource(&self, api: Arc<ApiClient>) -> WorkspaceResource {
         WorkspaceResource::new(api, &self.id)
     }

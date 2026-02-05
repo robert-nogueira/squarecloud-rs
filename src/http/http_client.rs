@@ -17,7 +17,7 @@ use crate::{
     settings::SETTINGS,
     types::{
         AccountInfo, AppInfo, AppStatus, Database, DatabaseResumedStatus,
-        DatabaseType, Workspace,
+        DatabaseType, WorkspaceInfo,
     },
 };
 
@@ -154,7 +154,7 @@ impl ApiClient {
     pub async fn create_workspace(
         &self,
         name: String,
-    ) -> Result<Workspace, ApiError> {
+    ) -> Result<WorkspaceInfo, ApiError> {
         let endpoint = Endpoint::create_workspace();
         let request = endpoint
             .request_builder(&self.http_client)
