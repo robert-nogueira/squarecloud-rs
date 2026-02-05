@@ -6,6 +6,7 @@ mod deploy;
 mod dns_record;
 mod file;
 mod plan;
+mod service;
 mod snapshot;
 mod workspace;
 
@@ -17,5 +18,6 @@ pub use deploy::*;
 pub use dns_record::*;
 pub use file::*;
 pub use plan::*;
+pub use service::*;
 pub use snapshot::*;
 pub use workspace::*;

@@ -17,7 +17,7 @@ use crate::{
     settings::SETTINGS,
     types::{
         AccountInfo, AppInfo, AppStatus, Database, DatabaseResumedStatus,
-        DatabaseType, WorkspaceInfo,
+        DatabaseType, ServiceStatus, WorkspaceInfo,
     },
 };
 
@@ -100,6 +100,24 @@ impl ApiClient {
         Ok(response)
     }
 
+    pub fn app(self, id: &str) -> AppResource {
+        AppResource::new(Arc::new(self), id)
+    }
+
+    pub fn workspace(self, id: &str) -> WorkspaceResource {
+        WorkspaceResource::new(Arc::new(self), id)
+    }
+
+    pub fn database(self, id: &str) -> DatabaseResource {
+        DatabaseResource::new(Arc::new(self), id)
+    }
+
+    pub async fn service_status(&self) -> Result<ServiceStatus, ApiError> {
+        self.request_endpoint(Endpoint::service_status())
+            .await?
+            .into_result_t()
+    }
+
     pub async fn me(&self) -> Result<AccountInfo, ApiError> {
         self.request_endpoint(Endpoint::me()).await?.into_result_t()
     }
@@ -161,17 +179,5 @@ impl ApiClient {
             .json(&json!({"name": name}))
             .build()?;
         self.execute_request(request).await?.into_result_t()
-    }
-
-    pub fn app(self, id: &str) -> AppResource {
-        AppResource::new(Arc::new(self), id)
-    }
-
-    pub fn workspace(self, id: &str) -> WorkspaceResource {
-        WorkspaceResource::new(Arc::new(self), id)
-    }
-
-    pub fn database(self, id: &str) -> DatabaseResource {
-        DatabaseResource::new(Arc::new(self), id)
     }
 }
