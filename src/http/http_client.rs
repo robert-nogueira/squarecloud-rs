@@ -17,7 +17,7 @@ use crate::{
     settings::SETTINGS,
     types::{
         AccountInfo, AppInfo, AppStatus, Database, DatabaseResumedStatus,
-        DatabaseType,
+        DatabaseType, Workspace,
     },
 };
 
@@ -149,6 +149,18 @@ impl ApiClient {
         self.request_endpoint(Endpoint::all_database_status())
             .await?
             .into_result_t()
+    }
+
+    pub async fn create_workspace(
+        &self,
+        name: String,
+    ) -> Result<Workspace, ApiError> {
+        let endpoint = Endpoint::create_workspace();
+        let request = endpoint
+            .request_builder(&self.http_client)
+            .json(&json!({"name": name}))
+            .build()?;
+        self.execute_request(request).await?.into_result_t()
     }
 
     pub async fn app(self, id: &str) -> AppResource {
