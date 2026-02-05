@@ -1,4 +1,4 @@
-use serde_json::Value;
+use serde_json::{Value, json};
 
 use crate::{
     Endpoint,
@@ -16,5 +16,27 @@ impl WorkspaceResource {
         let value = response.into_result_t()?;
         let code = value.get("code").and_then(Value::as_str).unwrap();
         Ok(code.to_string())
+    }
+
+    pub async fn invite_member(
+        &self,
+        code: &str,
+        group: &str,
+    ) -> Result<bool, ApiError> {
+        let endpoint = Endpoint::workspace_invite_member();
+        let request = endpoint
+            .request_builder(&self.client.http_client)
+            .json(&json!(
+            {
+                "workspaceId": self.id,
+                "code": code,
+                "group": group
+            }
+            ))
+            .build()?;
+        self.client
+            .execute_request::<()>(request)
+            .await?
+            .into_bool_result()
     }
 }
