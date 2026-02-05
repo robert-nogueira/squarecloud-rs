@@ -26,13 +26,10 @@ impl WorkspaceResource {
         let endpoint = Endpoint::workspace_invite_member();
         let request = endpoint
             .request_builder(&self.client.http_client)
-            .json(&json!(
-            {
-                "workspaceId": self.id,
-                "code": code,
-                "group": group
-            }
-            ))
+            .json(&json!({
+		"workspaceId": self.id,
+		"code": code,
+		"group": group}))
             .build()?;
         self.client
             .execute_request::<()>(request)
