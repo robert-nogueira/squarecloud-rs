@@ -1,4 +1,8 @@
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
+
+use crate::{http::ApiClient, resources::DatabaseResource};
 
 #[derive(Serialize, Deserialize)]
 pub struct Database {
@@ -11,4 +15,10 @@ pub struct Database {
     pub password: String,
     pub certificate: String,
     pub connection_url: String,
+}
+
+impl Database {
+    pub fn into_resource(&self, api: Arc<ApiClient>) -> DatabaseResource {
+        DatabaseResource::new(api, &self.id)
+    }
 }
