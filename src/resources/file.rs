@@ -9,13 +9,13 @@ use crate::{
 pub struct FileResource {
     pub path: String,
     pub app_id: String,
-    api: Arc<ApiClient>,
+    pub client: Arc<ApiClient>,
 }
 
 impl FileResource {
     pub fn new(api: Arc<ApiClient>, path: &str, app_id: &str) -> Self {
         Self {
-            api,
+            client: api,
             app_id: app_id.to_string(),
             path: path.to_string(),
         }
@@ -24,14 +24,14 @@ impl FileResource {
     pub async fn write(&self, content: &str) -> Result<bool, ApiError> {
         let endpoint =
             Endpoint::put_app_file(&self.app_id, &self.path, content);
-        self.api
+        self.client
             .request_endpoint::<bool>(endpoint)
             .await?
             .into_bool_result()
     }
 
     pub async fn read(&self, path: &str) -> Result<FileContent, ApiError> {
-        self.api
+        self.client
             .request_endpoint(Endpoint::read_app_file(&self.app_id, path))
             .await?
             .into_result_t()
@@ -39,7 +39,7 @@ impl FileResource {
 
     pub async fn delete(&self) -> Result<bool, ApiError> {
         let endpoint = Endpoint::delete_app_file(&self.app_id);
-        self.api
+        self.client
             .request_endpoint::<bool>(endpoint)
             .await?
             .into_bool_result()
@@ -55,7 +55,7 @@ impl FileResource {
             destination_path,
         );
 
-        self.api
+        self.client
             .request_endpoint::<bool>(endpoint)
             .await?
             .into_bool_result()
@@ -73,6 +73,9 @@ impl FileResource {
         path: &str,
     ) -> Result<Vec<FileInfo>, ApiError> {
         let endpoint = Endpoint::list_app_files(&self.app_id, path);
-        self.api.request_endpoint(endpoint).await?.into_result_t()
+        self.client
+            .request_endpoint(endpoint)
+            .await?
+            .into_result_t()
     }
 }

@@ -8,7 +8,7 @@ impl AppResource {
     pub async fn list_envs(
         &self,
     ) -> Result<HashMap<String, String>, ApiError> {
-        self.api
+        self.client
             .request_endpoint(Endpoint::list_app_envs(&self.id))
             .await?
             .into_result_t()
@@ -20,10 +20,10 @@ impl AppResource {
     ) -> Result<HashMap<String, String>, ApiError> {
         let endpoint = Endpoint::post_app_envs(&self.id);
         let request = endpoint
-            .request_builder(&self.api.http_client)
+            .request_builder(&self.client.http_client)
             .json(envs)
             .build()?;
-        self.api.execute_request(request).await?.into_result_t()
+        self.client.execute_request(request).await?.into_result_t()
     }
 
     pub async fn delete_envs(
@@ -32,9 +32,9 @@ impl AppResource {
     ) -> Result<HashMap<String, String>, ApiError> {
         let endpoint = Endpoint::delete_app_envs(&self.id);
         let request = endpoint
-            .request_builder(&self.api.http_client)
+            .request_builder(&self.client.http_client)
             .json(envs)
             .build()?;
-        self.api.execute_request(request).await?.into_result_t()
+        self.client.execute_request(request).await?.into_result_t()
     }
 }

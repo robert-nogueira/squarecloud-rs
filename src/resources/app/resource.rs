@@ -15,65 +15,65 @@ use crate::{
 
 pub struct AppResource {
     pub id: String,
-    pub(crate) api: Arc<ApiClient>,
+    pub client: Arc<ApiClient>,
 }
 
 impl AppResource {
     pub fn new(http: Arc<ApiClient>, id: &str) -> Self {
         Self {
-            api: http,
+            client: http,
             id: id.to_string(),
         }
     }
 
     pub fn file(&self, path: &str) -> FileResource {
-        FileResource::new(self.api.clone(), path, &self.id)
+        FileResource::new(self.client.clone(), path, &self.id)
     }
 
     pub async fn start(&self) -> Result<bool, ApiError> {
-        self.api
+        self.client
             .request_endpoint::<()>(Endpoint::app_start(&self.id))
             .await?
             .into_bool_result()
     }
 
     pub async fn restart(&self) -> Result<bool, ApiError> {
-        self.api
+        self.client
             .request_endpoint::<()>(Endpoint::app_restart(&self.id))
             .await?
             .into_bool_result()
     }
 
     pub async fn stop(&self) -> Result<bool, ApiError> {
-        self.api
+        self.client
             .request_endpoint::<()>(Endpoint::app_stop(&self.id))
             .await?
             .into_bool_result()
     }
 
     pub async fn all_apps_status(&self) -> Result<Vec<AppStatus>, ApiError> {
-        self.api
+        self.client
             .request_endpoint(Endpoint::all_apps_status())
             .await?
             .into_result_t()
     }
 
     pub async fn status(&self) -> Result<AppStatus, ApiError> {
-        self.api
+        self.client
             .request_endpoint(Endpoint::app_status(&self.id))
             .await?
             .into_result_t()
     }
 
     pub async fn info(&self) -> Result<AppInfo, ApiError> {
-        self.api
+        self.client
             .request_endpoint(Endpoint::app_info(&self.id))
             .await?
             .into_result_t()
     }
 
     pub async fn logs(&self) -> Result<String, ApiError> {
-        self.api
+        self.client
             .request_endpoint(Endpoint::app_logs(&self.id))
             .await?
             .into_result_t()
@@ -87,10 +87,10 @@ impl AppResource {
         let form = Form::new().part("file", Part::bytes(bytes));
 
         let request = endpoint
-            .request_builder(&self.api.http_client)
+            .request_builder(&self.client.http_client)
             .multipart(form)
             .build()?;
-        self.api
+        self.client
             .execute_request::<()>(request)
             .await?
             .into_bool_result()
