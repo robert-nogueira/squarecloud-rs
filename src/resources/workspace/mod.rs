@@ -1,3 +1,4 @@
+mod applications;
 mod members;
 mod resource;
 
