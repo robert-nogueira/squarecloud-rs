@@ -39,4 +39,21 @@ impl WorkspaceResource {
             .await?
             .into_bool_result()
     }
+
+    pub async fn remove_member(
+        &self,
+        member_id: &str,
+    ) -> Result<bool, ApiError> {
+        let endpoint = Endpoint::remove_workspace_member();
+        let request = endpoint
+            .request_builder(&self.client.http_client)
+            .json(&json!({
+		"workspaceId": self.id,
+		"memberId": member_id}))
+            .build()?;
+        self.client
+            .execute_request::<()>(request)
+            .await?
+            .into_bool_result()
+    }
 }
