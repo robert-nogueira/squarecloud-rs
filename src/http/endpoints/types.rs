@@ -2,12 +2,6 @@ use reqwest::{Client, Method, RequestBuilder};
 use serde_json::Value;
 
 #[derive(Clone)]
-pub struct EndpointTemplate {
-    pub path: &'static str,
-    pub method: Method,
-}
-
-#[derive(Clone)]
 pub struct Endpoint {
     pub path: String,
     pub method: Method,
