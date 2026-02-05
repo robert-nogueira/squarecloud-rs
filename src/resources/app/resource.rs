@@ -88,4 +88,11 @@ impl AppResource {
             .into_bool_result()
             .map_err(|error| CommitError::Api(error))
     }
+
+    pub async fn delete(&self) -> Result<bool, ApiError> {
+        self.client
+            .request_endpoint::<()>(Endpoint::app_delete(&self.id))
+            .await?
+            .into_bool_result()
+    }
 }
