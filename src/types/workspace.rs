@@ -1,5 +1,9 @@
+use std::sync::Arc;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+use crate::{http::ApiClient, resources::WorkspaceResource};
 
 #[derive(Serialize, Deserialize)]
 pub struct WorkspaceMember {
@@ -29,4 +33,10 @@ pub struct Workspace {
     pub applications: Vec<WorkspaceApp>,
     #[serde(rename = "createdAt")]
     pub created_at: DateTime<Utc>,
+}
+
+impl Workspace {
+    pub fn into_resource(&self, api: Arc<ApiClient>) -> WorkspaceResource {
+        WorkspaceResource::new(api, &self.id)
+    }
 }
