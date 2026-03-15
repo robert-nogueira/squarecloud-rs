@@ -1,7 +1,6 @@
-use std::collections::HashMap;
-
 use super::Endpoint;
 use reqwest::Method;
+use serde_json::json;
 
 impl Endpoint {
     pub(crate) fn read_app_file(app_id: &str, path: &str) -> Endpoint {
@@ -23,8 +22,10 @@ impl Endpoint {
         path: &str,
         content: &str,
     ) -> Endpoint {
-        let mut json_body = HashMap::with_capacity(2);
-        json_body.extend([("path", path), ("content", content)]);
+        let json_body = json!({
+            "path": path,
+            "content": content,
+        });
         Self::builder("/apps/{app_id}/files", Method::PUT)
             .param("app_id", app_id)
             .json(serde_json::to_value(json_body).unwrap())
@@ -36,9 +37,10 @@ impl Endpoint {
         source_path: &str,
         destination_path: &str,
     ) -> Endpoint {
-        let mut json_body = HashMap::with_capacity(2);
-        json_body.extend([("path", source_path), ("to", destination_path)]);
-
+        let json_body = json!({
+            "path": source_path,
+            "to": destination_path,
+        });
         Self::builder("/apps/{app_id}/files", Method::PATCH)
             .param("app_id", app_id)
             .json(serde_json::to_value(json_body).unwrap())
