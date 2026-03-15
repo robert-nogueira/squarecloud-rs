@@ -78,6 +78,14 @@ impl ApiClient {
         }
     }
 
+    fn url(&self, path: &str) -> String {
+        format!(
+            "{}/{}",
+            self.base_url.trim_end_matches('/'),
+            path.trim_start_matches('/')
+        )
+    }
+
     pub async fn execute_request<T: DeserializeOwned>(
         &self,
         request: Request,
@@ -93,7 +101,7 @@ impl ApiClient {
     ) -> Result<ApiResponse<T>, reqwest::Error> {
         let response = self
             .http_client
-            .request(endpoint.method, endpoint.path)
+            .request(endpoint.method, self.url(&endpoint.path))
             .send()
             .await?;
         let response: ApiResponse<T> = response.json().await?;
