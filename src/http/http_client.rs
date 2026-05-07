@@ -102,6 +102,7 @@ impl ApiClient {
         let response = self
             .http_client
             .request(endpoint.method, self.url(&endpoint.path))
+            .json(&endpoint.json_body)
             .send()
             .await?;
         let response: ApiResponse<T> = response.json().await?;
