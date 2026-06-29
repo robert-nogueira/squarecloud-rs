@@ -49,6 +49,22 @@ pub struct AppNetwork {
     pub now: String,
 }
 
+/// A domain entry associated with an application.
+///
+/// Returned as part of a [`Vec`] by
+/// [`ApiClient::all_domains`](crate::ApiClient::all_domains).
+#[derive(Serialize, Deserialize)]
+pub struct AppDomain {
+    /// The owning application's unique identifier.
+    pub app_id: String,
+    /// The fully-qualified domain name.
+    pub hostname: String,
+    /// Either `"subdomain"` (*.squareweb.app) or `"custom"` (attached
+    /// domain).
+    #[serde(rename = "type")]
+    pub domain_type: String,
+}
+
 /// A single historical resource-usage sample for an application.
 ///
 /// Returned as part of a [`Vec`] by

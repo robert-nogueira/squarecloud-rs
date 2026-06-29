@@ -16,8 +16,9 @@ use crate::{
     resources::{AppResource, DatabaseResource, WorkspaceResource},
     settings::SETTINGS,
     types::{
-        AccountInfo, AppInfo, AppStatus, Database, DatabaseResumedStatus,
-        DatabaseType, ServiceStatus, Snapshot, WorkspaceInfo,
+        AccountInfo, AppDomain, AppInfo, AppStatus, Database,
+        DatabaseResumedStatus, DatabaseType, ServiceStatus, Snapshot,
+        WorkspaceInfo,
     },
 };
 
@@ -231,6 +232,23 @@ impl ApiClient {
             .multipart(form)
             .build()?;
         self.execute_request(request).await?.into_result_t()
+    }
+
+    /// Returns all hostnames across every application owned by the account.
+    ///
+    /// Each [`AppDomain`] entry contains the owning `app_id`, the
+    /// `hostname`, and whether it is a `"subdomain"` or `"custom"` domain.
+    /// Applications without a web-accessible domain (workers, bots) are
+    /// excluded.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
+    pub async fn all_domains(&self) -> Result<Vec<AppDomain>, ApiError> {
+        self.request_endpoint(Endpoint::app_domains())
+            .await?
+            .into_result_t()
     }
 
     /// Returns the runtime status of every application owned by the account.

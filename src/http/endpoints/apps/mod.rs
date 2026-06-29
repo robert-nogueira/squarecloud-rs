@@ -70,6 +70,10 @@ impl Endpoint {
             .build()
     }
 
+    pub(crate) fn app_domains() -> Endpoint {
+        Self::builder("/apps/domains", Method::GET).build()
+    }
+
     pub(crate) fn app_metrics(app_id: &str) -> Endpoint {
         Self::builder("/apps/{app_id}/metrics", Method::GET)
             .param("app_id", app_id)
