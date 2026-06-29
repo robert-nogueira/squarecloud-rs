@@ -2,6 +2,10 @@
 name = "squarecloud-rs"
 version = "0.1.0"
 edition = "2024"
+description = "Async Rust client for the SquareCloud API"
+license = "MIT"
+keywords = ["squarecloud", "api", "async", "http"]
+categories = ["api-bindings", "web-programming::http-client"]
 
 [dependencies]
 chrono = { version = "0.4.42", features = ["serde"] }

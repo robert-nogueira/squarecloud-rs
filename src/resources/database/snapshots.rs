@@ -9,6 +9,12 @@ use crate::{
 use super::DatabaseResource;
 
 impl DatabaseResource {
+    /// Returns all snapshots taken of this database.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
     pub async fn list_snapshots(&self) -> Result<Vec<Snapshot>, ApiError> {
         self.client
             .request_endpoint(Endpoint::list_database_snapshots(&self.id))
@@ -16,6 +22,15 @@ impl DatabaseResource {
             .into_result_t()
     }
 
+    /// Takes a new snapshot of the database and returns a reference to it.
+    ///
+    /// Returns a [`SnapshotReference`] containing the download URL and storage
+    /// key for the snapshot archive.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
     pub async fn create_snapshot(
         &self,
     ) -> Result<SnapshotReference, ApiError> {
@@ -25,6 +40,17 @@ impl DatabaseResource {
             .into_result_t()
     }
 
+    /// Restores the database to the state captured in the specified snapshot.
+    ///
+    /// Both `snapshot_id` and `version_id` can be obtained from the
+    /// [`Snapshot::key`](crate::types::Snapshot::key) field of values returned
+    /// by [`list_snapshots`](DatabaseResource::list_snapshots). Returns
+    /// `Ok(true)` when the restore has been initiated.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// if the snapshot or version is not found.
     pub async fn restore_snapshot(
         &self,
         snapshot_id: String,

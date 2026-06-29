@@ -8,6 +8,15 @@ use crate::{
 use super::WorkspaceResource;
 
 impl WorkspaceResource {
+    /// Retrieves the current invitation code for this workspace.
+    ///
+    /// The code can be shared with potential members, who join by passing it
+    /// to [`invite_member`](WorkspaceResource::invite_member).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
     pub async fn get_invite_code(&self) -> Result<String, ApiError> {
         let response: ApiResponse<Value> = self
             .client
@@ -18,6 +27,18 @@ impl WorkspaceResource {
         Ok(code.to_string())
     }
 
+    /// Accepts an invitation and joins this workspace under the given
+    /// permission group.
+    ///
+    /// `code` is the invite code obtained from the workspace owner via
+    /// [`get_invite_code`](WorkspaceResource::get_invite_code). `group` is the
+    /// permission level assigned to the new member (e.g. `"member"`,
+    /// `"admin"`). Returns `Ok(true)` on success.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// if the code is invalid or has expired.
     pub async fn invite_member(
         &self,
         code: &str,
@@ -37,6 +58,14 @@ impl WorkspaceResource {
             .into_bool_result()
     }
 
+    /// Removes the member identified by `member_id` from this workspace.
+    ///
+    /// Returns `Ok(true)` on success.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// if the member does not exist in this workspace.
     pub async fn remove_member(
         &self,
         member_id: &str,
@@ -54,6 +83,16 @@ impl WorkspaceResource {
             .into_bool_result()
     }
 
+    /// Changes the permission group of an existing workspace member.
+    ///
+    /// `code` is the invite code that identifies the member and `group` is the
+    /// new permission level (e.g. `"member"`, `"admin"`). Returns `Ok(true)`
+    /// on success.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// if the member or group is invalid.
     pub async fn change_member_permissions(
         &self,
         code: &str,

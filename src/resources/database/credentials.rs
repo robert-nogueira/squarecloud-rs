@@ -9,6 +9,15 @@ use crate::{
 use super::DatabaseResource;
 
 impl DatabaseResource {
+    /// Returns the PEM-encoded TLS client certificate for the database.
+    ///
+    /// Use this certificate when establishing a TLS-authenticated connection
+    /// to the database server.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
     pub async fn certificate(&self) -> Result<String, ApiError> {
         let endpoint = Endpoint::get_database_certificate(&self.id);
         let response: ApiResponse<Value> =
@@ -19,6 +28,17 @@ impl DatabaseResource {
         Ok(certificate.to_string())
     }
 
+    /// Rotates the specified credential and returns the new value.
+    ///
+    /// Pass [`CredentialType::Password`] to generate a new password, or
+    /// [`CredentialType::Certificate`] to regenerate the TLS client
+    /// certificate. The returned string is the new password or PEM
+    /// certificate, respectively.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
     pub async fn redefine_credential(
         &self,
         credential_type: CredentialType,

@@ -9,6 +9,16 @@ use crate::{
 use super::AppResource;
 
 impl AppResource {
+    /// Returns edge-network analytics for the application.
+    ///
+    /// The [`Analytics`] value breaks down visits, requests, data transferred,
+    /// and origin metadata (countries, devices, browsers, etc.) across recent
+    /// traffic.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
     pub async fn analytics(&self) -> Result<Analytics, ApiError> {
         self.client
             .request_endpoint(Endpoint::get_app_analytics(&self.id))
@@ -16,6 +26,13 @@ impl AppResource {
             .into_result_t()
     }
 
+    /// Returns the DNS record the application's domain is expected to point
+    /// to.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
     pub async fn dns_record(&self) -> Result<DnsRecord, ApiError> {
         self.client
             .request_endpoint(Endpoint::get_app_dns_record(&self.id))
@@ -23,6 +40,19 @@ impl AppResource {
             .into_result_t()
     }
 
+    /// Associates a custom domain with the application.
+    ///
+    /// `custom` must be a fully-qualified domain name that the caller has
+    /// pointed at the address returned by
+    /// [`dns_record`](AppResource::dns_record). Returns `Ok(true)` when the
+    /// domain is registered.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Api`] with
+    /// [`ApiErrorCode::InvalidSubdomain`](crate::ApiErrorCode::InvalidSubdomain)
+    /// if the domain is malformed or already in use, or
+    /// [`ApiError::Transport`] on network failure.
     pub async fn set_custom_domain(
         &self,
         custom: &str,
@@ -38,6 +68,14 @@ impl AppResource {
             .into_bool_result()
     }
 
+    /// Purges the edge cache for the application.
+    ///
+    /// Returns `Ok(true)` when the purge has been queued.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
     pub async fn purge_cache(&self) -> Result<bool, ApiError> {
         self.client
             .request_endpoint::<()>(Endpoint::purge_edge_cache(&self.id))
