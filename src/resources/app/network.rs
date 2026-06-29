@@ -3,7 +3,7 @@ use serde_json::json;
 use crate::{
     Endpoint,
     http::errors::ApiError,
-    types::{Analytics, DnsRecord},
+    types::{Analytics, DnsRecord, NetworkLogEntry},
 };
 
 use super::AppResource;
@@ -66,6 +66,27 @@ impl AppResource {
             .execute_request::<()>(request)
             .await?
             .into_bool_result()
+    }
+
+    /// Returns edge-network request logs for the application.
+    ///
+    /// Each [`NetworkLogEntry`] contains the timestamp, client information,
+    /// request details, and response metadata for a single edge request.
+    ///
+    /// Requires a Pro or Enterprise plan. The API retains logs for a maximum
+    /// of 7 days.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
+    pub async fn network_logs(
+        &self,
+    ) -> Result<Vec<NetworkLogEntry>, ApiError> {
+        self.client
+            .request_endpoint(Endpoint::network_logs(&self.id))
+            .await?
+            .into_result_t()
     }
 
     /// Purges the edge cache for the application.
