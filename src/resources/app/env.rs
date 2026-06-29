@@ -82,7 +82,7 @@ impl AppResource {
         let endpoint = Endpoint::delete_app_envs(&self.id);
         let request = endpoint
             .request_builder(&self.client.http_client)
-            .json(envs)
+            .json(&json!({"envs": envs}))
             .build()?;
         self.client.execute_request(request).await?.into_result_t()
     }
