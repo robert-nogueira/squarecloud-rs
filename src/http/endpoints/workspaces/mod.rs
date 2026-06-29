@@ -14,7 +14,7 @@ impl Endpoint {
     }
 
     pub(crate) fn get_workspace(workspace_id: &str) -> Endpoint {
-        Self::builder("/workspaces/{workspace_id}", Method::POST)
+        Self::builder("/workspaces/{workspace_id}", Method::GET)
             .param("workspace_id", workspace_id)
             .build()
     }
