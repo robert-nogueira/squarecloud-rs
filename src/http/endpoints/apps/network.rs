@@ -44,10 +44,4 @@ impl Endpoint {
         }
         b.build()
     }
-
-    pub(crate) fn network_performance(app_id: &str) -> Endpoint {
-        Self::builder("/apps/{app_id}/network/performance", Method::GET)
-            .param("app_id", app_id)
-            .build()
-    }
 }
