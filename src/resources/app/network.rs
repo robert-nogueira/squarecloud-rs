@@ -3,7 +3,7 @@ use serde_json::json;
 use crate::{
     Endpoint,
     http::errors::ApiError,
-    types::{Analytics, DnsRecord, NetworkLogEntry},
+    types::{Analytics, DnsRecord, NetworkErrors, NetworkLogEntry},
 };
 
 use super::AppResource;
@@ -66,6 +66,29 @@ impl AppResource {
             .execute_request::<()>(request)
             .await?
             .into_bool_result()
+    }
+
+    /// Returns edge-network error analytics for the application.
+    ///
+    /// The [`NetworkErrors`] value includes aggregate totals, a per-status
+    /// breakdown, time-bucketed timeseries data, and the most error-prone
+    /// paths. Set `include_4xx` to `true` to include 4xx client errors in
+    /// the response (default: 5xx only).
+    ///
+    /// Requires a Pro or Enterprise plan.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
+    pub async fn network_errors(
+        &self,
+        include_4xx: bool,
+    ) -> Result<NetworkErrors, ApiError> {
+        self.client
+            .request_endpoint(Endpoint::network_errors(&self.id, include_4xx))
+            .await?
+            .into_result_t()
     }
 
     /// Returns edge-network request logs for the application.

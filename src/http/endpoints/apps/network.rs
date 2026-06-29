@@ -31,4 +31,17 @@ impl Endpoint {
             .param("app_id", app_id)
             .build()
     }
+
+    pub(crate) fn network_errors(
+        app_id: &str,
+        include_4xx: bool,
+    ) -> Endpoint {
+        let mut b =
+            Self::builder("/apps/{app_id}/network/errors", Method::GET)
+                .param("app_id", app_id);
+        if include_4xx {
+            b = b.query("include_4xx", "true");
+        }
+        b.build()
+    }
 }
