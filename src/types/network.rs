@@ -100,6 +100,119 @@ pub struct NetworkErrors {
     pub by_method: Vec<NetworkErrorsByMethod>,
 }
 
+/// Edge and origin latency percentiles in milliseconds.
+///
+/// Used in [`NetworkPerformanceSummary`] and
+/// [`NetworkPerformanceTimeseries`].
+#[derive(Serialize, Deserialize)]
+pub struct NetworkLatencyPercentiles {
+    /// 50th percentile latency in milliseconds.
+    pub p50: u32,
+    /// 95th percentile latency in milliseconds.
+    pub p95: u32,
+    /// 99th percentile latency in milliseconds.
+    pub p99: u32,
+}
+
+/// Aggregate latency summary for the analysis window.
+///
+/// Part of [`NetworkPerformance`].
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformanceSummary {
+    /// Edge (CDN) latency percentiles.
+    pub edge: NetworkLatencyPercentiles,
+    /// Origin (application server) latency percentiles.
+    pub origin: NetworkLatencyPercentiles,
+    /// Total number of requests in the analysis window.
+    pub requests: u64,
+}
+
+/// Latency percentiles for a single time bucket.
+///
+/// Part of [`NetworkPerformance::timeseries`].
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformanceTimeseries {
+    /// The UTC timestamp that opens this time bucket.
+    pub date: DateTime<Utc>,
+    /// Number of requests in this bucket.
+    pub requests: u64,
+    /// Edge latency percentiles for this bucket.
+    pub edge: NetworkLatencyPercentiles,
+    /// Origin latency percentiles for this bucket.
+    pub origin: NetworkLatencyPercentiles,
+}
+
+/// Per-country latency breakdown.
+///
+/// Part of [`NetworkPerformance::countries`].
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformanceCountry {
+    /// ISO 3166-1 alpha-2 country code.
+    #[serde(rename = "type")]
+    pub country_code: String,
+    /// Median latency in milliseconds.
+    pub p50: u32,
+    /// 95th percentile latency in milliseconds.
+    pub p95: u32,
+    /// Number of requests from this country.
+    pub requests: u64,
+}
+
+/// Per-data-centre (colo) latency breakdown.
+///
+/// Part of [`NetworkPerformance::colos`].
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformanceColo {
+    /// Data-centre identifier.
+    #[serde(rename = "type")]
+    pub colo_id: String,
+    /// City where the data centre is located.
+    pub city: String,
+    /// Country where the data centre is located.
+    pub country: String,
+    /// Median latency in milliseconds.
+    pub p50: u32,
+    /// 95th percentile latency in milliseconds.
+    pub p95: u32,
+    /// Number of requests served by this colo.
+    pub requests: u64,
+}
+
+/// Latency statistics for a single slow request path.
+///
+/// Part of [`NetworkPerformance::slowest_paths`].
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformancePath {
+    /// The request URI path.
+    pub path: String,
+    /// 95th percentile latency in milliseconds.
+    pub p95: u32,
+    /// 99th percentile latency in milliseconds.
+    pub p99: u32,
+    /// Number of requests to this path.
+    pub requests: u64,
+}
+
+/// Edge-network latency analytics for an application.
+///
+/// Returned by
+/// [`AppResource::network_performance`](crate::resources::AppResource::network_performance).
+///
+/// Requires a Pro or Enterprise plan.
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformance {
+    /// Aggregate latency summary for the analysis window.
+    pub summary: NetworkPerformanceSummary,
+    /// Time-bucketed latency data across the analysis window.
+    pub timeseries: Vec<NetworkPerformanceTimeseries>,
+    /// Per-country latency breakdown.
+    pub countries: Vec<NetworkPerformanceCountry>,
+    /// Per-data-centre latency breakdown.
+    pub colos: Vec<NetworkPerformanceColo>,
+    /// Latency statistics for the slowest request paths.
+    pub slowest_paths: Vec<NetworkPerformancePath>,
+}
+
 /// Client information for an edge-network log entry.
 ///
 /// Part of [`NetworkLogEntry`].
