@@ -91,6 +91,122 @@ pub struct NetworkErrors {
     pub by_method: Value,
 }
 
+/// Edge and origin latency percentiles in milliseconds.
+///
+/// Used in [`NetworkPerformanceSummary`] and
+/// [`NetworkPerformanceTimeseries`].
+#[derive(Serialize, Deserialize)]
+pub struct LatencyPercentiles {
+    /// Median (50th percentile) latency in milliseconds.
+    pub p50: u32,
+    /// 95th percentile latency in milliseconds.
+    pub p95: u32,
+    /// 99th percentile latency in milliseconds.
+    pub p99: u32,
+}
+
+/// Aggregate latency summary for the analysis window.
+///
+/// Part of [`NetworkPerformance`].
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformanceSummary {
+    /// Edge (CDN) latency percentiles.
+    pub edge: LatencyPercentiles,
+    /// Origin (application server) latency percentiles.
+    pub origin: LatencyPercentiles,
+    /// Total request count in the analysis window.
+    pub requests: u64,
+}
+
+/// Latency data for a single time bucket.
+///
+/// Part of [`NetworkPerformance::timeseries`].
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformanceTimeseries {
+    /// The UTC timestamp that opens this time bucket.
+    pub date: DateTime<Utc>,
+    /// Number of requests in this bucket.
+    pub requests: u64,
+    /// Edge latency percentiles for this bucket.
+    pub edge: LatencyPercentiles,
+    /// Origin latency percentiles for this bucket.
+    pub origin: LatencyPercentiles,
+}
+
+/// Per-country latency statistics.
+///
+/// Part of [`NetworkPerformance::countries`]. The `country_code` field
+/// holds the ISO 3166-1 alpha-2 country code (JSON key `"type"`).
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformanceCountry {
+    /// ISO 3166-1 alpha-2 country code.
+    #[serde(rename = "type")]
+    pub country_code: String,
+    /// Median latency for requests from this country in milliseconds.
+    pub p50: u32,
+    /// 95th percentile latency in milliseconds.
+    pub p95: u32,
+    /// Number of requests from this country.
+    pub requests: u64,
+}
+
+/// Per-datacenter (colo) latency statistics.
+///
+/// Part of [`NetworkPerformance::colos`]. The `colo_id` field holds the
+/// Cloudflare datacenter identifier (JSON key `"type"`).
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformanceColo {
+    /// Cloudflare datacenter identifier (e.g. `"GRU"`).
+    #[serde(rename = "type")]
+    pub colo_id: String,
+    /// City where the datacenter is located.
+    pub city: String,
+    /// Country where the datacenter is located.
+    pub country: String,
+    /// Median latency for requests handled by this colo in milliseconds.
+    pub p50: u32,
+    /// 95th percentile latency in milliseconds.
+    pub p95: u32,
+    /// Number of requests handled by this colo.
+    pub requests: u64,
+}
+
+/// Latency statistics for a single high-latency request path.
+///
+/// Part of [`NetworkPerformance::slowest_paths`].
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformancePath {
+    /// The request URI path.
+    pub path: String,
+    /// 95th percentile latency for this path in milliseconds.
+    pub p95: u32,
+    /// 99th percentile latency for this path in milliseconds.
+    pub p99: u32,
+    /// Total number of requests to this path.
+    pub requests: u64,
+}
+
+/// Edge-network latency performance analytics for an application.
+///
+/// Returned by
+/// [`AppResource::network_performance`](crate::resources::AppResource::network_performance).
+///
+/// Requires a Pro or Enterprise plan. Rate-limited to 10 requests per
+/// 60 seconds per owner for cache misses.
+#[derive(Serialize, Deserialize)]
+pub struct NetworkPerformance {
+    /// Aggregate latency summary for the analysis window.
+    pub summary: NetworkPerformanceSummary,
+    /// Time-bucketed latency data across the analysis window.
+    pub timeseries: Vec<NetworkPerformanceTimeseries>,
+    /// Per-country latency breakdown.
+    pub countries: Vec<NetworkPerformanceCountry>,
+    /// Per-datacenter latency breakdown.
+    pub colos: Vec<NetworkPerformanceColo>,
+    /// Highest-latency request paths.
+    pub slowest_paths: Vec<NetworkPerformancePath>,
+}
+
 /// A single edge-network request log entry.
 ///
 /// Returned as part of a [`Vec`] by

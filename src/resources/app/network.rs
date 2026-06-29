@@ -3,7 +3,10 @@ use serde_json::json;
 use crate::{
     Endpoint,
     http::errors::ApiError,
-    types::{Analytics, DnsRecord, NetworkErrors, NetworkLogEntry},
+    types::{
+        Analytics, DnsRecord, NetworkErrors, NetworkLogEntry,
+        NetworkPerformance,
+    },
 };
 
 use super::AppResource;
@@ -108,6 +111,28 @@ impl AppResource {
     ) -> Result<Vec<NetworkLogEntry>, ApiError> {
         self.client
             .request_endpoint(Endpoint::network_logs(&self.id))
+            .await?
+            .into_result_t()
+    }
+
+    /// Returns edge-network latency performance analytics for the application.
+    ///
+    /// The [`NetworkPerformance`] value includes aggregate latency
+    /// percentiles (p50/p95/p99), time-bucketed timeseries, and breakdowns
+    /// by country, datacenter, and the slowest request paths.
+    ///
+    /// Requires a Pro or Enterprise plan. Rate-limited to 10 requests per
+    /// 60 seconds per owner for cache misses.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
+    pub async fn network_performance(
+        &self,
+    ) -> Result<NetworkPerformance, ApiError> {
+        self.client
+            .request_endpoint(Endpoint::network_performance(&self.id))
             .await?
             .into_result_t()
     }
