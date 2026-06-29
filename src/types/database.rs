@@ -76,6 +76,33 @@ pub enum DatabaseType {
     Mongo,
 }
 
+/// Static metadata for a SquareCloud managed database.
+///
+/// Returned by
+/// [`DatabaseResource::info`](crate::resources::DatabaseResource::info).
+/// To obtain a [`DatabaseResource`] handle from an existing value, use
+/// [`ApiClient::database`](crate::ApiClient::database) with the `id` field.
+#[derive(Serialize, Deserialize)]
+pub struct DatabaseInfo {
+    /// The database's unique identifier.
+    pub id: String,
+    /// The user-defined name of the database.
+    pub name: String,
+    /// The owner account's unique identifier.
+    pub owner: String,
+    /// The data-centre cluster the database is hosted on.
+    pub cluster: String,
+    /// RAM allocation in megabytes.
+    pub ram: u32,
+    /// The database engine type (e.g. `"mongodb"`, `"postgresql"`).
+    #[serde(rename = "type")]
+    pub db_type: String,
+    /// The network port the database listens on.
+    pub port: u32,
+    /// The UTC timestamp when the database was created.
+    pub created_at: DateTime<Utc>,
+}
+
 /// Full details for a provisioned database.
 ///
 /// Returned by

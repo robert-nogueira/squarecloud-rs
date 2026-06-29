@@ -5,7 +5,7 @@ use serde_json::{Map, Value};
 use crate::{
     Endpoint,
     http::{ApiClient, errors::ApiError},
-    types::{DatabaseMetrics, DatabaseStatus},
+    types::{DatabaseInfo, DatabaseMetrics, DatabaseStatus},
 };
 
 /// A handle to a specific SquareCloud managed database.
@@ -38,6 +38,24 @@ impl DatabaseResource {
             client: http,
             id: id.to_string(),
         }
+    }
+
+    /// Returns static metadata about the database.
+    ///
+    /// The returned [`DatabaseInfo`] includes the display name, owner ID,
+    /// cluster, RAM allocation, engine type, port, and creation timestamp.
+    /// Unlike [`status`](DatabaseResource::status), this does not reflect
+    /// whether the database is currently running.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
+    pub async fn info(&self) -> Result<DatabaseInfo, ApiError> {
+        self.client
+            .request_endpoint(Endpoint::database_info(&self.id))
+            .await?
+            .into_result_t()
     }
 
     /// Starts the database instance.

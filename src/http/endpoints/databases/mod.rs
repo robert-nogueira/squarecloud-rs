@@ -54,4 +54,10 @@ impl Endpoint {
             .param("database_id", database_id)
             .build()
     }
+
+    pub(crate) fn database_info(database_id: &str) -> Endpoint {
+        Self::builder("/databases/{database_id}", Method::GET)
+            .param("database_id", database_id)
+            .build()
+    }
 }
