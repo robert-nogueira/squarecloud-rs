@@ -18,7 +18,7 @@ impl Endpoint {
     }
 
     pub(crate) fn set_webhook_integration(app_id: &str) -> Endpoint {
-        Self::builder("/apps/{app_id}/webhook", Method::POST)
+        Self::builder("/apps/{app_id}/deploy/webhook", Method::POST)
             .param("app_id", app_id)
             .build()
     }
