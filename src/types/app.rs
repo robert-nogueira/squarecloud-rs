@@ -49,6 +49,24 @@ pub struct AppNetwork {
     pub now: String,
 }
 
+/// A single historical resource-usage sample for an application.
+///
+/// Returned as part of a [`Vec`] by
+/// [`AppResource::metrics`](crate::resources::AppResource::metrics).
+/// Up to 288 data points covering the last 24 hours are returned,
+/// sampled every 5 minutes.
+#[derive(Serialize, Deserialize)]
+pub struct AppMetrics {
+    /// The UTC timestamp this sample covers.
+    pub date: DateTime<Utc>,
+    /// CPU usage as a percentage at this point in time.
+    pub cpu: f32,
+    /// RAM consumption in megabytes at this point in time.
+    pub ram: f32,
+    /// Network byte counts as `[bytes_in, bytes_out]`.
+    pub net: [u32; 2],
+}
+
 /// Runtime status for a running application.
 ///
 /// Returned by [`AppResource::status`](crate::resources::AppResource::status).

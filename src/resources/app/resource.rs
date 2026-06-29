@@ -9,7 +9,7 @@ use crate::{
         errors::{ApiError, CommitError},
     },
     resources::FileResource,
-    types::{AppInfo, AppStatus},
+    types::{AppInfo, AppMetrics, AppStatus},
 };
 
 /// A handle to a specific SquareCloud application.
@@ -129,6 +129,23 @@ impl AppResource {
     pub async fn info(&self) -> Result<AppInfo, ApiError> {
         self.client
             .request_endpoint(Endpoint::app_info(&self.id))
+            .await?
+            .into_result_t()
+    }
+
+    /// Returns historical resource-usage metrics for the application.
+    ///
+    /// Each [`AppMetrics`] entry covers a 5-minute window. Up to 288 data
+    /// points (24 hours) are returned. Results are cached for 2.5 minutes
+    /// per application.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// on an API-level error.
+    pub async fn metrics(&self) -> Result<Vec<AppMetrics>, ApiError> {
+        self.client
+            .request_endpoint(Endpoint::app_metrics(&self.id))
             .await?
             .into_result_t()
     }
