@@ -63,7 +63,7 @@ impl WorkspaceResource {
     /// if the account is the owner or is not a member.
     pub async fn leave(&self) -> Result<bool, ApiError> {
         self.client
-            .request_endpoint::<()>(Endpoint::leave_workspace(&self.id))
+            .request_endpoint::<()>(Endpoint::leave_workspace())
             .await?
             .into_bool_result()
     }

@@ -58,7 +58,7 @@ impl AppResource {
     ) -> Result<bool, ApiError> {
         let endpoint = Endpoint::restore_app_snapshot(&self.id);
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({"snapshotId": snapshot_id, "versionId": version_id}))
             .build()?;
         self.client

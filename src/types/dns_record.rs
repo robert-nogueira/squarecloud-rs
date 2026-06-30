@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// The type of a DNS resource record.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DnsRecordType {
     /// IPv4 address record.
@@ -46,7 +46,7 @@ pub enum DnsRecordType {
 /// [`AppResource::dns_record`](crate::resources::AppResource::dns_record).
 /// Describes what DNS entry the application's domain must resolve to for
 /// custom-domain verification to succeed.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DnsRecord {
     /// The record type.
     #[serde(rename = "type")]

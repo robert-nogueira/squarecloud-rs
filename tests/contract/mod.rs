@@ -67,7 +67,8 @@ pub fn check(
     method: &str,
     our_path: &str,
 ) -> Option<String> {
-    let our_normalized = normalize(our_path);
+    let with_version = format!("/v2{our_path}");
+    let our_normalized = normalize(&with_version);
     let spec_paths: HashMap<String, &str> = paths
         .keys()
         .map(|k| (normalize(k), k.as_str()))

@@ -54,7 +54,7 @@ impl AppResource {
     ) -> Result<String, ApiError> {
         let endpoint = Endpoint::set_webhook_integration(&self.id);
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({"access_token": access_token}))
             .build()?;
         let response: ApiResponse<Value> =

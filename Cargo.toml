@@ -7,7 +7,28 @@ license = "MIT"
 keywords = ["squarecloud", "api", "async", "http"]
 categories = ["api-bindings", "web-programming::http-client"]
 
+[[test]]
+name = "integration"
+path = "tests/integration/mod.rs"
+
+[[test]]
+name = "mock"
+path = "tests/mock/mod.rs"
+
+[[test]]
+name = "contract"
+path = "tests/contract/mod.rs"
+required-features = ["test-utils"]
+
+[features]
+test-utils = ["dep:inventory"]
+
+[dev-dependencies]
+inventory = "0.3"
+wiremock = "0.6"
+
 [dependencies]
+inventory = { version = "0.3", optional = true }
 chrono = { version = "0.4.42", features = ["serde"] }
 dotenvy = "0.15.7"
 phf = { version = "0.13.1", features = ["macros"] }

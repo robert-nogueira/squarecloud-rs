@@ -16,7 +16,7 @@ impl WorkspaceResource {
     pub async fn add_app(&self, app_id: &str) -> Result<bool, ApiError> {
         let endpoint = Endpoint::workspace_add_app();
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({
 		"workspaceId": self.id,
 		"appId": app_id}))
@@ -38,7 +38,7 @@ impl WorkspaceResource {
     pub async fn remove_app(&self, app_id: &str) -> Result<bool, ApiError> {
         let endpoint = Endpoint::workspace_remove_app();
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({
 		"workspaceId": self.id,
 		"appId": app_id}))

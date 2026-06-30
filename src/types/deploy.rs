@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 /// [`AppResource::current_deploy`](crate::resources::AppResource::current_deploy)
 /// and as part of the list from
 /// [`AppResource::list_deploys`](crate::resources::AppResource::list_deploys).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Deploy {
     /// The deployment's unique identifier.
     pub id: String,

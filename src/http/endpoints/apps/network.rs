@@ -1,6 +1,21 @@
 use super::Endpoint;
 use reqwest::Method;
 
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/network/dns" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/network/analytics" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post", path: "/apps/{app_id}/network/custom" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post", path: "/apps/{app_id}/network/purge_cache" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/network/logs" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/network/errors" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/network/performance" } }
+
 impl Endpoint {
     pub(crate) fn get_app_dns_record(app_id: &str) -> Endpoint {
         Self::builder("/apps/{app_id}/network/dns", Method::GET)

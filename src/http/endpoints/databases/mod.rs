@@ -4,6 +4,27 @@ pub mod snapshots;
 use super::Endpoint;
 use reqwest::Method;
 
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post",   path: "/databases" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/databases/status" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/databases/{database_id}" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "delete", path: "/databases/{database_id}" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "patch",  path: "/databases/{database_id}" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/databases/{database_id}/status" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/databases/{database_id}/metrics" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post",   path: "/databases/{database_id}/start" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post",   path: "/databases/{database_id}/stop" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/databases/{database_id}/credentials/certificate" } }
+
 impl Endpoint {
     pub(crate) fn create_database() -> Endpoint {
         Self::builder("/databases", Method::POST).build()
@@ -50,9 +71,12 @@ impl Endpoint {
     }
 
     pub(crate) fn get_database_certificate(database_id: &str) -> Endpoint {
-        Self::builder("/databases/{database_id}/certificate", Method::GET)
-            .param("database_id", database_id)
-            .build()
+        Self::builder(
+            "/databases/{database_id}/credentials/certificate",
+            Method::GET,
+        )
+        .param("database_id", database_id)
+        .build()
     }
 
     pub(crate) fn database_info(database_id: &str) -> Endpoint {

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Returned by
 /// [`ApiClient::service_status`](crate::ApiClient::service_status).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ServiceStatus {
     /// A machine-readable status indicator (e.g. `"operational"`).
     pub status: String,

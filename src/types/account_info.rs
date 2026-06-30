@@ -2,7 +2,7 @@ use super::plan::Plan;
 use serde::{Deserialize, Serialize};
 
 /// Metadata about a single application as seen from the account owner's view.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AppFromUser {
     /// The application's display name.
     pub name: String,
@@ -25,7 +25,7 @@ pub struct AppFromUser {
 /// Account information for the authenticated user.
 ///
 /// Returned by [`ApiClient::me`](crate::ApiClient::me).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AccountInfo {
     /// The account's unique identifier.
     pub id: String,

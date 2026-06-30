@@ -152,7 +152,7 @@ impl DatabaseResource {
         let payload = Value::Object(map);
         let endpoint = Endpoint::edit_database(&self.id);
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&payload)
             .build()?;
         self.client

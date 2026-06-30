@@ -4,6 +4,17 @@ pub mod members;
 use super::Endpoint;
 use reqwest::Method;
 
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post",   path: "/workspaces" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/workspaces" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "delete", path: "/workspaces" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/workspaces/{workspace_id}" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "delete", path: "/workspaces/leave" } }
+
 impl Endpoint {
     pub(crate) fn create_workspace() -> Endpoint {
         Self::builder("/workspaces", Method::POST).build()
@@ -19,10 +30,8 @@ impl Endpoint {
             .build()
     }
 
-    pub(crate) fn leave_workspace(workspace_id: &str) -> Endpoint {
-        Self::builder("/workspaces/{workspace_id}/leave", Method::DELETE)
-            .param("workspace_id", workspace_id)
-            .build()
+    pub(crate) fn leave_workspace() -> Endpoint {
+        Self::builder("/workspaces/leave", Method::DELETE).build()
     }
 
     pub(crate) fn list_workspaces() -> Endpoint {

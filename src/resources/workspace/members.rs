@@ -46,7 +46,7 @@ impl WorkspaceResource {
     ) -> Result<bool, ApiError> {
         let endpoint = Endpoint::workspace_invite_member();
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({
 		"workspaceId": self.id,
 		"code": code,
@@ -72,7 +72,7 @@ impl WorkspaceResource {
     ) -> Result<bool, ApiError> {
         let endpoint = Endpoint::remove_workspace_member();
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({
 		"workspaceId": self.id,
 		"memberId": member_id}))
@@ -100,7 +100,7 @@ impl WorkspaceResource {
     ) -> Result<bool, ApiError> {
         let endpoint = Endpoint::workspace_change_member_permissions();
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({
 		"workspaceId": self.id,
 		"code": code,

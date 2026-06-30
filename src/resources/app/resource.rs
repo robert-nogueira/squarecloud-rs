@@ -188,7 +188,7 @@ impl AppResource {
         let form = Form::new().part("file", Part::bytes(bytes));
 
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .multipart(form)
             .build()?;
         self.client

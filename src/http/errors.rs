@@ -44,6 +44,12 @@ pub enum ApiErrorCode {
     InvalidStart,
     /// The requested subdomain is malformed or already taken.
     InvalidSubdomain,
+    /// The request was rejected by the rate limiter.
+    RateLimit,
+    /// The requested resource was not found.
+    NotFound,
+    /// An application with this name already exists in the account.
+    AppNotFound,
 }
 
 /// An error returned by any API operation.
@@ -51,6 +57,7 @@ pub enum ApiErrorCode {
 /// Most methods on [`ApiClient`](crate::ApiClient) and on resource handles
 /// return `Result<_, ApiError>`. Match on this enum to distinguish between a
 /// transport-level failure and a structured error from the SquareCloud API.
+#[derive(Debug)]
 pub enum ApiError {
     /// The HTTP request failed before the server could respond.
     Transport(reqwest::Error),

@@ -60,6 +60,8 @@ mod settings;
 pub mod types;
 
 pub use http::endpoints::Endpoint;
+#[cfg(feature = "test-utils")]
+pub use http::endpoints::EndpointSpec;
 pub use http::errors::{ApiError, ApiErrorCode, CommitError};
 pub use http::http_client::ApiClient;
 

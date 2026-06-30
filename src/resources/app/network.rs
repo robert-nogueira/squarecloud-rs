@@ -62,7 +62,7 @@ impl AppResource {
     ) -> Result<bool, ApiError> {
         let endpoint = Endpoint::set_app_custom_domain(&self.id);
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({"custom": custom}))
             .build()?;
         self.client

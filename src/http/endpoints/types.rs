@@ -49,15 +49,19 @@ impl EndpointBuilder {
     /// Finalises the builder and returns an [`Endpoint`] with the path
     /// template resolved.
     pub(crate) fn build(self) -> Endpoint {
-        let mut path = String::new();
+        let mut path = self.path_template.clone();
         for (k, v) in &self.params {
-            path = self.path_template.replace(&format!("{{{}}}", k), v);
+            path = path.replace(&format!("{{{}}}", k), v);
         }
         if !self.queries.is_empty() {
-            path.push('&');
-            for (k, v) in &self.queries {
-                path.push_str(&format!("{k}={v}"));
-            }
+            path.push('?');
+            let qs = self
+                .queries
+                .iter()
+                .map(|(k, v)| format!("{k}={v}"))
+                .collect::<Vec<_>>()
+                .join("&");
+            path.push_str(&qs);
         }
         Endpoint {
             method: self.method,
@@ -86,6 +90,19 @@ impl EndpointBuilder {
     }
 }
 
+/// A (method, path-template) pair used by contract tests to verify that an
+/// implemented endpoint exists in the live OpenAPI spec.
+///
+/// Only available with the `test-utils` feature.
+#[cfg(feature = "test-utils")]
+pub struct EndpointSpec {
+    pub method: &'static str,
+    pub path: &'static str,
+}
+
+#[cfg(feature = "test-utils")]
+inventory::collect!(EndpointSpec);
+
 impl Endpoint {
     /// Creates an `EndpointBuilder` for the given URL path template and HTTP
     /// method.
@@ -102,9 +119,17 @@ impl Endpoint {
     ///
     /// The returned builder can be further customised (e.g. with
     /// `.multipart()`) before calling `.build()` or `.send()`.
-    pub fn request_builder(&self, http_client: &Client) -> RequestBuilder {
-        let mut request =
-            http_client.request(self.method.clone(), self.path.clone());
+    pub fn request_builder(
+        &self,
+        http_client: &Client,
+        base_url: &str,
+    ) -> RequestBuilder {
+        let url = format!(
+            "{}/{}",
+            base_url.trim_end_matches('/'),
+            self.path.trim_start_matches('/')
+        );
+        let mut request = http_client.request(self.method.clone(), url);
         if let Some(body) = &self.json_body {
             request = request.json(&body);
         }

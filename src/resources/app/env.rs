@@ -39,7 +39,7 @@ impl AppResource {
     ) -> Result<HashMap<String, String>, ApiError> {
         let endpoint = Endpoint::post_app_envs(&self.id);
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({"envs": envs}))
             .build()?;
         self.client.execute_request(request).await?.into_result_t()
@@ -60,7 +60,7 @@ impl AppResource {
     ) -> Result<HashMap<String, String>, ApiError> {
         let endpoint = Endpoint::overwrite_app_envs(&self.id);
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({"envs": envs}))
             .build()?;
         self.client.execute_request(request).await?.into_result_t()
@@ -81,7 +81,7 @@ impl AppResource {
     ) -> Result<HashMap<String, String>, ApiError> {
         let endpoint = Endpoint::delete_app_envs(&self.id);
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({"envs": envs}))
             .build()?;
         self.client.execute_request(request).await?.into_result_t()

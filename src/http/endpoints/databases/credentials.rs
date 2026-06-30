@@ -1,6 +1,9 @@
 use super::Endpoint;
 use reqwest::Method;
 
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post", path: "/databases/{database_id}/credentials/reset" } }
+
 impl Endpoint {
     pub(crate) fn redefine_database_credentials(
         database_id: &str,

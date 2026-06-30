@@ -13,7 +13,7 @@ use crate::resources::AppResource;
 /// [`AppResource::info`](crate::resources::AppResource::info). To obtain an
 /// [`AppResource`] handle from this value, call
 /// [`into_resource`](AppInfo::into_resource).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AppInfo {
     /// The application's display name.
     pub name: String,
@@ -41,7 +41,7 @@ impl AppInfo {
 }
 
 /// Network throughput figures for a running application.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AppNetwork {
     /// Cumulative bytes transferred since the application started.
     pub total: String,
@@ -53,7 +53,7 @@ pub struct AppNetwork {
 ///
 /// Returned as part of a [`Vec`] by
 /// [`ApiClient::all_domains`](crate::ApiClient::all_domains).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AppDomain {
     /// The owning application's unique identifier.
     pub app_id: String,
@@ -71,7 +71,7 @@ pub struct AppDomain {
 /// [`AppResource::metrics`](crate::resources::AppResource::metrics).
 /// Up to 288 data points covering the last 24 hours are returned,
 /// sampled every 5 minutes.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AppMetrics {
     /// The UTC timestamp this sample covers.
     pub date: DateTime<Utc>,
@@ -86,7 +86,7 @@ pub struct AppMetrics {
 /// Runtime status for a running application.
 ///
 /// Returned by [`AppResource::status`](crate::resources::AppResource::status).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AppStatus {
     /// Current CPU usage as a percentage string (e.g. `"3.2%"`).
     pub cpu: String,

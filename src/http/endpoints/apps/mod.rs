@@ -7,6 +7,33 @@ pub mod snapshots;
 use super::Endpoint;
 use reqwest::Method;
 
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post",   path: "/apps" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/status" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/domains" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "delete", path: "/apps/{app_id}" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/status" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/logs" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/metrics" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/realtime" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post",   path: "/apps/{app_id}/start" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post",   path: "/apps/{app_id}/restart" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post",   path: "/apps/{app_id}/stop" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "post",   path: "/apps/{app_id}/commit" } }
+
 impl Endpoint {
     pub(crate) fn upload_app() -> Endpoint {
         Self::builder("/apps", Method::POST).build()

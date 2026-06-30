@@ -2,6 +2,17 @@ use super::Endpoint;
 use reqwest::Method;
 use serde_json::json;
 
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/files" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/files/content" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "put",    path: "/apps/{app_id}/files" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "patch",  path: "/apps/{app_id}/files" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "delete", path: "/apps/{app_id}/files" } }
+
 impl Endpoint {
     pub(crate) fn read_app_file(app_id: &str, path: &str) -> Endpoint {
         Self::builder("/apps/{app_id}/files/content", Method::GET)

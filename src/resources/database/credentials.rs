@@ -45,7 +45,7 @@ impl DatabaseResource {
     ) -> Result<String, ApiError> {
         let endpoint = Endpoint::redefine_database_credentials(&self.id);
         let request = endpoint
-            .request_builder(&self.client.http_client)
+            .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({"reset": credential_type.as_str()}))
             .build()?;
         let response: ApiResponse<Value> =

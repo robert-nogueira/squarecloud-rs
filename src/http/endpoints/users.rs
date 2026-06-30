@@ -1,6 +1,11 @@
 use super::Endpoint;
 use reqwest::Method;
 
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get", path: "/users/me" } }
+#[cfg(feature = "test-utils")]
+inventory::submit! { crate::EndpointSpec { method: "get", path: "/users/snapshots" } }
+
 impl Endpoint {
     pub(crate) fn me() -> Endpoint {
         Self::builder("/users/me", Method::GET).build()

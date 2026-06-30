@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use crate::{http::ApiClient, resources::DatabaseResource};
 
 /// Network throughput figures for a running database instance.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DatabaseNetwork {
     /// Cumulative bytes transferred since the database started.
     pub total: String,
@@ -18,7 +18,7 @@ pub struct DatabaseNetwork {
 ///
 /// Returned as part of a [`Vec`] by
 /// [`ApiClient::all_database_status`](crate::ApiClient::all_database_status).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DatabaseResumedStatus {
     /// The database's unique identifier.
     pub id: String,
@@ -34,7 +34,7 @@ pub struct DatabaseResumedStatus {
 ///
 /// Returned by
 /// [`DatabaseResource::status`](crate::resources::DatabaseResource::status).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DatabaseStatus {
     /// Current CPU usage as a percentage string.
     pub cpu: String,
@@ -53,7 +53,7 @@ pub struct DatabaseStatus {
 ///
 /// Returned as part of a [`Vec`] by
 /// [`DatabaseResource::metrics`](crate::resources::DatabaseResource::metrics).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DatabaseMetrics {
     /// The UTC timestamp this sample covers.
     pub date: DateTime<Utc>,
@@ -66,7 +66,7 @@ pub struct DatabaseMetrics {
 }
 
 /// The type of managed database engine to provision.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum DatabaseType {
     /// Redis in-memory data store.
     Redis,
@@ -82,7 +82,7 @@ pub enum DatabaseType {
 /// [`DatabaseResource::info`](crate::resources::DatabaseResource::info).
 /// To obtain a [`DatabaseResource`] handle from an existing value, use
 /// [`ApiClient::database`](crate::ApiClient::database) with the `id` field.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DatabaseInfo {
     /// The database's unique identifier.
     pub id: String,
@@ -109,7 +109,7 @@ pub struct DatabaseInfo {
 /// [`ApiClient::create_database`](crate::ApiClient::create_database). To
 /// obtain a [`DatabaseResource`] handle from this value, call
 /// [`into_resource`](Database::into_resource).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Database {
     /// The database's unique identifier.
     pub id: String,

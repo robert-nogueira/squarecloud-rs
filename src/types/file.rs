@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Returned by
 /// [`FileResource::read`](crate::resources::FileResource::read).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FileContent {
     /// The MIME type of the file content (e.g. `"text/plain"`).
     #[serde(rename = "type")]
@@ -15,7 +15,7 @@ pub struct FileContent {
 }
 
 /// Distinguishes a regular file from a directory entry.
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub enum FileType {
     /// A regular file.
     File,
@@ -27,7 +27,7 @@ pub enum FileType {
 ///
 /// Returned as part of a [`Vec`] by
 /// [`FileResource::all_files`](crate::resources::FileResource::all_files).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FileInfo {
     /// The entry's name (not the full path).
     pub name: String,

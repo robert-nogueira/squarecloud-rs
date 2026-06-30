@@ -16,7 +16,7 @@ use crate::{
     resources::{AppResource, DatabaseResource, WorkspaceResource},
     settings::SETTINGS,
     types::{
-        AccountInfo, AppDomain, AppInfo, AppStatus, Database,
+        AccountInfo, AppDomain, AppFromUser, AppInfo, AppStatus, Database,
         DatabaseResumedStatus, DatabaseType, ServiceStatus, Snapshot,
         WorkspaceInfo,
     },
@@ -24,18 +24,17 @@ use crate::{
 
 /// Raw envelope returned by every SquareCloud API endpoint.
 ///
-/// Deserialized via `#[serde(untagged)]`; callers convert it to a `Result`
-/// using [`ApiResponse::into_result_t`] or [`ApiResponse::into_bool_result`].
+/// The wire format uses `"status": "success"` or `"status": "error"` as the
+/// discriminator. Callers convert it to a `Result` using
+/// [`ApiResponse::into_result_t`] or [`ApiResponse::into_bool_result`].
 #[derive(Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(tag = "status", rename_all = "lowercase")]
 pub enum ApiResponse<T> {
     Success {
-        success: bool,
         #[serde(skip_serializing_if = "Option::is_none")]
         response: Option<T>,
     },
     Error {
-        success: bool,
         code: ApiErrorCode,
     },
 }
@@ -49,8 +48,8 @@ impl<T> ApiResponse<T> {
     /// Panics if the API returns a success envelope without a `response` body.
     pub fn into_result_t(self) -> Result<T, ApiError> {
         match self {
-            ApiResponse::Error { code, .. } => Err(ApiError::Api { code }),
-            ApiResponse::Success { response, .. } => {
+            ApiResponse::Error { code } => Err(ApiError::Api { code }),
+            ApiResponse::Success { response } => {
                 response.ok_or_else(|| panic!("Expected response data"))
             }
         }
@@ -59,8 +58,8 @@ impl<T> ApiResponse<T> {
     /// Returns `Ok(true)` on success, or propagates the API error code.
     pub fn into_bool_result(self) -> Result<bool, ApiError> {
         match self {
-            ApiResponse::Success { success, .. } => Ok(success),
-            ApiResponse::Error { code, .. } => Err(ApiError::Api { code }),
+            ApiResponse::Success { .. } => Ok(true),
+            ApiResponse::Error { code } => Err(ApiError::Api { code }),
         }
     }
 }
@@ -120,8 +119,16 @@ impl ApiClient {
             "Authorization",
             HeaderValue::from_str(&SETTINGS.api_token).unwrap(),
         );
-        let client: Client =
-            Client::builder().default_headers(headers).build().unwrap();
+        let client: Client = Client::builder()
+            .default_headers(headers)
+            .user_agent(concat!(
+                env!("CARGO_PKG_NAME"),
+                "/",
+                env!("CARGO_PKG_VERSION")
+            ))
+            .http1_only()
+            .build()
+            .unwrap();
         ApiClient {
             base_url: SETTINGS.base_url.clone(),
             http_client: client,
@@ -149,13 +156,13 @@ impl ApiClient {
         &self,
         endpoint: Endpoint,
     ) -> Result<ApiResponse<T>, reqwest::Error> {
-        let response = self
+        let mut req = self
             .http_client
-            .request(endpoint.method, self.url(&endpoint.path))
-            .json(&endpoint.json_body)
-            .send()
-            .await?;
-        let response: ApiResponse<T> = response.json().await?;
+            .request(endpoint.method, self.url(&endpoint.path));
+        if let Some(body) = endpoint.json_body {
+            req = req.json(&body);
+        }
+        let response: ApiResponse<T> = req.send().await?.json().await?;
         Ok(response)
     }
 
@@ -189,9 +196,14 @@ impl ApiClient {
     /// Returns [`ApiError::Transport`] if the HTTP request fails, or
     /// [`ApiError::Api`] if the API responds with an error code.
     pub async fn service_status(&self) -> Result<ServiceStatus, ApiError> {
-        self.request_endpoint(Endpoint::service_status())
-            .await?
-            .into_result_t()
+        let endpoint = Endpoint::service_status();
+        let mut req = self
+            .http_client
+            .request(endpoint.method, self.url(&endpoint.path));
+        if let Some(body) = endpoint.json_body {
+            req = req.json(&body);
+        }
+        Ok(req.send().await?.json().await?)
     }
 
     /// Returns the account information associated with the current API token.
@@ -201,7 +213,30 @@ impl ApiClient {
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
     /// if the token is invalid ([`ApiErrorCode::InvalidAccessToken`]).
     pub async fn me(&self) -> Result<AccountInfo, ApiError> {
-        self.request_endpoint(Endpoint::me()).await?.into_result_t()
+        #[derive(Deserialize)]
+        struct MeResponse {
+            user: MeUser,
+            #[serde(default)]
+            applications: Vec<AppFromUser>,
+        }
+        #[derive(Deserialize)]
+        struct MeUser {
+            id: String,
+            name: String,
+            email: String,
+            plan: crate::types::Plan,
+        }
+        let res = self
+            .request_endpoint::<MeResponse>(Endpoint::me())
+            .await?
+            .into_result_t()?;
+        Ok(AccountInfo {
+            id: res.user.id,
+            name: res.user.name,
+            email: res.user.email,
+            plan: res.user.plan,
+            applications: res.applications,
+        })
     }
 
     /// Uploads a new application from a ZIP archive and returns its metadata.
@@ -228,7 +263,7 @@ impl ApiClient {
         let form = Form::new().part("file", Part::bytes(bytes));
 
         let request = endpoint
-            .request_builder(&self.http_client)
+            .request_builder(&self.http_client, &self.base_url)
             .multipart(form)
             .build()?;
         self.execute_request(request).await?.into_result_t()
@@ -286,7 +321,7 @@ impl ApiClient {
     ) -> Result<Database, ApiError> {
         let endpoint = Endpoint::create_database();
         let request = endpoint
-            .request_builder(&self.http_client)
+            .request_builder(&self.http_client, &self.base_url)
             .json(&json!({
                 "name": name,
                 "memory": memory,
@@ -324,7 +359,7 @@ impl ApiClient {
     ) -> Result<WorkspaceInfo, ApiError> {
         let endpoint = Endpoint::create_workspace();
         let request = endpoint
-            .request_builder(&self.http_client)
+            .request_builder(&self.http_client, &self.base_url)
             .json(&json!({"name": name}))
             .build()?;
         self.execute_request(request).await?.into_result_t()

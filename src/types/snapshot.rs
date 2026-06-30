@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 /// [`AppResource::list_snapshots`](crate::resources::AppResource::list_snapshots),
 /// [`DatabaseResource::list_snapshots`](crate::resources::DatabaseResource::list_snapshots),
 /// and [`ApiClient::all_snapshots`](crate::ApiClient::all_snapshots).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Snapshot {
     /// The snapshot's display name.
     pub name: String,
@@ -25,7 +25,7 @@ pub struct Snapshot {
 /// [`AppResource::create_snapshot`](crate::resources::AppResource::create_snapshot)
 /// and
 /// [`DatabaseResource::create_snapshot`](crate::resources::DatabaseResource::create_snapshot).
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SnapshotReference {
     /// A pre-signed URL from which the snapshot archive can be downloaded.
     pub url: String,
