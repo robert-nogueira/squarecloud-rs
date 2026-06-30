@@ -1,0 +1,3 @@
+[alias]
+test-contract = "test --test contract --features test-utils"
+test-mock = "test --test mock"
