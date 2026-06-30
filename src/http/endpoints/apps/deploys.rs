@@ -16,12 +16,9 @@ impl Endpoint {
     }
 
     pub(crate) fn get_current_app_deploy(app_id: &str) -> Endpoint {
-        Self::builder(
-            "/apps/{app_id}/deployments/current",
-            Method::GET,
-        )
-        .param("app_id", app_id)
-        .build()
+        Self::builder("/apps/{app_id}/deployments/current", Method::GET)
+            .param("app_id", app_id)
+            .build()
     }
 
     pub(crate) fn set_webhook_integration(app_id: &str) -> Endpoint {

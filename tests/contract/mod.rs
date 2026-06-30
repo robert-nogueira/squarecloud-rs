@@ -69,10 +69,8 @@ pub fn check(
 ) -> Option<String> {
     let with_version = format!("/v2{our_path}");
     let our_normalized = normalize(&with_version);
-    let spec_paths: HashMap<String, &str> = paths
-        .keys()
-        .map(|k| (normalize(k), k.as_str()))
-        .collect();
+    let spec_paths: HashMap<String, &str> =
+        paths.keys().map(|k| (normalize(k), k.as_str())).collect();
 
     match spec_paths.get(&our_normalized) {
         None => Some(format!("path not in spec: {our_path}")),
@@ -80,9 +78,7 @@ pub fn check(
             if paths[spec_path].get(method).is_none() {
                 let available = paths[spec_path]
                     .as_object()
-                    .map(|o| {
-                        o.keys().cloned().collect::<Vec<_>>().join(", ")
-                    })
+                    .map(|o| o.keys().cloned().collect::<Vec<_>>().join(", "))
                     .unwrap_or_default();
                 Some(format!(
                     "method not in spec: {method} {our_path} \
