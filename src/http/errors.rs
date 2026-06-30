@@ -76,6 +76,24 @@ pub enum CommitError {
     Io(std::io::Error),
 }
 
+impl std::fmt::Display for ApiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ApiError::Transport(e) => write!(f, "transport error: {e}"),
+            ApiError::Api { code } => write!(f, "api error: {code:?}"),
+        }
+    }
+}
+
+impl std::error::Error for ApiError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            ApiError::Transport(e) => Some(e),
+            ApiError::Api { .. } => None,
+        }
+    }
+}
+
 impl From<reqwest::Error> for ApiError {
     fn from(err: reqwest::Error) -> Self {
         ApiError::Transport(err)
