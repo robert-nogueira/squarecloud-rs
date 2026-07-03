@@ -21,6 +21,14 @@ pub fn generate_json_variants_from_schema(schema: &Value, schemas: &Value) -> Ve
         return variants.clone();
     }
 
+    // oneOf: generate variants for each sub-schema and concatenate them all.
+    if let Some(one_of) = schema.get("oneOf").and_then(|v| v.as_array()) {
+        return one_of
+            .iter()
+            .flat_map(|s| generate_json_variants_from_schema(s, schemas))
+            .collect();
+    }
+
     let type_val = schema.get("type");
 
     if let Some(arr) = type_val.and_then(|t| t.as_array()) {
