@@ -11,6 +11,8 @@ use std::collections::HashMap;
 use serde_json::Value;
 
 mod endpoints;
+mod schemas;
+mod validation;
 
 /// Collapse all `{param}` placeholders to `{p}` so paths with different
 /// parameter names still compare equal (e.g. `{appId}` vs `{app_id}`).
@@ -31,25 +33,29 @@ fn normalize(path: &str) -> String {
     out
 }
 
-/// Download the OpenAPI spec and return its `paths` object as a map.
+/// Downloads and returns the full OpenAPI spec.
 ///
 /// Cloudflare blocks the default reqwest TLS fingerprint with 403, so we
 /// identify as `curl` — a known-good UA that Cloudflare passes through.
-pub async fn fetch_spec() -> HashMap<String, Value> {
+pub async fn fetch_full_spec() -> Value {
     let client = reqwest::Client::builder()
         .user_agent("curl/8.0.0")
         .build()
         .expect("failed to build HTTP client");
 
-    let spec: Value = client
+    client
         .get("https://api.squarecloud.app/v2/openapi.json")
         .send()
         .await
         .expect("failed to fetch OpenAPI spec")
         .json()
         .await
-        .expect("failed to parse OpenAPI spec");
+        .expect("failed to parse OpenAPI spec")
+}
 
+/// Downloads the OpenAPI spec and returns its `paths` object as a map.
+pub async fn fetch_spec() -> HashMap<String, Value> {
+    let spec = fetch_full_spec().await;
     spec["paths"]
         .as_object()
         .expect("OpenAPI spec missing 'paths'")
