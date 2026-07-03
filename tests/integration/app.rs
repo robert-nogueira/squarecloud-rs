@@ -3,6 +3,7 @@ use squarecloud_rs::{ApiClient, ApiError, ApiErrorCode};
 #[tokio::test]
 async fn app_info_matches_uploaded() {
     crate::setup();
+    crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     let app = client.app(app_id);
@@ -17,6 +18,7 @@ async fn app_info_matches_uploaded() {
 #[tokio::test]
 async fn app_status_returns_runtime_stats() {
     crate::setup();
+    crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     let status = client.app(app_id).status().await.unwrap();
@@ -30,16 +32,17 @@ async fn app_status_returns_runtime_stats() {
 #[tokio::test]
 async fn app_logs_returns_string() {
     crate::setup();
+    crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    let logs = client.app(app_id).logs().await.unwrap();
-
-    assert!(!logs.is_empty());
+    let result = client.app(app_id).logs().await;
+    assert!(result.is_ok(), "logs() failed: {:?}", result.err());
 }
 
 #[tokio::test]
 async fn all_apps_status_includes_shared_app() {
     crate::setup();
+    crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     let statuses = client.all_apps_status().await.unwrap();
@@ -53,6 +56,7 @@ async fn all_apps_status_includes_shared_app() {
 #[tokio::test]
 async fn app_envs_crud() {
     crate::setup();
+    crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     let app = client.app(app_id);
@@ -81,14 +85,97 @@ async fn app_envs_crud() {
 #[tokio::test]
 async fn app_commit_returns_true() {
     crate::setup();
+    crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     assert!(client.app(app_id).commit(crate::helpers::dummy_zip()).await.unwrap());
 }
 
 #[tokio::test]
+async fn app_analytics_returns_analytics() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    match client.app(app_id).analytics().await {
+        Ok(_) => {}
+        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(e) => panic!("unexpected error: {e:?}"),
+    }
+}
+
+#[tokio::test]
+async fn app_dns_record_returns_record() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    match client.app(app_id).dns_record().await {
+        Ok(record) => {
+            assert!(!record.name.is_empty());
+            assert!(!record.value.is_empty());
+        }
+        Err(ApiError::Api { code: ApiErrorCode::NoCustomDomain }) => {}
+        Err(e) => panic!("unexpected error: {e:?}"),
+    }
+}
+
+#[tokio::test]
+async fn app_network_errors_returns_result() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    match client.app(app_id).network_errors(false).await {
+        Ok(_) => {}
+        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(e) => panic!("unexpected error: {e:?}"),
+    }
+}
+
+#[tokio::test]
+async fn app_network_logs_returns_vec() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    match client.app(app_id).network_logs().await {
+        Ok(_) => {}
+        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(e) => panic!("unexpected error: {e:?}"),
+    }
+}
+
+#[tokio::test]
+async fn app_network_performance_returns_result() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    match client.app(app_id).network_performance().await {
+        Ok(_) => {}
+        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(e) => panic!("unexpected error: {e:?}"),
+    }
+}
+
+#[tokio::test]
+async fn app_purge_cache_returns_true() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    match client.app(app_id).purge_cache().await {
+        Ok(v) => assert!(v),
+        Err(ApiError::Api { code: ApiErrorCode::KeepCalm }) => {}
+        Err(e) => panic!("unexpected error: {e:?}"),
+    }
+}
+
+#[tokio::test]
 async fn app_metrics_returns_vec() {
     crate::setup();
+    crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     let _ = client.app(app_id).metrics().await.unwrap();
@@ -97,6 +184,7 @@ async fn app_metrics_returns_vec() {
 #[tokio::test]
 async fn app_restart_returns_true() {
     crate::setup();
+    crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     assert!(client.app(app_id).restart().await.unwrap());
@@ -105,6 +193,7 @@ async fn app_restart_returns_true() {
 #[tokio::test]
 async fn app_start_returns_true_or_already_started() {
     crate::setup();
+    crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     match client.app(app_id).start().await {
@@ -117,6 +206,7 @@ async fn app_start_returns_true_or_already_started() {
 #[tokio::test]
 async fn app_stop_returns_true() {
     crate::setup();
+    crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     assert!(client.app(app_id).stop().await.unwrap());

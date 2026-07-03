@@ -15,12 +15,17 @@ pub fn dummy_zip() -> Vec<u8> {
         b"DISPLAY_NAME=squarecloud-rs-test\n\
           MAIN=index.js\n\
           MEMORY=512\n\
-          VERSION=recommended\n",
+          VERSION=recommended\n\
+          SUBDOMAIN=squarecloud-rs-test\n",
     )
     .unwrap();
 
     zip.start_file("index.js", opts).unwrap();
-    zip.write_all(b"setInterval(() => {}, 1000)\n").unwrap();
+    zip.write_all(
+        b"const http = require('http');\n\
+          http.createServer((_, res) => res.end('ok')).listen(80);\n",
+    )
+    .unwrap();
 
     zip.start_file("package.json", opts).unwrap();
     zip.write_all(b"{\"name\":\"squarecloud-rs-test\",\"version\":\"1.0.0\"}\n")

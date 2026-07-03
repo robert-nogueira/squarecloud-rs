@@ -7,7 +7,7 @@ mod app;
 pub mod helpers;
 
 static ENV: Once = Once::new();
-static APP_ID: OnceLock<String> = OnceLock::new();
+static APP_ID: OnceLock<Result<String, String>> = OnceLock::new();
 
 pub fn setup() {
     ENV.call_once(|| {
@@ -18,33 +18,38 @@ pub fn setup() {
 
 /// Returns the shared dummy app ID, uploading it on first call.
 ///
-/// Uses a blocking tokio runtime so the upload runs exactly once across
-/// all test threads, regardless of how many tests call this concurrently.
+/// Stores `Result` so a failed upload is cached: subsequent tests fail
+/// immediately instead of retrying the upload and compounding rate limits.
 pub fn shared_app_id() -> &'static str {
-    APP_ID.get_or_init(|| {
-        setup();
-        // Spawn a dedicated thread so we can create a fresh tokio runtime
-        // without conflicting with the one already running inside each
-        // #[tokio::test] context.
-        std::thread::spawn(|| {
-            tokio::runtime::Runtime::new()
-                .unwrap()
-                .block_on(async {
-                    ApiClient::new()
-                        .upload_app(helpers::dummy_zip())
-                        .await
-                        .expect("failed to upload shared test app")
-                        .id
-                })
+    APP_ID
+        .get_or_init(|| {
+            setup();
+            std::thread::spawn(|| {
+                tokio::runtime::Runtime::new()
+                    .unwrap()
+                    .block_on(async {
+                        ApiClient::new()
+                            .upload_app(helpers::dummy_zip())
+                            .await
+                            .map(|a| a.id)
+                            .map_err(|e| format!("{e:?}"))
+                    })
+            })
+            .join()
+            .unwrap_or_else(|_| Err("upload thread panicked".to_string()))
         })
-        .join()
-        .unwrap()
-    })
+        .as_deref()
+        .expect("shared app upload failed — check API token and rate limit")
 }
 
 /// Returns the shared app ID only if it was already initialized.
 ///
 /// Used by the cleanup test to avoid uploading just to delete.
 pub fn shared_app_id_if_initialized() -> Option<&'static str> {
-    APP_ID.get().map(String::as_str)
+    APP_ID.get().and_then(|r| r.as_deref().ok())
+}
+
+/// Waits briefly between tests to avoid hitting the SquareCloud rate limit.
+pub async fn throttle() {
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
 }

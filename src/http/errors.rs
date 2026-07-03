@@ -56,6 +56,10 @@ pub enum ApiErrorCode {
     KeepCalm,
     /// Start was rejected because the container is already running.
     ContainerAlreadyStarted,
+    /// The requested time range has no data or is invalid.
+    InvalidTimeRange,
+    /// The application has no custom domain configured.
+    NoCustomDomain,
 }
 
 /// An error returned by any API operation.
