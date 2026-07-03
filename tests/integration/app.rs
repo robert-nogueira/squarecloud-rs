@@ -3,7 +3,7 @@ use squarecloud_rs::ApiClient;
 #[tokio::test]
 async fn app_info_matches_uploaded() {
     crate::setup();
-    let app_id = crate::shared_app_id().await;
+    let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     let app = client.app(app_id);
 
@@ -17,7 +17,7 @@ async fn app_info_matches_uploaded() {
 #[tokio::test]
 async fn app_status_returns_runtime_stats() {
     crate::setup();
-    let app_id = crate::shared_app_id().await;
+    let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     let status = client.app(app_id).status().await.unwrap();
 
@@ -30,11 +30,24 @@ async fn app_status_returns_runtime_stats() {
 #[tokio::test]
 async fn app_logs_returns_string() {
     crate::setup();
-    let app_id = crate::shared_app_id().await;
+    let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     let logs = client.app(app_id).logs().await.unwrap();
 
     assert!(!logs.is_empty());
+}
+
+#[tokio::test]
+async fn all_apps_status_includes_shared_app() {
+    crate::setup();
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    let statuses = client.all_apps_status().await.unwrap();
+
+    assert!(
+        statuses.iter().any(|s| s.id == app_id),
+        "shared app not found in all_apps_status"
+    );
 }
 
 /// Must stay last alphabetically so it runs after all other app tests.

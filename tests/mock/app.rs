@@ -77,6 +77,30 @@ async fn app_logs_deserializes_success_response() {
 }
 
 #[tokio::test]
+async fn all_apps_status_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/status"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": [
+                { "id": "app-123", "running": true, "cpu": "1.2%", "ram": "100MB" },
+                { "id": "app-456", "running": false, "cpu": null, "ram": null }
+            ]
+        })))
+        .mount(&server)
+        .await;
+
+    let statuses = client.all_apps_status().await.unwrap();
+    assert_eq!(statuses.len(), 2);
+    assert_eq!(statuses[0].id, "app-123");
+    assert!(statuses[0].running);
+    assert_eq!(statuses[1].id, "app-456");
+    assert!(!statuses[1].running);
+    assert!(statuses[1].cpu.is_none());
+}
+
+#[tokio::test]
 async fn app_status_deserializes_stopped_response() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))

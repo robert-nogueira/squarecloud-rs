@@ -52,6 +52,8 @@ pub enum ApiErrorCode {
     AppNotFound,
     /// The uploaded file is malformed or has an unsupported format.
     InvalidFile,
+    /// Upload rate limit: too many uploads in a short window. Try again later.
+    KeepCalm,
 }
 
 /// An error returned by any API operation.
