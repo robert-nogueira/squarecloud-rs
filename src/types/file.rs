@@ -16,6 +16,7 @@ pub struct FileContent {
 
 /// Distinguishes a regular file from a directory entry.
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum FileType {
     /// A regular file.
     File,
@@ -34,6 +35,8 @@ pub struct FileInfo {
     /// Whether this entry is a regular file or a directory.
     #[serde(rename = "type")]
     pub file_type: FileType,
+    /// Size in bytes. `0` for directories.
+    pub size: u64,
     /// The UTC timestamp of the last modification.
     #[serde(with = "ts_milliseconds")]
     #[serde(rename = "lastModified")]
