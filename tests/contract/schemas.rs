@@ -1,27 +1,47 @@
-use squarecloud_rs::types::AppInfo;
+use squarecloud_rs::types::{AppInfo, Snapshot};
 
 use crate::validation::generate_json_variants_from_schema;
+
+fn check_schema<T: serde::de::DeserializeOwned>(
+    schema_name: &str,
+    spec: &serde_json::Value,
+) -> Vec<String> {
+    let schemas = &spec["components"]["schemas"];
+    let variants =
+        generate_json_variants_from_schema(&schemas[schema_name], schemas);
+    variants
+        .iter()
+        .filter_map(|v| {
+            serde_json::from_value::<T>(v.clone())
+                .err()
+                .map(|e| format!("{e}\n    json: {v}"))
+        })
+        .collect()
+}
+
+macro_rules! assert_schema {
+    ($spec:expr, $schema:literal, $type:ty) => {
+        let failures = check_schema::<$type>($schema, $spec);
+        if !failures.is_empty() {
+            panic!(
+                "{} failure(s) deserializing {} as {}:\n  {}",
+                failures.len(),
+                $schema,
+                stringify!($type),
+                failures.join("\n  ")
+            );
+        }
+    };
+}
 
 #[tokio::test]
 async fn app_schema_deserializes_as_app_info() {
     let spec = crate::fetch_full_spec().await;
-    let schemas = &spec["components"]["schemas"];
-    let schema = &schemas["App"];
+    assert_schema!(&spec, "App", AppInfo);
+}
 
-    let variants = generate_json_variants_from_schema(schema, schemas);
-    let mut failures = vec![];
-
-    for variant in &variants {
-        if let Err(e) = serde_json::from_value::<AppInfo>(variant.clone()) {
-            failures.push(format!("{e}\n    json: {variant}"));
-        }
-    }
-
-    if !failures.is_empty() {
-        panic!(
-            "{} failure(s) deserializing App schema as AppInfo:\n  {}",
-            failures.len(),
-            failures.join("\n  ")
-        );
-    }
+#[tokio::test]
+async fn snapshot_schema_deserializes_as_snapshot() {
+    let spec = crate::fetch_full_spec().await;
+    assert_schema!(&spec, "Snapshot", Snapshot);
 }
