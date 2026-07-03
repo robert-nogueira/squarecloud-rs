@@ -51,6 +51,34 @@ async fn all_apps_status_includes_shared_app() {
 }
 
 #[tokio::test]
+async fn app_envs_crud() {
+    crate::setup();
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    let app = client.app(app_id);
+
+    let envs = std::collections::HashMap::from([
+        ("TEST_KEY".to_string(), "hello".to_string()),
+    ]);
+
+    let after_upsert = app.upsert_envs(&envs).await.unwrap();
+    assert_eq!(after_upsert.get("TEST_KEY").map(String::as_str), Some("hello"));
+
+    let listed = app.list_envs().await.unwrap();
+    assert!(listed.contains_key("TEST_KEY"));
+
+    let overwrite = std::collections::HashMap::from([
+        ("OTHER_KEY".to_string(), "world".to_string()),
+    ]);
+    let after_overwrite = app.overwrite_envs(&overwrite).await.unwrap();
+    assert!(!after_overwrite.contains_key("TEST_KEY"));
+    assert_eq!(after_overwrite.get("OTHER_KEY").map(String::as_str), Some("world"));
+
+    let after_delete = app.delete_envs(&["OTHER_KEY".to_string()]).await.unwrap();
+    assert!(!after_delete.contains_key("OTHER_KEY"));
+}
+
+#[tokio::test]
 async fn app_commit_returns_true() {
     crate::setup();
     let app_id = crate::shared_app_id();

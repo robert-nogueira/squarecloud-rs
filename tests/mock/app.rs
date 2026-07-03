@@ -101,6 +101,73 @@ async fn all_apps_status_deserializes_success_response() {
 }
 
 #[tokio::test]
+async fn app_list_envs_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/envs"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": { "KEY": "value" }
+        })))
+        .mount(&server)
+        .await;
+
+    let envs = client.app("app-123").list_envs().await.unwrap();
+    assert_eq!(envs.get("KEY").map(String::as_str), Some("value"));
+}
+
+#[tokio::test]
+async fn app_upsert_envs_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/envs"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": { "KEY": "value" }
+        })))
+        .mount(&server)
+        .await;
+
+    let envs = std::collections::HashMap::from([("KEY".to_string(), "value".to_string())]);
+    let result = client.app("app-123").upsert_envs(&envs).await.unwrap();
+    assert_eq!(result.get("KEY").map(String::as_str), Some("value"));
+}
+
+#[tokio::test]
+async fn app_overwrite_envs_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("PUT"))
+        .and(path("/apps/app-123/envs"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": { "NEW_KEY": "new_value" }
+        })))
+        .mount(&server)
+        .await;
+
+    let envs = std::collections::HashMap::from([("NEW_KEY".to_string(), "new_value".to_string())]);
+    let result = client.app("app-123").overwrite_envs(&envs).await.unwrap();
+    assert!(!result.contains_key("KEY"));
+    assert_eq!(result.get("NEW_KEY").map(String::as_str), Some("new_value"));
+}
+
+#[tokio::test]
+async fn app_delete_envs_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("DELETE"))
+        .and(path("/apps/app-123/envs"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {}
+        })))
+        .mount(&server)
+        .await;
+
+    let result = client.app("app-123").delete_envs(&["KEY".to_string()]).await.unwrap();
+    assert!(result.is_empty());
+}
+
+#[tokio::test]
 async fn app_commit_deserializes_success_response() {
     use wiremock::matchers::method;
     let (client, server) = crate::mock_client().await;
