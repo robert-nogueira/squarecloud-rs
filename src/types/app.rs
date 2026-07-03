@@ -77,6 +77,13 @@ impl AppInfo {
     }
 }
 
+/// Wrapper for the logs response body.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AppLogs {
+    /// The concatenated log output.
+    pub logs: String,
+}
+
 /// A domain entry associated with an application.
 ///
 /// Returned as part of a [`Vec`] by

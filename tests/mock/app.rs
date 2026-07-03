@@ -59,6 +59,24 @@ async fn app_status_deserializes_success_response() {
 }
 
 #[tokio::test]
+async fn app_logs_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/logs"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "logs": "Server listening on :3000\nRequest received\n"
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let logs = client.app("app-123").logs().await.unwrap();
+    assert!(logs.contains("Server listening"));
+}
+
+#[tokio::test]
 async fn app_status_deserializes_stopped_response() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))

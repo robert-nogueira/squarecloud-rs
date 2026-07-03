@@ -9,7 +9,7 @@ use crate::{
         errors::{ApiError, CommitError},
     },
     resources::FileResource,
-    types::{AppInfo, AppMetrics, RuntimeStats},
+    types::{AppInfo, AppLogs, AppMetrics, RuntimeStats},
 };
 
 /// A handle to a specific SquareCloud application.
@@ -158,10 +158,12 @@ impl AppResource {
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
     /// on an API-level error.
     pub async fn logs(&self) -> Result<String, ApiError> {
-        self.client
+        let r: AppLogs = self
+            .client
             .request_endpoint(Endpoint::app_logs(&self.id))
             .await?
-            .into_result_t()
+            .into_result_t()?;
+        Ok(r.logs)
     }
 
     /// Commits a new version of the application by uploading a ZIP archive.

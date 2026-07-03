@@ -27,6 +27,16 @@ async fn app_status_returns_runtime_stats() {
     assert!(!status.storage.is_empty());
 }
 
+#[tokio::test]
+async fn app_logs_returns_string() {
+    crate::setup();
+    let app_id = crate::shared_app_id().await;
+    let client = ApiClient::new();
+    let logs = client.app(app_id).logs().await.unwrap();
+
+    assert!(!logs.is_empty());
+}
+
 /// Must stay last alphabetically so it runs after all other app tests.
 #[tokio::test]
 async fn z_cleanup_shared_app() {

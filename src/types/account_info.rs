@@ -10,8 +10,8 @@ pub struct AppSummary {
     pub id: String,
     /// The application's display name.
     pub name: String,
-    /// A short description of the application.
-    pub desc: String,
+    /// A short description of the application, if set.
+    pub desc: Option<String>,
     /// RAM allocation in megabytes.
     pub ram: u32,
     /// The programming language or runtime the application uses.
