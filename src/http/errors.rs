@@ -75,6 +75,7 @@ pub enum ApiError {
 ///
 /// Committing a file requires building a multipart HTTP request, which may
 /// fail for reasons beyond an API error. This enum wraps both cases.
+#[derive(Debug)]
 pub enum CommitError {
     /// An API-level or transport-level error occurred.
     Api(ApiError),

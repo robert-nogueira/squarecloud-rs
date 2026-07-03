@@ -101,6 +101,21 @@ async fn all_apps_status_deserializes_success_response() {
 }
 
 #[tokio::test]
+async fn app_commit_deserializes_success_response() {
+    use wiremock::matchers::method;
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/commit"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    assert!(client.app("app-123").commit(vec![]).await.unwrap());
+}
+
+#[tokio::test]
 async fn app_metrics_deserializes_success_response() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))
