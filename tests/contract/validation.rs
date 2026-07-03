@@ -53,8 +53,15 @@ fn generate_json_variants_from_type(type_str: &str, schema: &Value, schemas: &Va
                 None => return vec![Value::Object(serde_json::Map::new())],
             };
 
-            // Build the cartesian product of all field variants. Start with
-            // one empty combination and expand it field by field.
+            let required: std::collections::HashSet<&str> = schema
+                .get("required")
+                .and_then(|r| r.as_array())
+                .map(|arr| arr.iter().filter_map(|v| v.as_str()).collect())
+                .unwrap_or_default();
+
+            // Build the cartesian product of all field variants. For optional
+            // fields, also include a combination where the field is absent so
+            // that missing required fields in Rust structs are caught.
             let mut combinations: Vec<serde_json::Map<String, Value>> =
                 vec![serde_json::Map::new()];
 
@@ -67,6 +74,9 @@ fn generate_json_variants_from_type(type_str: &str, schema: &Value, schemas: &Va
                         let mut combo = existing.clone();
                         combo.insert(field.clone(), variant.clone());
                         next.push(combo);
+                    }
+                    if !required.contains(field.as_str()) {
+                        next.push(existing.clone());
                     }
                 }
                 combinations = next;
