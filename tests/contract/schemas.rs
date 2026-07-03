@@ -1,4 +1,4 @@
-use squarecloud_rs::types::{AppInfo, Snapshot};
+use squarecloud_rs::types::{AppInfo, DnsRecord, Snapshot};
 
 use crate::validation::generate_json_variants_from_schema;
 
@@ -44,4 +44,10 @@ async fn app_schema_deserializes_as_app_info() {
 async fn snapshot_schema_deserializes_as_snapshot() {
     let spec = crate::fetch_full_spec().await;
     assert_schema!(&spec, "Snapshot", Snapshot);
+}
+
+#[tokio::test]
+async fn dns_record_schema_deserializes_as_dns_record() {
+    let spec = crate::fetch_full_spec().await;
+    assert_schema!(&spec, "DNSRecord", DnsRecord);
 }
