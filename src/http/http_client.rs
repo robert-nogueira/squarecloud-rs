@@ -16,7 +16,7 @@ use crate::{
     resources::{AppResource, DatabaseResource, WorkspaceResource},
     settings::SETTINGS,
     types::{
-        AccountInfo, AppDomain, AppFromUser, AppInfo, AppStatus, Database,
+        AccountInfo, AppDomain, AppInfo, AppStatus, Database,
         DatabaseResumedStatus, DatabaseType, ServiceStatus, Snapshot,
         WorkspaceInfo,
     },
@@ -213,30 +213,9 @@ impl ApiClient {
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
     /// if the token is invalid ([`ApiErrorCode::InvalidAccessToken`]).
     pub async fn me(&self) -> Result<AccountInfo, ApiError> {
-        #[derive(Deserialize)]
-        struct MeResponse {
-            user: MeUser,
-            #[serde(default)]
-            applications: Vec<AppFromUser>,
-        }
-        #[derive(Deserialize)]
-        struct MeUser {
-            id: String,
-            name: String,
-            email: String,
-            plan: crate::types::Plan,
-        }
-        let res = self
-            .request_endpoint::<MeResponse>(Endpoint::me())
+        self.request_endpoint::<AccountInfo>(Endpoint::me())
             .await?
-            .into_result_t()?;
-        Ok(AccountInfo {
-            id: res.user.id,
-            name: res.user.name,
-            email: res.user.email,
-            plan: res.user.plan,
-            applications: res.applications,
-        })
+            .into_result_t()
     }
 
     /// Uploads a new application from a ZIP archive and returns its metadata.

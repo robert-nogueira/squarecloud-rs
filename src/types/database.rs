@@ -103,6 +103,24 @@ pub struct DatabaseInfo {
     pub created_at: DateTime<Utc>,
 }
 
+/// Condensed database metadata as returned inside the `me` response.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DatabaseSummary {
+    /// The database's unique identifier.
+    pub id: String,
+    /// The user-defined name of the database.
+    pub name: String,
+    /// RAM allocation in megabytes.
+    pub ram: u32,
+    /// The database engine type (e.g. `"mongodb"`, `"redis"`).
+    #[serde(rename = "type")]
+    pub db_type: String,
+    /// The data-centre cluster the database is hosted on.
+    pub cluster: String,
+    /// The UTC timestamp when the database was created.
+    pub created_at: DateTime<Utc>,
+}
+
 /// Full details for a provisioned database.
 ///
 /// Returned by

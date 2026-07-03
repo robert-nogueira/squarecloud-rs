@@ -21,7 +21,7 @@
 //!
 //!     // Fetch your account information.
 //!     let me = client.me().await?;
-//!     println!("Logged in as {} ({})", me.name, me.email);
+//!     println!("Logged in as {} ({})", me.user.name, me.user.email);
 //!
 //!     // Inspect a running application.
 //!     // Note: `app()` consumes the client, so call account-level

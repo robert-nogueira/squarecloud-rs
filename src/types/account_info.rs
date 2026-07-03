@@ -1,13 +1,15 @@
-use super::plan::Plan;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-/// Metadata about a single application as seen from the account owner's view.
+use super::{database::DatabaseSummary, plan::Plan};
+
+/// Condensed application metadata as returned inside the `me` response.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AppFromUser {
-    /// The application's display name.
-    pub name: String,
+pub struct AppSummary {
     /// The application's unique identifier.
     pub id: String,
+    /// The application's display name.
+    pub name: String,
     /// A short description of the application.
     pub desc: String,
     /// RAM allocation in megabytes.
@@ -20,13 +22,13 @@ pub struct AppFromUser {
     pub custom: Option<String>,
     /// The data-centre cluster the application is hosted on.
     pub cluster: String,
+    /// The UTC timestamp when the application was created.
+    pub created_at: DateTime<Utc>,
 }
 
-/// Account information for the authenticated user.
-///
-/// Returned by [`ApiClient::me`](crate::ApiClient::me).
+/// The authenticated user's profile fields.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AccountInfo {
+pub struct UserInfo {
     /// The account's unique identifier.
     pub id: String,
     /// The account holder's display name.
@@ -35,6 +37,19 @@ pub struct AccountInfo {
     pub email: String,
     /// The active subscription plan and its resource limits.
     pub plan: Plan,
+    /// The UTC timestamp when the account was created.
+    pub created_at: DateTime<Utc>,
+}
+
+/// Full account information returned by `me`.
+///
+/// Returned by [`ApiClient::me`](crate::ApiClient::me).
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AccountInfo {
+    /// The authenticated user's profile.
+    pub user: UserInfo,
     /// All applications owned by this account.
-    pub applications: Vec<AppFromUser>,
+    pub applications: Vec<AppSummary>,
+    /// All managed databases owned by this account.
+    pub databases: Vec<DatabaseSummary>,
 }
