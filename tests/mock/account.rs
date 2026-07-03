@@ -14,6 +14,7 @@ async fn me_deserializes_success_response() {
                     "id": "user-123",
                     "name": "Test User",
                     "email": "test@example.com",
+                    "created_at": "2024-01-01T00:00:00Z",
                     "plan": {
                         "name": "Starter",
                         "memory": { "limit": 512, "available": 512, "used": 0 },
@@ -28,5 +29,5 @@ async fn me_deserializes_success_response() {
         .await;
 
     let me = client.me().await.unwrap();
-    assert_eq!(me.id, "user-123");
+    assert_eq!(me.user.id, "user-123");
 }
