@@ -1,4 +1,6 @@
-use squarecloud_rs::types::{AppInfo, DatabaseInfo, Deploy, DnsRecord, FileInfo, Plan, Snapshot, UserInfo};
+use squarecloud_rs::types::{
+    AppInfo, DatabaseInfo, Deploy, DnsRecord, FileInfo, Plan, Snapshot, UserInfo,
+};
 
 use crate::validation::generate_json_variants_from_schema;
 
