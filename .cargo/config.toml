@@ -4,6 +4,6 @@ rustdocflags = ["--default-theme", "ayu", "--document-private-items"]
 [alias]
 test-contract = "test --test contract --features test-utils"
 test-mock = "test --test mock"
-test-integration = "test --test integration -- --test-threads=1"
+test-integration = "test --test integration -- --test-threads=1 --fail-fast"
 d = "doc --no-deps"
 cov = "llvm-cov --workspace --all-features --ignore-filename-regex main.rs --summary-only"
