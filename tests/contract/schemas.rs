@@ -1,6 +1,6 @@
 use squarecloud_rs::types::{
-    AppInfo, AppSummary, DatabaseInfo, Deploy, DnsRecord, FileInfo, Plan, Snapshot, UserInfo,
-    WorkspaceApp, WorkspaceInfo, WorkspaceMember,
+    AppInfo, AppSummary, DatabaseInfo, DatabaseSummary, Deploy, DnsRecord, FileInfo, Plan,
+    Snapshot, UserInfo, WorkspaceApp, WorkspaceInfo, WorkspaceMember,
 };
 
 use crate::validation::generate_json_variants_from_schema;
@@ -107,4 +107,10 @@ async fn workspace_app_schema_deserializes_as_workspace_app() {
 async fn workspace_schema_deserializes_as_workspace_info() {
     let spec = crate::fetch_full_spec().await;
     assert_schema!(&spec, "Workspace", WorkspaceInfo);
+}
+
+#[tokio::test]
+async fn database_summary_schema_deserializes_as_database_summary() {
+    let spec = crate::fetch_full_spec().await;
+    assert_schema!(&spec, "DatabaseSummary", DatabaseSummary);
 }
