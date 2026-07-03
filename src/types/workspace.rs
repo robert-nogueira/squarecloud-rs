@@ -27,10 +27,16 @@ pub struct WorkspaceApp {
     pub id: String,
     /// The application's display name.
     pub name: String,
+    /// A short description of the application.
+    pub desc: Option<String>,
     /// RAM allocation in megabytes.
     pub ram: u32,
     /// The programming language or runtime the application uses.
-    pub language: String,
+    pub lang: String,
+    /// The primary domain assigned by SquareCloud, if any.
+    pub domain: Option<String>,
+    /// A custom domain configured by the owner, if any.
+    pub custom: Option<String>,
 }
 
 /// Full details for a SquareCloud workspace.
