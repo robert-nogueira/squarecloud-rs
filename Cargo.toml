@@ -26,6 +26,7 @@ test-utils = ["dep:inventory"]
 [dev-dependencies]
 inventory = "0.3"
 wiremock = "0.6"
+zip = "2"
 
 [dependencies]
 inventory = { version = "0.3", optional = true }

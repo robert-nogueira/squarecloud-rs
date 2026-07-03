@@ -16,8 +16,8 @@ use crate::{
     resources::{AppResource, DatabaseResource, WorkspaceResource},
     settings::SETTINGS,
     types::{
-        AccountInfo, AppDomain, AppInfo, Database, DatabaseType,
-        RuntimeStatsListItem, ServiceStatus, Snapshot,
+        AccountInfo, AppDomain, Database, DatabaseType,
+        RuntimeStatsListItem, ServiceStatus, Snapshot, UploadedApp,
         WorkspaceInfo,
     },
 };
@@ -237,9 +237,15 @@ impl ApiClient {
     pub async fn upload_app(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
-    ) -> Result<AppInfo, ApiError> {
+    ) -> Result<UploadedApp, ApiError> {
         let endpoint = Endpoint::upload_app();
-        let form = Form::new().part("file", Part::bytes(bytes));
+        let form = Form::new().part(
+            "file",
+            Part::bytes(bytes)
+                .file_name("app.zip")
+                .mime_str("application/zip")
+                .unwrap(),
+        );
 
         let request = endpoint
             .request_builder(&self.http_client, &self.base_url)

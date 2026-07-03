@@ -6,11 +6,49 @@ use serde::{Deserialize, Serialize};
 use crate::http::ApiClient;
 use crate::resources::AppResource;
 
+/// Detected runtime language returned by the upload endpoint.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AppLanguage {
+    /// Runtime identifier (e.g. `"javascript"`, `"python"`, `"rust"`).
+    pub name: String,
+    /// Detected version string (e.g. `"22"`, `"3.12"`).
+    pub version: String,
+}
+
+/// Response returned by [`ApiClient::upload_app`](crate::ApiClient::upload_app).
+///
+/// This differs from [`AppInfo`] in that `language` is a structured object and
+/// `cpu` is included. To obtain an [`AppResource`] handle from this value, call
+/// [`into_resource`](UploadedApp::into_resource).
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UploadedApp {
+    /// The application's unique identifier.
+    pub id: String,
+    /// The application's display name.
+    pub name: String,
+    /// Optional description from `squarecloud.app`.
+    pub description: Option<String>,
+    /// Optional SquareCloud-assigned subdomain.
+    pub subdomain: Option<String>,
+    /// RAM allocation in megabytes.
+    pub ram: u32,
+    /// CPU shares allocated.
+    pub cpu: f32,
+    /// Detected runtime language and version.
+    pub language: AppLanguage,
+}
+
+impl UploadedApp {
+    /// Converts this value into an [`AppResource`] handle bound to `api`.
+    pub fn into_resource(&self, api: Arc<ApiClient>) -> AppResource {
+        AppResource::new(api, &self.id)
+    }
+}
+
 /// Static metadata for a SquareCloud application.
 ///
-/// Returned by [`ApiClient::upload_app`](crate::ApiClient::upload_app) and
-/// [`AppResource::info`](crate::resources::AppResource::info). To obtain an
-/// [`AppResource`] handle from this value, call
+/// Returned by [`AppResource::info`](crate::resources::AppResource::info).
+/// To obtain an [`AppResource`] handle from this value, call
 /// [`into_resource`](AppInfo::into_resource).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppInfo {

@@ -185,7 +185,13 @@ impl AppResource {
         bytes: impl Into<Cow<'static, [u8]>>,
     ) -> Result<bool, CommitError> {
         let endpoint = Endpoint::app_commit(&self.id);
-        let form = Form::new().part("file", Part::bytes(bytes));
+        let form = Form::new().part(
+            "file",
+            Part::bytes(bytes)
+                .file_name("app.zip")
+                .mime_str("application/zip")
+                .unwrap(),
+        );
 
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)

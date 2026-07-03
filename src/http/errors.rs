@@ -50,6 +50,8 @@ pub enum ApiErrorCode {
     NotFound,
     /// An application with this name already exists in the account.
     AppNotFound,
+    /// The uploaded file is malformed or has an unsupported format.
+    InvalidFile,
 }
 
 /// An error returned by any API operation.
