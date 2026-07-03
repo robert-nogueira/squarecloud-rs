@@ -1,5 +1,6 @@
 use squarecloud_rs::types::{
-    AppInfo, AppStatus, AppSummary, DatabaseInfo, DatabaseSummary, Deploy, DnsRecord, FileInfo,
+    AppInfo, AppSummary, DatabaseInfo, DatabaseSummary, Deploy, DnsRecord, FileInfo,
+    RuntimeStats, RuntimeStatsListItem,
     NetworkErrors, Plan, Snapshot, UserInfo, WorkspaceApp, WorkspaceInfo, WorkspaceMember,
 };
 
@@ -122,7 +123,14 @@ async fn network_errors_schema_deserializes_as_network_errors() {
 }
 
 #[tokio::test]
-async fn runtime_stats_schema_deserializes_as_app_status() {
+async fn runtime_stats_schema_deserializes_as_runtime_stats() {
     let spec = crate::fetch_full_spec().await;
-    assert_schema!(&spec, "RuntimeStats", AppStatus);
+    assert_schema!(&spec, "RuntimeStats", RuntimeStats);
+}
+
+#[tokio::test]
+async fn runtime_stats_list_item_schema_deserializes_as_runtime_stats_list_item(
+) {
+    let spec = crate::fetch_full_spec().await;
+    assert_schema!(&spec, "RuntimeStatsListItem", RuntimeStatsListItem);
 }

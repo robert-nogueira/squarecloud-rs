@@ -1,53 +1,10 @@
 use std::sync::Arc;
 
-use chrono::{DateTime, Utc, serde::ts_milliseconds};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{http::ApiClient, resources::DatabaseResource};
 
-/// Network throughput figures for a running database instance.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DatabaseNetwork {
-    /// Cumulative bytes transferred since the database started.
-    pub total: String,
-    /// Bytes transferred in the current measurement interval.
-    pub now: String,
-}
-
-/// Condensed runtime status for a database, as returned in list responses.
-///
-/// Returned as part of a [`Vec`] by
-/// [`ApiClient::all_database_status`](crate::ApiClient::all_database_status).
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DatabaseResumedStatus {
-    /// The database's unique identifier.
-    pub id: String,
-    /// `true` if the database process is currently running.
-    pub running: bool,
-    /// Current CPU usage as a percentage string.
-    pub cpu: String,
-    /// Current RAM usage.
-    pub ram: String,
-}
-
-/// Detailed runtime status for a single database instance.
-///
-/// Returned by
-/// [`DatabaseResource::status`](crate::resources::DatabaseResource::status).
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DatabaseStatus {
-    /// Current CPU usage as a percentage string.
-    pub cpu: String,
-    /// Current RAM usage.
-    pub ram: String,
-    /// A human-readable status label (e.g. `"running"`, `"stopped"`).
-    pub status: String,
-    /// Network throughput statistics.
-    pub network: DatabaseNetwork,
-    /// The UTC timestamp when the database process last started.
-    #[serde(with = "ts_milliseconds")]
-    pub uptime: DateTime<Utc>,
-}
 
 /// A single historical resource-usage sample for a database.
 ///

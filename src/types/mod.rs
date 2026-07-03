@@ -9,6 +9,7 @@ mod network;
 mod plan;
 mod service;
 mod snapshot;
+mod stats;
 mod workspace;
 
 pub use account_info::*;
@@ -22,4 +23,5 @@ pub use network::*;
 pub use plan::*;
 pub use service::*;
 pub use snapshot::*;
+pub use stats::*;
 pub use workspace::*;

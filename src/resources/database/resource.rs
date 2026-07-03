@@ -5,7 +5,7 @@ use serde_json::{Map, Value};
 use crate::{
     Endpoint,
     http::{ApiClient, errors::ApiError},
-    types::{DatabaseInfo, DatabaseMetrics, DatabaseStatus},
+    types::{DatabaseInfo, DatabaseMetrics, RuntimeStats},
 };
 
 /// A handle to a specific SquareCloud managed database.
@@ -95,7 +95,7 @@ impl DatabaseResource {
     ///
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
     /// on an API-level error.
-    pub async fn status(&self) -> Result<DatabaseStatus, ApiError> {
+    pub async fn status(&self) -> Result<RuntimeStats, ApiError> {
         self.client
             .request_endpoint(Endpoint::database_status(&self.id))
             .await?

@@ -9,7 +9,7 @@ use crate::{
         errors::{ApiError, CommitError},
     },
     resources::FileResource,
-    types::{AppInfo, AppMetrics, AppStatus},
+    types::{AppInfo, AppMetrics, RuntimeStats},
 };
 
 /// A handle to a specific SquareCloud application.
@@ -101,14 +101,14 @@ impl AppResource {
 
     /// Returns the current runtime status of the application.
     ///
-    /// The returned [`AppStatus`] includes CPU usage, RAM usage, storage,
+    /// The returned [`RuntimeStats`] includes CPU usage, RAM usage, storage,
     /// network throughput, and the time the process last started.
     ///
     /// # Errors
     ///
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
     /// on an API-level error.
-    pub async fn status(&self) -> Result<AppStatus, ApiError> {
+    pub async fn status(&self) -> Result<RuntimeStats, ApiError> {
         self.client
             .request_endpoint(Endpoint::app_status(&self.id))
             .await?

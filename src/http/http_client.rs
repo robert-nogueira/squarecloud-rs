@@ -16,8 +16,8 @@ use crate::{
     resources::{AppResource, DatabaseResource, WorkspaceResource},
     settings::SETTINGS,
     types::{
-        AccountInfo, AppDomain, AppInfo, AppStatus, Database,
-        DatabaseResumedStatus, DatabaseType, ServiceStatus, Snapshot,
+        AccountInfo, AppDomain, AppInfo, Database, DatabaseType,
+        RuntimeStatsListItem, ServiceStatus, Snapshot,
         WorkspaceInfo,
     },
 };
@@ -271,7 +271,7 @@ impl ApiClient {
     ///
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
     /// on an API-level error.
-    pub async fn all_apps_status(&self) -> Result<Vec<AppStatus>, ApiError> {
+    pub async fn all_apps_status(&self) -> Result<Vec<RuntimeStatsListItem>, ApiError> {
         self.request_endpoint(Endpoint::all_apps_status())
             .await?
             .into_result_t()
@@ -319,7 +319,7 @@ impl ApiClient {
     /// on an API-level error.
     pub async fn all_database_status(
         &self,
-    ) -> Result<Vec<DatabaseResumedStatus>, ApiError> {
+    ) -> Result<Vec<RuntimeStatsListItem>, ApiError> {
         self.request_endpoint(Endpoint::all_database_status())
             .await?
             .into_result_t()
