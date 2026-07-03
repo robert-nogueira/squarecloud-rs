@@ -1,4 +1,4 @@
-use squarecloud_rs::ApiClient;
+use squarecloud_rs::{ApiClient, ApiError, ApiErrorCode};
 
 #[tokio::test]
 async fn app_info_matches_uploaded() {
@@ -48,6 +48,34 @@ async fn all_apps_status_includes_shared_app() {
         statuses.iter().any(|s| s.id == app_id),
         "shared app not found in all_apps_status"
     );
+}
+
+#[tokio::test]
+async fn app_restart_returns_true() {
+    crate::setup();
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    assert!(client.app(app_id).restart().await.unwrap());
+}
+
+#[tokio::test]
+async fn app_start_returns_true_or_already_started() {
+    crate::setup();
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    match client.app(app_id).start().await {
+        Ok(v) => assert!(v),
+        Err(ApiError::Api { code: ApiErrorCode::ContainerAlreadyStarted }) => {}
+        Err(e) => panic!("unexpected error: {e:?}"),
+    }
+}
+
+#[tokio::test]
+async fn app_stop_returns_true() {
+    crate::setup();
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    assert!(client.app(app_id).stop().await.unwrap());
 }
 
 /// Must stay last alphabetically so it runs after all other app tests.

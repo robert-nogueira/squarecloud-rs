@@ -54,6 +54,8 @@ pub enum ApiErrorCode {
     InvalidFile,
     /// Upload rate limit: too many uploads in a short window. Try again later.
     KeepCalm,
+    /// Start was rejected because the container is already running.
+    ContainerAlreadyStarted,
 }
 
 /// An error returned by any API operation.

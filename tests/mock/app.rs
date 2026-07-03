@@ -101,6 +101,48 @@ async fn all_apps_status_deserializes_success_response() {
 }
 
 #[tokio::test]
+async fn app_restart_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/restart"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    assert!(client.app("app-123").restart().await.unwrap());
+}
+
+#[tokio::test]
+async fn app_start_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/start"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    assert!(client.app("app-123").start().await.unwrap());
+}
+
+#[tokio::test]
+async fn app_stop_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/stop"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    assert!(client.app("app-123").stop().await.unwrap());
+}
+
+#[tokio::test]
 async fn app_status_deserializes_stopped_response() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))
