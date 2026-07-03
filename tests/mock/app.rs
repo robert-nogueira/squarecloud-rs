@@ -1,0 +1,84 @@
+use serde_json::json;
+use wiremock::matchers::{method, path};
+use wiremock::{Mock, ResponseTemplate};
+
+#[tokio::test]
+async fn app_info_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "id": "app-123",
+                "name": "squarecloud-rs-test",
+                "owner": "user-123",
+                "cluster": "florida-1",
+                "ram": 512,
+                "language": "javascript",
+                "domain": null,
+                "custom": null
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let info = client.app("app-123").info().await.unwrap();
+    assert_eq!(info.id, "app-123");
+    assert_eq!(info.name, "squarecloud-rs-test");
+    assert_eq!(info.ram, 512);
+    assert_eq!(info.language, "javascript");
+}
+
+#[tokio::test]
+async fn app_status_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/status"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "cpu": "2.5%",
+                "ram": "128/512MB",
+                "status": "running",
+                "running": true,
+                "storage": "50MB",
+                "network": { "total": "1MB", "now": "0KB" },
+                "uptime": 1700000000000i64
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let status = client.app("app-123").status().await.unwrap();
+    assert_eq!(status.cpu, "2.5%");
+    assert_eq!(status.ram, "128/512MB");
+    assert_eq!(status.status, "running");
+    assert!(status.running);
+    assert!(status.uptime.is_some());
+}
+
+#[tokio::test]
+async fn app_status_deserializes_stopped_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/status"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "cpu": "0%",
+                "ram": "0MB",
+                "status": "exited",
+                "running": false,
+                "storage": "50MB",
+                "network": { "total": "0MB", "now": "0KB" },
+                "uptime": null
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let status = client.app("app-123").status().await.unwrap();
+    assert!(!status.running);
+    assert!(status.uptime.is_none());
+}

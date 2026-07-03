@@ -4,6 +4,7 @@ use squarecloud_rs::ApiClient;
 use wiremock::MockServer;
 
 mod account;
+mod app;
 
 static INIT: Once = Once::new();
 
