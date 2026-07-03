@@ -1,11 +1,54 @@
 use std::sync::Arc;
 
-use chrono::serde::ts_milliseconds;
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::http::ApiClient;
 use crate::resources::AppResource;
+
+/// Deserializes a field that the API returns as either a string or a number.
+///
+/// Used for `cpu`, `ram`, and `storage` in [`AppStatus`], which the API
+/// returns as formatted strings by default (e.g. `"3.2%"`) but as raw
+/// numbers when called with `?rawData=true`.
+fn deserialize_as_string<'de, D>(d: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    use serde::de::{Error, Visitor};
+
+    struct V;
+
+    impl<'de> Visitor<'de> for V {
+        type Value = String;
+
+        fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            write!(f, "a string or number")
+        }
+
+        fn visit_str<E: Error>(self, v: &str) -> Result<String, E> {
+            Ok(v.to_owned())
+        }
+
+        fn visit_string<E: Error>(self, v: String) -> Result<String, E> {
+            Ok(v)
+        }
+
+        fn visit_f64<E: Error>(self, v: f64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+
+        fn visit_i64<E: Error>(self, v: i64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+
+        fn visit_u64<E: Error>(self, v: u64) -> Result<String, E> {
+            Ok(v.to_string())
+        }
+    }
+
+    d.deserialize_any(V)
+}
 
 /// Static metadata for a SquareCloud application.
 ///
@@ -40,13 +83,25 @@ impl AppInfo {
     }
 }
 
+/// A network throughput counter that the API returns as either a formatted
+/// string or a raw `[bytes_in, bytes_out]` array when called with
+/// `?rawData=true`.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum NetworkCounter {
+    /// Human-readable summary (e.g. `"1 MB ↑ 500 KB ↓"`).
+    Formatted(String),
+    /// Raw byte counts as `[bytes_in, bytes_out]`.
+    Raw(Vec<u64>),
+}
+
 /// Network throughput figures for a running application.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppNetwork {
     /// Cumulative bytes transferred since the application started.
-    pub total: String,
+    pub total: NetworkCounter,
     /// Bytes transferred in the current measurement interval.
-    pub now: String,
+    pub now: NetworkCounter,
 }
 
 /// A domain entry associated with an application.
@@ -59,8 +114,7 @@ pub struct AppDomain {
     pub app_id: String,
     /// The fully-qualified domain name.
     pub hostname: String,
-    /// Either `"subdomain"` (*.squareweb.app) or `"custom"` (attached
-    /// domain).
+    /// Either `"subdomain"` (*.squareweb.app) or `"custom"` (attached domain).
     #[serde(rename = "type")]
     pub domain_type: String,
 }
@@ -86,17 +140,26 @@ pub struct AppMetrics {
 /// Runtime status for a running application.
 ///
 /// Returned by [`AppResource::status`](crate::resources::AppResource::status).
+/// The `cpu`, `ram`, and `storage` fields accept both the formatted string
+/// mode (default) and the raw numeric mode (`?rawData=true`).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppStatus {
-    /// Current CPU usage as a percentage string (e.g. `"3.2%"`).
+    /// CPU usage (e.g. `"3.2%"` or `3.2` in raw mode).
+    #[serde(deserialize_with = "deserialize_as_string")]
     pub cpu: String,
-    /// Current RAM usage (e.g. `"128MB"`).
+    /// RAM usage (e.g. `"128/512MB"` or `128` in raw mode).
+    #[serde(deserialize_with = "deserialize_as_string")]
     pub ram: String,
-    /// Current disk usage.
+    /// Resource lifecycle state (e.g. `"running"`, `"exited"`).
+    pub status: String,
+    /// Whether the application process is currently running.
+    pub running: bool,
+    /// Disk usage (e.g. `"50MB"` or `52428800` in raw mode).
+    #[serde(deserialize_with = "deserialize_as_string")]
     pub storage: String,
     /// Network throughput statistics.
     pub network: AppNetwork,
-    /// The UTC timestamp when the process last started.
-    #[serde(with = "ts_milliseconds")]
-    pub uptime: DateTime<Utc>,
+    /// The UTC timestamp when the process last started. `null` when not running.
+    #[serde(with = "chrono::serde::ts_milliseconds_option")]
+    pub uptime: Option<DateTime<Utc>>,
 }
