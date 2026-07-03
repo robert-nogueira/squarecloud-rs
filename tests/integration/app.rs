@@ -51,6 +51,14 @@ async fn all_apps_status_includes_shared_app() {
 }
 
 #[tokio::test]
+async fn app_metrics_returns_vec() {
+    crate::setup();
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    let _ = client.app(app_id).metrics().await.unwrap();
+}
+
+#[tokio::test]
 async fn app_restart_returns_true() {
     crate::setup();
     let app_id = crate::shared_app_id();

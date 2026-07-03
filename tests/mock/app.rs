@@ -101,6 +101,25 @@ async fn all_apps_status_deserializes_success_response() {
 }
 
 #[tokio::test]
+async fn app_metrics_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/metrics"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": [
+                { "date": "2024-01-01T00:00:00Z", "cpu": 1.2, "ram": 128.0, "net": [1000, 2000] }
+            ]
+        })))
+        .mount(&server)
+        .await;
+
+    let metrics = client.app("app-123").metrics().await.unwrap();
+    assert_eq!(metrics.len(), 1);
+    assert_eq!(metrics[0].net, [1000, 2000]);
+}
+
+#[tokio::test]
 async fn app_restart_deserializes_success_response() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("POST"))
