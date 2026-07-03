@@ -1,5 +1,5 @@
 use squarecloud_rs::types::{
-    AppInfo, DatabaseInfo, Deploy, DnsRecord, FileInfo, Plan, Snapshot, UserInfo,
+    AppInfo, AppSummary, DatabaseInfo, Deploy, DnsRecord, FileInfo, Plan, Snapshot, UserInfo,
 };
 
 use crate::validation::generate_json_variants_from_schema;
@@ -82,4 +82,10 @@ async fn deploy_event_schema_deserializes_as_deploy() {
 async fn database_schema_deserializes_as_database_info() {
     let spec = crate::fetch_full_spec().await;
     assert_schema!(&spec, "Database", DatabaseInfo);
+}
+
+#[tokio::test]
+async fn app_summary_schema_deserializes_as_app_summary() {
+    let spec = crate::fetch_full_spec().await;
+    assert_schema!(&spec, "AppSummary", AppSummary);
 }
