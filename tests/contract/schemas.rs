@@ -1,4 +1,4 @@
-use squarecloud_rs::types::{AppInfo, DnsRecord, Plan, Snapshot, UserInfo};
+use squarecloud_rs::types::{AppInfo, DnsRecord, FileInfo, Plan, Snapshot, UserInfo};
 
 use crate::validation::generate_json_variants_from_schema;
 
@@ -62,4 +62,10 @@ async fn plan_schema_deserializes_as_plan() {
 async fn user_schema_deserializes_as_user_info() {
     let spec = crate::fetch_full_spec().await;
     assert_schema!(&spec, "User", UserInfo);
+}
+
+#[tokio::test]
+async fn file_entry_schema_deserializes_as_file_info() {
+    let spec = crate::fetch_full_spec().await;
+    assert_schema!(&spec, "FileEntry", FileInfo);
 }
