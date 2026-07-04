@@ -64,6 +64,46 @@ impl<T> ApiResponse<T> {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::ApiResponse;
+    use crate::http::errors::{ApiError, ApiErrorCode};
+
+    #[test]
+    fn into_result_t_success_returns_inner_value() {
+        let resp: ApiResponse<u32> =
+            ApiResponse::Success { response: Some(42) };
+        assert_eq!(resp.into_result_t().unwrap(), 42);
+    }
+
+    #[test]
+    fn into_result_t_error_returns_api_error() {
+        let resp: ApiResponse<u32> =
+            ApiResponse::Error { code: ApiErrorCode::NotFound };
+        assert!(matches!(
+            resp.into_result_t(),
+            Err(ApiError::Api { code: ApiErrorCode::NotFound })
+        ));
+    }
+
+    #[test]
+    fn into_bool_result_success_returns_true() {
+        let resp: ApiResponse<()> =
+            ApiResponse::Success { response: None };
+        assert_eq!(resp.into_bool_result().unwrap(), true);
+    }
+
+    #[test]
+    fn into_bool_result_error_returns_api_error() {
+        let resp: ApiResponse<()> =
+            ApiResponse::Error { code: ApiErrorCode::RateLimit };
+        assert!(matches!(
+            resp.into_bool_result(),
+            Err(ApiError::Api { code: ApiErrorCode::RateLimit })
+        ));
+    }
+}
+
 impl Default for ApiClient {
     fn default() -> Self {
         Self::new()

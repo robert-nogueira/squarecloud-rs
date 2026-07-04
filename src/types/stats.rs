@@ -45,6 +45,61 @@ where
     d.deserialize_any(V)
 }
 
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::{AppNetwork, NetworkCounter, RuntimeStats};
+
+    #[test]
+    fn network_counter_formatted_variant() {
+        let v: NetworkCounter = serde_json::from_value(json!("1 MB")).unwrap();
+        assert!(matches!(v, NetworkCounter::Formatted(_)));
+    }
+
+    #[test]
+    fn network_counter_raw_variant() {
+        let v: NetworkCounter =
+            serde_json::from_value(json!([1000, 2000])).unwrap();
+        assert!(matches!(v, NetworkCounter::Raw(_)));
+    }
+
+    #[test]
+    fn deserialize_as_string_accepts_string() {
+        let stats: RuntimeStats = serde_json::from_value(json!({
+            "cpu": "3.2%", "ram": "128/512MB", "status": "running",
+            "running": true, "storage": "50MB",
+            "network": { "total": "1MB", "now": "0KB" },
+            "uptime": null
+        }))
+        .unwrap();
+        assert_eq!(stats.cpu, "3.2%");
+    }
+
+    #[test]
+    fn deserialize_as_string_accepts_number() {
+        let stats: RuntimeStats = serde_json::from_value(json!({
+            "cpu": 3.2, "ram": 128, "status": "running",
+            "running": true, "storage": 52428800,
+            "network": { "total": [1000, 2000], "now": [0, 0] },
+            "uptime": null
+        }))
+        .unwrap();
+        assert_eq!(stats.cpu, "3.2");
+        assert_eq!(stats.ram, "128");
+    }
+
+    #[test]
+    fn app_network_accepts_mixed_counter_types() {
+        let n: AppNetwork = serde_json::from_value(
+            json!({ "total": "1 MB", "now": [0, 0] }),
+        )
+        .unwrap();
+        assert!(matches!(n.total, NetworkCounter::Formatted(_)));
+        assert!(matches!(n.now, NetworkCounter::Raw(_)));
+    }
+}
+
 /// A network throughput counter that the API returns as either a formatted
 /// string or a raw `[bytes_in, bytes_out]` array when called with
 /// `?rawData=true`.

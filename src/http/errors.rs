@@ -62,6 +62,43 @@ pub enum ApiErrorCode {
     NoCustomDomain,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::ApiErrorCode;
+
+    #[test]
+    fn known_codes_deserialize_from_screaming_snake_case() {
+        let cases = [
+            (r#""RATE_LIMIT""#, ApiErrorCode::RateLimit),
+            (r#""NOT_FOUND""#, ApiErrorCode::NotFound),
+            (r#""KEEP_CALM""#, ApiErrorCode::KeepCalm),
+            (r#""INVALID_FILE""#, ApiErrorCode::InvalidFile),
+            (r#""CONTAINER_ALREADY_STARTED""#, ApiErrorCode::ContainerAlreadyStarted),
+            (r#""INVALID_TIME_RANGE""#, ApiErrorCode::InvalidTimeRange),
+            (r#""NO_CUSTOM_DOMAIN""#, ApiErrorCode::NoCustomDomain),
+            (r#""INVALID_ACCESS_TOKEN""#, ApiErrorCode::InvalidAccessToken),
+        ];
+        for (input, expected) in cases {
+            let got: ApiErrorCode = serde_json::from_str(input).unwrap();
+            assert_eq!(got, expected, "failed for {input}");
+        }
+    }
+
+    #[test]
+    fn known_codes_serialize_to_screaming_snake_case() {
+        let cases = [
+            (ApiErrorCode::RateLimit, "RATE_LIMIT"),
+            (ApiErrorCode::NotFound, "NOT_FOUND"),
+            (ApiErrorCode::KeepCalm, "KEEP_CALM"),
+            (ApiErrorCode::ContainerAlreadyStarted, "CONTAINER_ALREADY_STARTED"),
+        ];
+        for (code, expected) in cases {
+            let got = serde_json::to_string(&code).unwrap();
+            assert_eq!(got, format!(r#""{expected}""#));
+        }
+    }
+}
+
 /// An error returned by any API operation.
 ///
 /// Most methods on [`ApiClient`](crate::ApiClient) and on resource handles

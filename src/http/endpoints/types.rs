@@ -103,6 +103,57 @@ pub struct EndpointSpec {
 #[cfg(feature = "test-utils")]
 inventory::collect!(EndpointSpec);
 
+#[cfg(test)]
+mod tests {
+    use reqwest::Method;
+
+    use super::Endpoint;
+
+    #[test]
+    fn param_substitutes_placeholder() {
+        let ep = Endpoint::builder("/apps/{app_id}/logs", Method::GET)
+            .param("app_id", "abc123")
+            .build();
+        assert_eq!(ep.path, "/apps/abc123/logs");
+    }
+
+    #[test]
+    fn multiple_params_all_substituted() {
+        let ep = Endpoint::builder(
+            "/apps/{app_id}/files/{file_id}",
+            Method::GET,
+        )
+        .param("app_id", "app-1")
+        .param("file_id", "index.js")
+        .build();
+        assert_eq!(ep.path, "/apps/app-1/files/index.js");
+    }
+
+    #[test]
+    fn query_appended_after_path() {
+        let ep = Endpoint::builder("/apps/{app_id}/errors", Method::GET)
+            .param("app_id", "app-1")
+            .query("include_4xx", "true")
+            .build();
+        assert_eq!(ep.path, "/apps/app-1/errors?include_4xx=true");
+    }
+
+    #[test]
+    fn multiple_queries_joined_with_ampersand() {
+        let ep = Endpoint::builder("/resource", Method::GET)
+            .query("page", "1")
+            .query("limit", "20")
+            .build();
+        assert_eq!(ep.path, "/resource?page=1&limit=20");
+    }
+
+    #[test]
+    fn no_params_no_queries_path_unchanged() {
+        let ep = Endpoint::builder("/apps/status", Method::GET).build();
+        assert_eq!(ep.path, "/apps/status");
+    }
+}
+
 impl Endpoint {
     /// Creates an `EndpointBuilder` for the given URL path template and HTTP
     /// method.
