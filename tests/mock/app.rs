@@ -244,6 +244,195 @@ async fn app_stop_deserializes_success_response() {
 }
 
 #[tokio::test]
+async fn app_analytics_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    let item = json!({
+        "type": "BR", "visits": 10, "requests": 20, "bytes": 1024,
+        "date": "2024-01-01"
+    });
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/network/analytics"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "visits":    [item],
+                "countries": [item],
+                "devices":   [item],
+                "os":        [item],
+                "browsers":  [item],
+                "protocols": [item],
+                "methods":   [item],
+                "paths":     [item],
+                "referers":  [item],
+                "providers": [item]
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let analytics = client.app("app-123").analytics().await.unwrap();
+    assert_eq!(analytics.countries[0].item_type, "BR");
+    assert_eq!(analytics.visits[0].requests, 20);
+}
+
+#[tokio::test]
+async fn app_dns_record_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/network/dns"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "type": "a",
+                "name": "example.com",
+                "value": "1.2.3.4",
+                "status": "active"
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let record = client.app("app-123").dns_record().await.unwrap();
+    assert_eq!(record.name, "example.com");
+    assert_eq!(record.value, "1.2.3.4");
+}
+
+#[tokio::test]
+async fn app_set_custom_domain_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/network/custom"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    assert!(client.app("app-123").set_custom_domain("example.com").await.unwrap());
+}
+
+#[tokio::test]
+async fn app_network_errors_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/network/errors"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "summary": {
+                    "total": 5,
+                    "by_class": { "5xx": 5 }
+                },
+                "by_status": [{ "status": 502, "total": 5 }],
+                "timeseries": [],
+                "top_paths": [],
+                "by_method": {}
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let errors = client.app("app-123").network_errors(false).await.unwrap();
+    assert_eq!(errors.summary.total, 5);
+    assert_eq!(errors.summary.by_class.server_errors, 5);
+    assert!(errors.summary.by_class.client_errors.is_none());
+}
+
+#[tokio::test]
+async fn app_network_logs_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/network/logs"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": [{
+                "timestamp": "2024-01-01T00:00:00Z",
+                "ip": "1.2.3.4",
+                "country": "BR",
+                "location": "São Paulo",
+                "asn": "AS12345",
+                "agent": "curl/8.0",
+                "category": "human",
+                "mitigated": false,
+                "method": "GET",
+                "host": "example.com",
+                "path": "/",
+                "query": null,
+                "protocol": "HTTP/2",
+                "referer": null,
+                "status": 200,
+                "contentType": "text/html",
+                "cache": "HIT"
+            }]
+        })))
+        .mount(&server)
+        .await;
+
+    let logs = client.app("app-123").network_logs().await.unwrap();
+    assert_eq!(logs.len(), 1);
+    assert_eq!(logs[0].method, "GET");
+    assert_eq!(logs[0].status, 200);
+    assert!(!logs[0].mitigated);
+}
+
+#[tokio::test]
+async fn app_network_performance_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    let percentiles = json!({ "p50": 10, "p95": 50, "p99": 100 });
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/network/performance"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "summary": {
+                    "edge": percentiles,
+                    "origin": percentiles,
+                    "requests": 1000
+                },
+                "timeseries": [],
+                "countries": [],
+                "colos": [],
+                "slowest_paths": []
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let perf = client.app("app-123").network_performance().await.unwrap();
+    assert_eq!(perf.summary.requests, 1000);
+    assert_eq!(perf.summary.edge.p50, 10);
+    assert_eq!(perf.summary.origin.p99, 100);
+}
+
+#[tokio::test]
+async fn app_purge_cache_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/network/purge_cache"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    assert!(client.app("app-123").purge_cache().await.unwrap());
+}
+
+#[tokio::test]
+async fn app_delete_deserializes_success_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("DELETE"))
+        .and(path("/apps/app-123"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    assert!(client.app("app-123").delete().await.unwrap());
+}
+
+#[tokio::test]
 async fn app_status_deserializes_stopped_response() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))

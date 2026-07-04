@@ -25,15 +25,13 @@ pub fn shared_app_id() -> &'static str {
         .get_or_init(|| {
             setup();
             std::thread::spawn(|| {
-                tokio::runtime::Runtime::new()
-                    .unwrap()
-                    .block_on(async {
-                        ApiClient::new()
-                            .upload_app(helpers::dummy_zip())
-                            .await
-                            .map(|a| a.id)
-                            .map_err(|e| format!("{e:?}"))
-                    })
+                tokio::runtime::Runtime::new().unwrap().block_on(async {
+                    ApiClient::new()
+                        .upload_app(helpers::dummy_zip())
+                        .await
+                        .map(|a| a.id)
+                        .map_err(|e| format!("{e:?}"))
+                })
             })
             .join()
             .unwrap_or_else(|_| Err("upload thread panicked".to_string()))
@@ -51,5 +49,5 @@ pub fn shared_app_id_if_initialized() -> Option<&'static str> {
 
 /// Waits briefly between tests to avoid hitting the SquareCloud rate limit.
 pub async fn throttle() {
-    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+    tokio::time::sleep(std::time::Duration::from_millis(5000)).await;
 }
