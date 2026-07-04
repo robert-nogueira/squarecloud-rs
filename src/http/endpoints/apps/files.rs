@@ -58,9 +58,10 @@ impl Endpoint {
             .build()
     }
 
-    pub(crate) fn delete_app_file(app_id: &str) -> Endpoint {
+    pub(crate) fn delete_app_file(app_id: &str, path: &str) -> Endpoint {
         Self::builder("/apps/{app_id}/files", Method::DELETE)
             .param("app_id", app_id)
+            .json(json!({ "path": path }))
             .build()
     }
 }

@@ -83,7 +83,7 @@ impl FileResource {
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
     /// if the file does not exist.
     pub async fn delete(&self) -> Result<bool, ApiError> {
-        let endpoint = Endpoint::delete_app_file(&self.app_id);
+        let endpoint = Endpoint::delete_app_file(&self.app_id, &self.path);
         self.client
             .request_endpoint::<bool>(endpoint)
             .await?
