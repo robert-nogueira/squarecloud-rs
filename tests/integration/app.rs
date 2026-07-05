@@ -291,6 +291,8 @@ async fn app_file_operations() {
 async fn z_cleanup_shared_app() {
     if let Some(id) = crate::shared_app_id_if_initialized() {
         let client = ApiClient::new();
-        client.app(id).delete().await.unwrap();
+        if let Err(e) = client.app(id).delete().await {
+            eprintln!("cleanup: delete failed — raw error: {e:?}");
+        }
     }
 }
