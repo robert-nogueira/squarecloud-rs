@@ -51,7 +51,7 @@ impl DatabaseResource {
         let response: ApiResponse<Value> =
             self.client.execute_request(request).await?;
         let value = response.into_result_t()?;
-        if let Some(password) = value.get("password") {
+        if let Some(password) = value.get("password").and_then(Value::as_str) {
             return Ok(password.to_string());
         }
         let certificate =
