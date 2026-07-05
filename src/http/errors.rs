@@ -67,6 +67,8 @@ pub enum ApiErrorCode {
     DatabaseVersionInvalid,
     /// A snapshot restore is already in progress for this resource.
     RestoreInProgress,
+    /// The daily snapshot creation limit for this resource has been reached.
+    DailySnapshotsLimitReached,
     /// A code returned by the API that this client does not recognise.
     /// The inner string contains the raw value from the API response.
     Unknown(String),
@@ -103,6 +105,9 @@ impl ApiErrorCode {
             Self::DatabaseTypeInvalid => "DATABASE_TYPE_INVALID",
             Self::DatabaseVersionInvalid => "DATABASE_VERSION_INVALID",
             Self::RestoreInProgress => "RESTORE_IN_PROGRESS",
+            Self::DailySnapshotsLimitReached => {
+                "DAILY_SNAPSHOTS_LIMIT_REACHED"
+            }
             Self::Unknown(s) => s.as_str(),
         }
     }
@@ -151,6 +156,9 @@ impl<'de> Deserialize<'de> for ApiErrorCode {
             "DATABASE_TYPE_INVALID" => Self::DatabaseTypeInvalid,
             "DATABASE_VERSION_INVALID" => Self::DatabaseVersionInvalid,
             "RESTORE_IN_PROGRESS" => Self::RestoreInProgress,
+            "DAILY_SNAPSHOTS_LIMIT_REACHED" => {
+                Self::DailySnapshotsLimitReached
+            }
             _ => Self::Unknown(s),
         })
     }
