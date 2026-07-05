@@ -15,8 +15,24 @@ pub struct Snapshot {
     pub size: u64,
     /// The UTC timestamp of the last modification to this snapshot.
     pub modified: DateTime<Utc>,
-    /// The storage key used when referencing this snapshot in restore calls.
+    /// The raw AWS pre-signed storage key for this snapshot.
     pub key: String,
+}
+
+impl Snapshot {
+    /// Extracts the `versionId` UUID from the storage key.
+    ///
+    /// Pass the result as the `version_id` argument to
+    /// [`AppResource::restore_snapshot`](crate::resources::AppResource::restore_snapshot)
+    /// or
+    /// [`DatabaseResource::restore_snapshot`](crate::resources::DatabaseResource::restore_snapshot).
+    pub fn version_id(&self) -> &str {
+        self.key
+            .split('&')
+            .find(|s| s.starts_with("versionId="))
+            .and_then(|s| s.strip_prefix("versionId="))
+            .unwrap_or(&self.key)
+    }
 }
 
 /// A reference to a newly created snapshot, including its download location.

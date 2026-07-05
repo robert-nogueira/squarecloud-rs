@@ -42,9 +42,10 @@ impl AppResource {
 
     /// Restores the application to a previously saved snapshot.
     ///
-    /// Both `snapshot_id` and `version_id` can be obtained from the
-    /// [`Snapshot::key`](crate::types::Snapshot::key) field of values returned
-    /// by [`list_snapshots`](AppResource::list_snapshots). Returns `Ok(true)`
+    /// Use [`Snapshot::name`](crate::types::Snapshot::name) as `snapshot_id`
+    /// and [`Snapshot::version_id`](crate::types::Snapshot::version_id) as
+    /// `version_id`, both from a value returned by
+    /// [`list_snapshots`](AppResource::list_snapshots). Returns `Ok(true)`
     /// when the restore has been initiated.
     ///
     /// # Errors
