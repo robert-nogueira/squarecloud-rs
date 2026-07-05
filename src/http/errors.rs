@@ -60,6 +60,13 @@ pub enum ApiErrorCode {
     InvalidTimeRange,
     /// The application has no custom domain configured.
     NoCustomDomain,
+    /// The snapshot version ID is not valid or does not exist.
+    InvalidVersionId,
+    /// The database type value is not recognised by the API.
+    DatabaseTypeInvalid,
+    /// A code returned by the API that this client does not recognise.
+    #[serde(other)]
+    Unknown,
 }
 
 #[cfg(test)]
