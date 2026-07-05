@@ -5,6 +5,9 @@ use wiremock::MockServer;
 
 mod account;
 mod app;
+mod client;
+mod database;
+mod workspace;
 
 static INIT: Once = Once::new();
 

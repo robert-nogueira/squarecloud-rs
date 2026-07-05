@@ -579,8 +579,8 @@ async fn app_current_deploy_returns_deploy() {
         .await;
 
     let deploy = client.app("app-123").current_deploy().await.unwrap();
-    assert!(!deploy.id.is_empty());
-    assert!(!deploy.state.is_empty());
+    assert_eq!(deploy.id.as_deref(), Some("deploy-1"));
+    assert_eq!(deploy.state.as_deref(), Some("complete"));
 }
 
 #[tokio::test]
