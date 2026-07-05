@@ -652,7 +652,7 @@ async fn app_snapshot_lifecycle() {
                     "name": "snapshot-1",
                     "size": 1024,
                     "modified": "2024-01-01T00:00:00Z",
-                    "key": "snap/app-123/snap-1"
+                    "key": "AWSAccessKeyId=FAKE&Expires=9999&Signature=sig&versionId=dead-beef-0000"
                 }
             ]
         })))
@@ -678,7 +678,7 @@ async fn app_snapshot_lifecycle() {
 
     let first = &snapshots[0];
     assert!(
-        app.restore_snapshot(first.name.clone(), first.key.clone())
+        app.restore_snapshot(first.name.clone(), first.version_id().to_string())
             .await
             .unwrap()
     );

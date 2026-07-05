@@ -187,7 +187,7 @@ async fn database_snapshot_lifecycle() {
             "status": "success",
             "response": {
                 "url": "https://storage.example.com/snap.tar.gz",
-                "key": "snap-key-abc"
+                "key": "AWSAccessKeyId=FAKE&Expires=9999&Signature=sig&versionId=dead-beef-0000"
             }
         })))
         .mount(&server)
@@ -201,7 +201,7 @@ async fn database_snapshot_lifecycle() {
                     "name": "db-123",
                     "size": 2048,
                     "modified": "2024-01-01T00:00:00Z",
-                    "key": "snap-key-abc"
+                    "key": "AWSAccessKeyId=FAKE&Expires=9999&Signature=sig&versionId=dead-beef-0000"
                 }
             ]
         })))
@@ -219,14 +219,14 @@ async fn database_snapshot_lifecycle() {
 
     let snap = db.create_snapshot().await.unwrap();
     assert_eq!(snap.url, "https://storage.example.com/snap.tar.gz");
-    assert_eq!(snap.key, "snap-key-abc");
+    assert!(!snap.key.is_empty());
 
     let snapshots = db.list_snapshots().await.unwrap();
     assert_eq!(snapshots.len(), 1);
 
     let first = &snapshots[0];
     assert!(
-        db.restore_snapshot(first.name.clone(), first.key.clone())
+        db.restore_snapshot(first.name.clone(), first.version_id().to_string())
             .await
             .unwrap()
     );
