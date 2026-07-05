@@ -240,7 +240,16 @@ async fn app_snapshot_lifecycle() {
     let client = ApiClient::new();
     let app = client.app(app_id);
 
-    let snap = app.create_snapshot().await.unwrap();
+    let snap = match app.create_snapshot().await {
+        Ok(s) => s,
+        Err(ApiError::Api {
+            code: ApiErrorCode::DailySnapshotsLimitReached,
+        }) => {
+            eprintln!("Skipping app_snapshot_lifecycle: daily limit reached");
+            return;
+        }
+        Err(e) => panic!("create_snapshot failed: {e:?}"),
+    };
     assert!(!snap.url.is_empty());
     assert!(!snap.key.is_empty());
 
