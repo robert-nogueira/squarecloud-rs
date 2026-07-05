@@ -63,6 +63,10 @@ pub enum ApiErrorCode {
     InvalidVersionId,
     /// The database type value is not recognised by the API.
     DatabaseTypeInvalid,
+    /// The database version string is not valid for the chosen engine.
+    DatabaseVersionInvalid,
+    /// A snapshot restore is already in progress for this resource.
+    RestoreInProgress,
     /// A code returned by the API that this client does not recognise.
     /// The inner string contains the raw value from the API response.
     Unknown(String),
@@ -97,6 +101,8 @@ impl ApiErrorCode {
             Self::NoCustomDomain => "NO_CUSTOM_DOMAIN",
             Self::InvalidVersionId => "INVALID_VERSION_ID",
             Self::DatabaseTypeInvalid => "DATABASE_TYPE_INVALID",
+            Self::DatabaseVersionInvalid => "DATABASE_VERSION_INVALID",
+            Self::RestoreInProgress => "RESTORE_IN_PROGRESS",
             Self::Unknown(s) => s.as_str(),
         }
     }
@@ -143,6 +149,8 @@ impl<'de> Deserialize<'de> for ApiErrorCode {
             "NO_CUSTOM_DOMAIN" => Self::NoCustomDomain,
             "INVALID_VERSION_ID" => Self::InvalidVersionId,
             "DATABASE_TYPE_INVALID" => Self::DatabaseTypeInvalid,
+            "DATABASE_VERSION_INVALID" => Self::DatabaseVersionInvalid,
+            "RESTORE_IN_PROGRESS" => Self::RestoreInProgress,
             _ => Self::Unknown(s),
         })
     }
