@@ -64,6 +64,7 @@ pub use http::endpoints::Endpoint;
 pub use http::endpoints::EndpointSpec;
 pub use http::errors::{ApiError, ApiErrorCode, CommitError};
 pub use http::http_client::ApiClient;
+pub use types::{CredentialType, DatabaseType};
 
 #[cfg(test)]
 mod tests {
