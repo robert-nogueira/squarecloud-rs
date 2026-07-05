@@ -5,8 +5,7 @@ use serde::{Deserialize, Serialize};
 /// The wire format uses `SCREAMING_SNAKE_CASE` (e.g. `"FEW_MEMORY"`).
 /// Match on this enum after receiving an [`ApiError::Api`] to act on the
 /// specific cause of the failure.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ApiErrorCode {
     /// The account's memory quota is insufficient for the requested
     /// allocation.
@@ -65,8 +64,88 @@ pub enum ApiErrorCode {
     /// The database type value is not recognised by the API.
     DatabaseTypeInvalid,
     /// A code returned by the API that this client does not recognise.
-    #[serde(other)]
-    Unknown,
+    /// The inner string contains the raw value from the API response.
+    Unknown(String),
+}
+
+impl ApiErrorCode {
+    fn as_str(&self) -> &str {
+        match self {
+            Self::FewMemory => "FEW_MEMORY",
+            Self::BadMemory => "BAD_MEMORY",
+            Self::MissingConfig => "MISSING_CONFIG",
+            Self::InvalidDependency => "INVALID_DEPENDENCY",
+            Self::MissingMain => "MISSING_MAIN",
+            Self::InvalidMain => "INVALID_MAIN",
+            Self::InvalidDisplayName => "INVALID_DISPLAY_NAME",
+            Self::MissingDisplayName => "MISSING_DISPLAY_NAME",
+            Self::InvalidMemory => "INVALID_MEMORY",
+            Self::MissingMemory => "MISSING_MEMORY",
+            Self::InvalidVersion => "INVALID_VERSION",
+            Self::MissingVersion => "MISSING_VERSION",
+            Self::InvalidAccessToken => "INVALID_ACCESS_TOKEN",
+            Self::RegexValidation => "REGEX_VALIDATION",
+            Self::InvalidStart => "INVALID_START",
+            Self::InvalidSubdomain => "INVALID_SUBDOMAIN",
+            Self::RateLimit => "RATE_LIMIT",
+            Self::NotFound => "NOT_FOUND",
+            Self::AppNotFound => "APP_NOT_FOUND",
+            Self::InvalidFile => "INVALID_FILE",
+            Self::KeepCalm => "KEEP_CALM",
+            Self::ContainerAlreadyStarted => "CONTAINER_ALREADY_STARTED",
+            Self::InvalidTimeRange => "INVALID_TIME_RANGE",
+            Self::NoCustomDomain => "NO_CUSTOM_DOMAIN",
+            Self::InvalidVersionId => "INVALID_VERSION_ID",
+            Self::DatabaseTypeInvalid => "DATABASE_TYPE_INVALID",
+            Self::Unknown(s) => s.as_str(),
+        }
+    }
+}
+
+impl Serialize for ApiErrorCode {
+    fn serialize<S: serde::Serializer>(
+        &self,
+        s: S,
+    ) -> Result<S::Ok, S::Error> {
+        s.serialize_str(self.as_str())
+    }
+}
+
+impl<'de> Deserialize<'de> for ApiErrorCode {
+    fn deserialize<D: serde::Deserializer<'de>>(
+        d: D,
+    ) -> Result<Self, D::Error> {
+        let s = String::deserialize(d)?;
+        Ok(match s.as_str() {
+            "FEW_MEMORY" => Self::FewMemory,
+            "BAD_MEMORY" => Self::BadMemory,
+            "MISSING_CONFIG" => Self::MissingConfig,
+            "INVALID_DEPENDENCY" => Self::InvalidDependency,
+            "MISSING_MAIN" => Self::MissingMain,
+            "INVALID_MAIN" => Self::InvalidMain,
+            "INVALID_DISPLAY_NAME" => Self::InvalidDisplayName,
+            "MISSING_DISPLAY_NAME" => Self::MissingDisplayName,
+            "INVALID_MEMORY" => Self::InvalidMemory,
+            "MISSING_MEMORY" => Self::MissingMemory,
+            "INVALID_VERSION" => Self::InvalidVersion,
+            "MISSING_VERSION" => Self::MissingVersion,
+            "INVALID_ACCESS_TOKEN" => Self::InvalidAccessToken,
+            "REGEX_VALIDATION" => Self::RegexValidation,
+            "INVALID_START" => Self::InvalidStart,
+            "INVALID_SUBDOMAIN" => Self::InvalidSubdomain,
+            "RATE_LIMIT" => Self::RateLimit,
+            "NOT_FOUND" => Self::NotFound,
+            "APP_NOT_FOUND" => Self::AppNotFound,
+            "INVALID_FILE" => Self::InvalidFile,
+            "KEEP_CALM" => Self::KeepCalm,
+            "CONTAINER_ALREADY_STARTED" => Self::ContainerAlreadyStarted,
+            "INVALID_TIME_RANGE" => Self::InvalidTimeRange,
+            "NO_CUSTOM_DOMAIN" => Self::NoCustomDomain,
+            "INVALID_VERSION_ID" => Self::InvalidVersionId,
+            "DATABASE_TYPE_INVALID" => Self::DatabaseTypeInvalid,
+            _ => Self::Unknown(s),
+        })
+    }
 }
 
 #[cfg(test)]
@@ -89,6 +168,17 @@ mod tests {
             let got: ApiErrorCode = serde_json::from_str(input).unwrap();
             assert_eq!(got, expected, "failed for {input}");
         }
+    }
+
+    #[test]
+    fn unknown_code_captures_raw_string() {
+        let got: ApiErrorCode =
+            serde_json::from_str(r#""APPLICATION_STOPPING""#).unwrap();
+        assert_eq!(got, ApiErrorCode::Unknown("APPLICATION_STOPPING".into()));
+        assert_eq!(
+            serde_json::to_string(&got).unwrap(),
+            r#""APPLICATION_STOPPING""#
+        );
     }
 
     #[test]
