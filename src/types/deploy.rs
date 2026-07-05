@@ -28,16 +28,19 @@ pub struct DeployFiles {
 /// [`AppResource::current_deploy`](crate::resources::AppResource::current_deploy)
 /// and as part of the list from
 /// [`AppResource::list_deploys`](crate::resources::AppResource::list_deploys).
+///
+/// All fields except `branch` and `files` may be absent depending on the
+/// endpoint and deployment state.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Deploy {
     /// The deployment's unique identifier.
-    pub id: String,
+    pub id: Option<String>,
     /// The deployment lifecycle stage.
-    pub state: String,
+    pub state: Option<String>,
     /// The UTC timestamp when this deployment was recorded.
-    pub date: DateTime<Utc>,
+    pub date: Option<DateTime<Utc>>,
     /// How the deployment was triggered.
-    pub source: DeploySource,
+    pub source: Option<DeploySource>,
     /// The Git branch checked out. Present only on `clone`-state events.
     pub branch: Option<String>,
     /// Files changed. Present only on `commit`-state events.
