@@ -290,9 +290,31 @@ async fn app_file_operations() {
 #[tokio::test]
 async fn z_cleanup_shared_app() {
     if let Some(id) = crate::shared_app_id_if_initialized() {
-        let client = ApiClient::new();
-        if let Err(e) = client.app(id).delete().await {
-            eprintln!("cleanup: delete failed — raw error: {e:?}");
+        let app = ApiClient::new().app(id);
+        for attempt in 0..3_u32 {
+            match app.delete().await {
+                Ok(_) => return,
+                Err(ApiError::Api {
+                    code: ApiErrorCode::RestoreInProgress,
+                }) if attempt < 2 => {
+                    tokio::time::sleep(
+                        std::time::Duration::from_secs(15),
+                    )
+                    .await;
+                }
+                Err(ApiError::Api {
+                    code: ApiErrorCode::Unknown(ref raw),
+                }) => {
+                    eprintln!(
+                        "cleanup: uncatalogued API code on delete: {raw:?}"
+                    );
+                    return;
+                }
+                Err(e) => {
+                    eprintln!("cleanup: delete failed: {e:?}");
+                    return;
+                }
+            }
         }
     }
 }
