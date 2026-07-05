@@ -212,6 +212,78 @@ async fn app_stop_returns_true() {
     assert!(client.app(app_id).stop().await.unwrap());
 }
 
+#[tokio::test]
+async fn app_current_deploy_returns_deploy() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    let deploy = client.app(app_id).current_deploy().await.unwrap();
+    assert!(!deploy.id.is_empty());
+    assert!(!deploy.state.is_empty());
+}
+
+#[tokio::test]
+async fn app_list_deploys_returns_vec() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    let deploys = client.app(app_id).list_deploys().await.unwrap();
+    assert!(!deploys.is_empty());
+}
+
+#[tokio::test]
+async fn app_snapshot_lifecycle() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    let app = client.app(app_id);
+
+    let snap = app.create_snapshot().await.unwrap();
+    assert!(!snap.url.is_empty());
+    assert!(!snap.key.is_empty());
+
+    crate::throttle().await;
+    let snapshots = app.list_snapshots().await.unwrap();
+    assert!(!snapshots.is_empty());
+
+    let first = &snapshots[0];
+    crate::throttle().await;
+    assert!(
+        app.restore_snapshot(first.name.clone(), first.key.clone())
+            .await
+            .unwrap()
+    );
+}
+
+#[tokio::test]
+async fn app_file_operations() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+    let app = client.app(app_id);
+
+    let files = app.file("/").all_files("/").await.unwrap();
+    assert!(!files.is_empty());
+
+    let handle = app.file("/squarecloud_rs_test.txt");
+    crate::throttle().await;
+    assert!(handle.write("hello from squarecloud-rs").await.unwrap());
+
+    crate::throttle().await;
+    let content = handle.read("/squarecloud_rs_test.txt").await.unwrap();
+    assert!(!content.data_type.is_empty());
+
+    crate::throttle().await;
+    assert!(handle.move_to("/squarecloud_rs_test_moved.txt").await.unwrap());
+
+    crate::throttle().await;
+    assert!(app.file("/squarecloud_rs_test_moved.txt").delete().await.unwrap());
+}
+
 /// Must stay last alphabetically so it runs after all other app tests.
 #[tokio::test]
 async fn z_cleanup_shared_app() {

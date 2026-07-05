@@ -558,3 +558,200 @@ async fn app_delete_returns_true() {
 
     assert!(client.app("app-123").delete().await.unwrap());
 }
+
+#[tokio::test]
+async fn app_current_deploy_returns_deploy() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/deployments/current"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "id": "deploy-1",
+                "state": "complete",
+                "date": "2024-01-01T00:00:00Z",
+                "source": "upload",
+                "branch": null,
+                "files": null
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let deploy = client.app("app-123").current_deploy().await.unwrap();
+    assert!(!deploy.id.is_empty());
+    assert!(!deploy.state.is_empty());
+}
+
+#[tokio::test]
+async fn app_list_deploys_returns_vec() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/deployments"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": [
+                {
+                    "id": "deploy-1",
+                    "state": "complete",
+                    "date": "2024-01-01T00:00:00Z",
+                    "source": "upload",
+                    "branch": null,
+                    "files": null
+                }
+            ]
+        })))
+        .mount(&server)
+        .await;
+
+    let deploys = client.app("app-123").list_deploys().await.unwrap();
+    assert!(!deploys.is_empty());
+}
+
+#[tokio::test]
+async fn app_set_webhook_integration_returns_url() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/deploy/webhook"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": { "webhook": "https://api.squarecloud.app/v2/deploy/webhook/abc123" }
+        })))
+        .mount(&server)
+        .await;
+
+    let url = client.app("app-123")
+        .set_webhook_integration("gh_token".to_string())
+        .await
+        .unwrap();
+    assert!(url.starts_with("https://"));
+}
+
+#[tokio::test]
+async fn app_snapshot_lifecycle() {
+    let (client, server) = crate::mock_client().await;
+
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/snapshots"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "url": "https://storage.example.com/snap-123.zip",
+                "key": "snap/app-123/snap-123"
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/snapshots"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": [
+                {
+                    "name": "snapshot-1",
+                    "size": 1024,
+                    "modified": "2024-01-01T00:00:00Z",
+                    "key": "snap/app-123/snap-1"
+                }
+            ]
+        })))
+        .mount(&server)
+        .await;
+
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/snapshots/restore"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    let app = client.app("app-123");
+
+    let snap = app.create_snapshot().await.unwrap();
+    assert!(!snap.url.is_empty());
+    assert!(!snap.key.is_empty());
+
+    let snapshots = app.list_snapshots().await.unwrap();
+    assert!(!snapshots.is_empty());
+
+    let first = &snapshots[0];
+    assert!(
+        app.restore_snapshot(first.name.clone(), first.key.clone())
+            .await
+            .unwrap()
+    );
+}
+
+#[tokio::test]
+async fn app_file_operations() {
+    let (client, server) = crate::mock_client().await;
+
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/files"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": [
+                {
+                    "name": "index.js",
+                    "type": "file",
+                    "size": 512,
+                    "lastModified": 1704067200000i64
+                }
+            ]
+        })))
+        .mount(&server)
+        .await;
+
+    Mock::given(method("PUT"))
+        .and(path("/apps/app-123/files"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/files/content"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "type": "text/plain",
+                "data": [104, 101, 108, 108, 111]
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    Mock::given(method("PATCH"))
+        .and(path("/apps/app-123/files"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    Mock::given(method("DELETE"))
+        .and(path("/apps/app-123/files"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    let app = client.app("app-123");
+
+    let files = app.file("/").all_files("/").await.unwrap();
+    assert!(!files.is_empty());
+
+    let handle = app.file("/squarecloud_rs_test.txt");
+    assert!(handle.write("hello from squarecloud-rs").await.unwrap());
+
+    let content = handle.read("/squarecloud_rs_test.txt").await.unwrap();
+    assert!(!content.data_type.is_empty());
+
+    assert!(handle.move_to("/squarecloud_rs_test_moved.txt").await.unwrap());
+
+    assert!(app.file("/squarecloud_rs_test_moved.txt").delete().await.unwrap());
+}
