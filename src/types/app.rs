@@ -75,6 +75,51 @@ impl AppInfo {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::{AppInfo, AppLanguage, UploadedApp};
+    use crate::http::ApiClient;
+
+    fn client() -> ApiClient {
+        unsafe { std::env::set_var("API_TOKEN", "test") };
+        ApiClient::new()
+    }
+
+    #[test]
+    fn uploaded_app_into_resource_binds_correct_id() {
+        let app = UploadedApp {
+            id: "app-abc".to_string(),
+            name: "test".to_string(),
+            description: None,
+            subdomain: None,
+            ram: 512,
+            cpu: 0.5,
+            language: AppLanguage {
+                name: "rust".to_string(),
+                version: "1.80".to_string(),
+            },
+        };
+        let resource = app.into_resource(client());
+        assert_eq!(resource.id, "app-abc");
+    }
+
+    #[test]
+    fn app_info_into_resource_binds_correct_id() {
+        let info = AppInfo {
+            id: "app-xyz".to_string(),
+            name: "test".to_string(),
+            owner: "owner".to_string(),
+            cluster: "us-east".to_string(),
+            ram: 256,
+            language: "rust".to_string(),
+            domain: None,
+            custom: None,
+        };
+        let resource = info.into_resource(client());
+        assert_eq!(resource.id, "app-xyz");
+    }
+}
+
 /// Wrapper for the logs response body.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppLogs {

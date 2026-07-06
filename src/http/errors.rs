@@ -166,29 +166,59 @@ impl<'de> Deserialize<'de> for ApiErrorCode {
 
 #[cfg(test)]
 mod tests {
-    use super::ApiErrorCode;
+    use std::error::Error;
+
+    use super::{ApiError, ApiErrorCode, CommitError};
+
+    const ALL_CODES: &[(&str, ApiErrorCode)] = &[
+        ("FEW_MEMORY", ApiErrorCode::FewMemory),
+        ("BAD_MEMORY", ApiErrorCode::BadMemory),
+        ("MISSING_CONFIG", ApiErrorCode::MissingConfig),
+        ("INVALID_DEPENDENCY", ApiErrorCode::InvalidDependency),
+        ("MISSING_MAIN", ApiErrorCode::MissingMain),
+        ("INVALID_MAIN", ApiErrorCode::InvalidMain),
+        ("INVALID_DISPLAY_NAME", ApiErrorCode::InvalidDisplayName),
+        ("MISSING_DISPLAY_NAME", ApiErrorCode::MissingDisplayName),
+        ("INVALID_MEMORY", ApiErrorCode::InvalidMemory),
+        ("MISSING_MEMORY", ApiErrorCode::MissingMemory),
+        ("INVALID_VERSION", ApiErrorCode::InvalidVersion),
+        ("MISSING_VERSION", ApiErrorCode::MissingVersion),
+        ("INVALID_ACCESS_TOKEN", ApiErrorCode::InvalidAccessToken),
+        ("REGEX_VALIDATION", ApiErrorCode::RegexValidation),
+        ("INVALID_START", ApiErrorCode::InvalidStart),
+        ("INVALID_SUBDOMAIN", ApiErrorCode::InvalidSubdomain),
+        ("RATE_LIMIT", ApiErrorCode::RateLimit),
+        ("NOT_FOUND", ApiErrorCode::NotFound),
+        ("APP_NOT_FOUND", ApiErrorCode::AppNotFound),
+        ("INVALID_FILE", ApiErrorCode::InvalidFile),
+        ("KEEP_CALM", ApiErrorCode::KeepCalm),
+        (
+            "CONTAINER_ALREADY_STARTED",
+            ApiErrorCode::ContainerAlreadyStarted,
+        ),
+        ("INVALID_TIME_RANGE", ApiErrorCode::InvalidTimeRange),
+        ("NO_CUSTOM_DOMAIN", ApiErrorCode::NoCustomDomain),
+        ("INVALID_VERSION_ID", ApiErrorCode::InvalidVersionId),
+        ("DATABASE_TYPE_INVALID", ApiErrorCode::DatabaseTypeInvalid),
+        (
+            "DATABASE_VERSION_INVALID",
+            ApiErrorCode::DatabaseVersionInvalid,
+        ),
+        ("RESTORE_IN_PROGRESS", ApiErrorCode::RestoreInProgress),
+        (
+            "DAILY_SNAPSHOTS_LIMIT_REACHED",
+            ApiErrorCode::DailySnapshotsLimitReached,
+        ),
+    ];
 
     #[test]
-    fn known_codes_deserialize_from_screaming_snake_case() {
-        let cases = [
-            (r#""RATE_LIMIT""#, ApiErrorCode::RateLimit),
-            (r#""NOT_FOUND""#, ApiErrorCode::NotFound),
-            (r#""KEEP_CALM""#, ApiErrorCode::KeepCalm),
-            (r#""INVALID_FILE""#, ApiErrorCode::InvalidFile),
-            (
-                r#""CONTAINER_ALREADY_STARTED""#,
-                ApiErrorCode::ContainerAlreadyStarted,
-            ),
-            (r#""INVALID_TIME_RANGE""#, ApiErrorCode::InvalidTimeRange),
-            (r#""NO_CUSTOM_DOMAIN""#, ApiErrorCode::NoCustomDomain),
-            (
-                r#""INVALID_ACCESS_TOKEN""#,
-                ApiErrorCode::InvalidAccessToken,
-            ),
-        ];
-        for (input, expected) in cases {
-            let got: ApiErrorCode = serde_json::from_str(input).unwrap();
-            assert_eq!(got, expected, "failed for {input}");
+    fn all_known_codes_roundtrip() {
+        for (wire, variant) in ALL_CODES {
+            let json = format!(r#""{wire}""#);
+            let got: ApiErrorCode = serde_json::from_str(&json).unwrap();
+            assert_eq!(&got, variant, "deserialize failed for {wire}");
+            let serialized = serde_json::to_string(variant).unwrap();
+            assert_eq!(serialized, json, "serialize failed for {wire}");
         }
     }
 
@@ -203,21 +233,41 @@ mod tests {
         );
     }
 
+    #[tokio::test]
+    async fn api_error_display_transport() {
+        let reqwest_err = reqwest::get("http://0.0.0.0:1").await.unwrap_err();
+        let err = ApiError::Transport(reqwest_err);
+        assert!(err.to_string().starts_with("transport error:"));
+    }
+
     #[test]
-    fn known_codes_serialize_to_screaming_snake_case() {
-        let cases = [
-            (ApiErrorCode::RateLimit, "RATE_LIMIT"),
-            (ApiErrorCode::NotFound, "NOT_FOUND"),
-            (ApiErrorCode::KeepCalm, "KEEP_CALM"),
-            (
-                ApiErrorCode::ContainerAlreadyStarted,
-                "CONTAINER_ALREADY_STARTED",
-            ),
-        ];
-        for (code, expected) in cases {
-            let got = serde_json::to_string(&code).unwrap();
-            assert_eq!(got, format!(r#""{expected}""#));
-        }
+    fn api_error_display_api() {
+        let err = ApiError::Api {
+            code: ApiErrorCode::RateLimit,
+        };
+        assert!(err.to_string().starts_with("api error:"));
+    }
+
+    #[tokio::test]
+    async fn api_error_source_transport_is_some() {
+        let reqwest_err = reqwest::get("http://0.0.0.0:1").await.unwrap_err();
+        let err = ApiError::Transport(reqwest_err);
+        assert!(err.source().is_some());
+    }
+
+    #[test]
+    fn api_error_source_api_is_none() {
+        let err = ApiError::Api {
+            code: ApiErrorCode::NotFound,
+        };
+        assert!(err.source().is_none());
+    }
+
+    #[test]
+    fn commit_error_from_io_error() {
+        let io = std::io::Error::new(std::io::ErrorKind::NotFound, "missing");
+        let err = CommitError::from(io);
+        assert!(matches!(err, CommitError::Io(_)));
     }
 }
 

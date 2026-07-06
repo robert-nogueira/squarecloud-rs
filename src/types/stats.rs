@@ -97,6 +97,30 @@ mod tests {
         assert!(matches!(n.total, NetworkCounter::Formatted(_)));
         assert!(matches!(n.now, NetworkCounter::Raw(_)));
     }
+
+    #[test]
+    fn deserialize_as_string_accepts_negative_integer() {
+        let stats: RuntimeStats = serde_json::from_value(json!({
+            "cpu": -1, "ram": -256, "status": "exited",
+            "running": false, "storage": -0,
+            "network": { "total": "0KB", "now": "0KB" },
+            "uptime": null
+        }))
+        .unwrap();
+        assert_eq!(stats.cpu, "-1");
+        assert_eq!(stats.ram, "-256");
+    }
+
+    #[test]
+    fn deserialize_as_string_rejects_invalid_type() {
+        let result: Result<RuntimeStats, _> = serde_json::from_value(json!({
+            "cpu": true, "ram": "128/512MB", "status": "running",
+            "running": true, "storage": "50MB",
+            "network": { "total": "1MB", "now": "0KB" },
+            "uptime": null
+        }));
+        assert!(result.is_err());
+    }
 }
 
 /// A network throughput counter that the API returns as either a formatted

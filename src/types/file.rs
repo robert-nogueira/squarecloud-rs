@@ -24,10 +24,6 @@ where
             Ok(None)
         }
 
-        fn visit_unit<E: Error>(self) -> Result<Self::Value, E> {
-            Ok(None)
-        }
-
         fn visit_i64<E: Error>(self, v: i64) -> Result<Self::Value, E> {
             Ok(Utc.timestamp_millis_opt(v).single())
         }
@@ -49,6 +45,76 @@ where
     }
 
     d.deserialize_option(V)
+}
+
+#[cfg(test)]
+mod tests {
+    use serde_json::json;
+
+    use super::{FileInfo, FileType};
+
+    #[test]
+    fn file_type_deserializes_file_and_directory() {
+        let f: FileType = serde_json::from_str(r#""file""#).unwrap();
+        assert!(matches!(f, FileType::File));
+        let d: FileType = serde_json::from_str(r#""directory""#).unwrap();
+        assert!(matches!(d, FileType::Directory));
+    }
+
+    fn parse(json: serde_json::Value) -> FileInfo {
+        serde_json::from_value(json).unwrap()
+    }
+
+    #[test]
+    fn last_modified_null_becomes_none() {
+        let fi = parse(json!({
+            "name": "main.py", "type": "file", "size": 0,
+            "lastModified": null
+        }));
+        assert!(fi.last_modified.is_none());
+    }
+
+    #[test]
+    fn last_modified_absent_becomes_none() {
+        let fi = parse(json!({ "name": "main.py", "type": "file" }));
+        assert!(fi.last_modified.is_none());
+    }
+
+    #[test]
+    fn last_modified_integer_ms() {
+        let fi = parse(json!({
+            "name": "f", "type": "file",
+            "lastModified": 1_700_000_000_000_i64
+        }));
+        assert!(fi.last_modified.is_some());
+    }
+
+    #[test]
+    fn last_modified_float_ms() {
+        let fi = parse(json!({
+            "name": "f", "type": "file",
+            "lastModified": 1_783_269_964_121.6409_f64
+        }));
+        assert!(fi.last_modified.is_some());
+    }
+
+    #[test]
+    fn last_modified_negative_ms_is_pre_epoch() {
+        let fi = parse(json!({
+            "name": "f", "type": "file",
+            "lastModified": -1000_i64
+        }));
+        assert!(fi.last_modified.is_some());
+    }
+
+    #[test]
+    fn last_modified_wrong_type_returns_error() {
+        let result: Result<FileInfo, _> = serde_json::from_value(json!({
+            "name": "f", "type": "file",
+            "lastModified": "not-a-timestamp"
+        }));
+        assert!(result.is_err());
+    }
 }
 
 /// The raw content of a file read from an application's filesystem.

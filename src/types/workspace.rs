@@ -69,3 +69,26 @@ impl WorkspaceInfo {
         WorkspaceResource::new(api, &self.id)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use chrono::Utc;
+
+    use super::WorkspaceInfo;
+    use crate::http::ApiClient;
+
+    #[test]
+    fn into_resource_binds_correct_id() {
+        unsafe { std::env::set_var("API_TOKEN", "test") };
+        let ws = WorkspaceInfo {
+            id: "ws-abc".to_string(),
+            name: "test".to_string(),
+            owner: "owner-id".to_string(),
+            members: vec![],
+            applications: vec![],
+            created_at: Utc::now(),
+        };
+        let resource = ws.into_resource(ApiClient::new());
+        assert_eq!(resource.id, "ws-abc");
+    }
+}

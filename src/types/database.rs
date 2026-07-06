@@ -135,3 +135,26 @@ impl Database {
         DatabaseResource::new(api, &self.id)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Database;
+    use crate::http::ApiClient;
+
+    #[test]
+    fn into_resource_binds_correct_id() {
+        unsafe { std::env::set_var("API_TOKEN", "test") };
+        let db = Database {
+            id: "db-abc".to_string(),
+            name: "test".to_string(),
+            memory: 512,
+            cpu: 1,
+            db_type: "postgres".to_string(),
+            password: "pass".to_string(),
+            certificate: "cert".to_string(),
+            connection_url: "postgres://localhost/test".to_string(),
+        };
+        let resource = db.into_resource(ApiClient::new());
+        assert_eq!(resource.id, "db-abc");
+    }
+}
