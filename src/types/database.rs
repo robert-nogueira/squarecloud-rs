@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -134,7 +132,7 @@ pub struct Credential {
 
 impl Database {
     /// Converts this value into a [`DatabaseResource`] handle bound to `api`.
-    pub fn into_resource(&self, api: Arc<ApiClient>) -> DatabaseResource {
+    pub fn into_resource(&self, api: ApiClient) -> DatabaseResource {
         DatabaseResource::new(api, &self.id)
     }
 }

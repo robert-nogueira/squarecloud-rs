@@ -119,19 +119,21 @@ impl Default for ApiClient {
 /// [`workspace`](ApiClient::workspace)) to obtain handles scoped to a specific
 /// entity.
 ///
-/// # Cloning
+/// # Ownership and factory methods
 ///
-/// `ApiClient` implements [`Clone`]. The underlying HTTP connection pool
-/// (from [`reqwest`]) is shared across clones, so cloning is cheap. The
-/// factory methods [`app`](ApiClient::app), [`database`](ApiClient::database),
-/// and [`workspace`](ApiClient::workspace) clone the client internally:
+/// The factory methods [`app`](ApiClient::app),
+/// [`database`](ApiClient::database), and [`workspace`](ApiClient::workspace)
+/// **consume** `self` and wrap it in an [`Arc`] stored inside the returned
+/// resource handle. If you need to call account-level methods *and* create
+/// resource handles from the same client, call the account-level methods
+/// first:
 ///
 /// ```no_run
 /// # use squarecloud_rs::ApiClient;
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = ApiClient::new();
-/// let me = client.me().await?;
-/// let app = client.app("my-app-id");   // client still usable after this
+/// let me = client.me().await?;          // borrows client
+/// let app = client.app("my-app-id");    // consumes client
 /// # Ok(()) }
 /// ```
 #[derive(Clone)]
@@ -142,6 +144,7 @@ pub struct ApiClient {
 
 impl ApiClient {
     /// Creates a new `ApiClient` by reading credentials from the environment.
+
     ///
     /// On first call, the `API_TOKEN` and `BASE_URL` environment variables are
     /// loaded (a `.env` file in the current directory is automatically sourced
@@ -210,18 +213,22 @@ impl ApiClient {
     /// This method **consumes** `self`; call any account-level methods before
     /// converting the client into a resource handle. See the struct-level
     /// documentation for details.
-    pub fn app(&self, id: &str) -> AppResource {
-        AppResource::new(self.clone(), id)
+    pub fn app(self, id: &str) -> AppResource {
+        AppResource::new(Arc::new(self), id)
     }
 
     /// Returns a resource handle scoped to the workspace identified by `id`.
-    pub fn workspace(&self, id: &str) -> WorkspaceResource {
-        WorkspaceResource::new(self.clone(), id)
+    ///
+    /// This method **consumes** `self`; see [`ApiClient`] for ownership notes.
+    pub fn workspace(self, id: &str) -> WorkspaceResource {
+        WorkspaceResource::new(Arc::new(self), id)
     }
 
     /// Returns a resource handle scoped to the database identified by `id`.
-    pub fn database(&self, id: &str) -> DatabaseResource {
-        DatabaseResource::new(self.clone(), id)
+    ///
+    /// This method **consumes** `self`; see [`ApiClient`] for ownership notes.
+    pub fn database(self, id: &str) -> DatabaseResource {
+        DatabaseResource::new(Arc::new(self), id)
     }
 
     /// Returns the current operational status of the SquareCloud platform.

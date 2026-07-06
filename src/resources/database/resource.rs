@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use serde_json::{Map, Value};
 
 use crate::{
@@ -22,8 +20,8 @@ use crate::{
 /// | `credentials.rs` | TLS certificate, credential rotation |
 /// | `snapshots.rs` | snapshot management |
 pub struct DatabaseResource {
-    /// Shared reference to the underlying HTTP client.
-    pub client: Arc<ApiClient>,
+    /// The underlying HTTP client.
+    pub client: ApiClient,
     /// The database's unique identifier.
     pub id: String,
 }
@@ -33,7 +31,7 @@ impl DatabaseResource {
     /// ID.
     ///
     /// Prefer [`ApiClient::database`] over calling this directly.
-    pub fn new(http: Arc<ApiClient>, id: &str) -> Self {
+    pub fn new(http: ApiClient, id: &str) -> Self {
         Self {
             client: http,
             id: id.to_string(),

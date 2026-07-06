@@ -1,4 +1,4 @@
-use std::{borrow::Cow, sync::Arc};
+use std::borrow::Cow;
 
 use reqwest::multipart::{Form, Part};
 
@@ -16,8 +16,6 @@ use crate::{
 ///
 /// Obtain an `AppResource` by calling [`ApiClient::app`] with the application
 /// ID, or via [`AppInfo::into_resource`](crate::types::AppInfo::into_resource).
-/// The handle holds the underlying [`ApiClient`] behind an [`Arc`], so it is
-/// cheap to clone and can be shared across tasks.
 ///
 /// Methods are spread across multiple `impl` blocks in submodules:
 ///
@@ -31,8 +29,8 @@ use crate::{
 pub struct AppResource {
     /// The application's unique identifier.
     pub id: String,
-    /// Shared reference to the underlying HTTP client.
-    pub client: Arc<ApiClient>,
+    /// The underlying HTTP client.
+    pub client: ApiClient,
 }
 
 impl AppResource {
@@ -40,7 +38,7 @@ impl AppResource {
     /// ID.
     ///
     /// Prefer [`ApiClient::app`] over calling this directly.
-    pub fn new(http: Arc<ApiClient>, id: &str) -> Self {
+    pub fn new(http: ApiClient, id: &str) -> Self {
         Self {
             client: http,
             id: id.to_string(),

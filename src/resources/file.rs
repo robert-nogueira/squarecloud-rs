@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     Endpoint,
     http::{ApiClient, errors::ApiError},
@@ -21,8 +19,8 @@ pub struct FileResource {
     pub path: String,
     /// The ID of the application this file belongs to.
     pub app_id: String,
-    /// Shared reference to the underlying HTTP client.
-    pub client: Arc<ApiClient>,
+    /// The underlying HTTP client.
+    pub client: ApiClient,
 }
 
 impl FileResource {
@@ -31,7 +29,7 @@ impl FileResource {
     ///
     /// Prefer [`AppResource::file`](crate::resources::AppResource::file) over
     /// calling this directly.
-    pub fn new(api: Arc<ApiClient>, path: &str, app_id: &str) -> Self {
+    pub fn new(api: ApiClient, path: &str, app_id: &str) -> Self {
         Self {
             client: api,
             app_id: app_id.to_string(),

@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -40,7 +38,7 @@ pub struct UploadedApp {
 
 impl UploadedApp {
     /// Converts this value into an [`AppResource`] handle bound to `api`.
-    pub fn into_resource(&self, api: Arc<ApiClient>) -> AppResource {
+    pub fn into_resource(&self, api: ApiClient) -> AppResource {
         AppResource::new(api, &self.id)
     }
 }
@@ -72,7 +70,7 @@ pub struct AppInfo {
 
 impl AppInfo {
     /// Converts this value into an [`AppResource`] handle bound to `api`.
-    pub fn into_resource(&self, api: Arc<ApiClient>) -> AppResource {
+    pub fn into_resource(&self, api: ApiClient) -> AppResource {
         AppResource::new(api, &self.id)
     }
 }

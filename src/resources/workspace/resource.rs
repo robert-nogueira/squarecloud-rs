@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     Endpoint,
     http::{ApiClient, errors::ApiError},
@@ -20,8 +18,8 @@ use crate::{
 /// | `applications.rs` | app membership |
 /// | `members.rs` | invite and member management |
 pub struct WorkspaceResource {
-    /// Shared reference to the underlying HTTP client.
-    pub client: Arc<ApiClient>,
+    /// The underlying HTTP client.
+    pub client: ApiClient,
     /// The workspace's unique identifier.
     pub id: String,
 }
@@ -31,7 +29,7 @@ impl WorkspaceResource {
     /// workspace ID.
     ///
     /// Prefer [`ApiClient::workspace`] over calling this directly.
-    pub fn new(http: Arc<ApiClient>, id: &str) -> Self {
+    pub fn new(http: ApiClient, id: &str) -> Self {
         Self {
             client: http,
             id: id.to_string(),

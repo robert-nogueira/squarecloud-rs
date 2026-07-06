@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -67,7 +65,7 @@ pub struct WorkspaceInfo {
 
 impl WorkspaceInfo {
     /// Converts this value into a [`WorkspaceResource`] handle bound to `api`.
-    pub fn into_resource(&self, api: Arc<ApiClient>) -> WorkspaceResource {
+    pub fn into_resource(&self, api: ApiClient) -> WorkspaceResource {
         WorkspaceResource::new(api, &self.id)
     }
 }
