@@ -3,6 +3,9 @@ use squarecloud_rs::ApiClient;
 #[tokio::main]
 async fn main() {
     let client = ApiClient::new();
-    let cert = client.database("database_id").certificate().await.unwrap();
+    let db_id = std::env::args()
+        .nth(1)
+        .expect("usage: cargo run --example NAME -- <db_id>");
+    let cert = client.database(&db_id).certificate().await.unwrap();
     println!("{cert}");
 }

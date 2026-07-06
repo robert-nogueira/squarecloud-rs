@@ -3,7 +3,10 @@ use squarecloud_rs::ApiClient;
 #[tokio::main]
 async fn main() {
     let client = ApiClient::new();
-    let app = client.app("application_id");
+    let app_id = std::env::args()
+        .nth(1)
+        .expect("usage: cargo run --example NAME -- <app_id>");
+    let app = client.app(&app_id);
     let snapshots = app.list_snapshots().await.unwrap();
     let snapshot = snapshots.first().unwrap();
     app.restore_snapshot(

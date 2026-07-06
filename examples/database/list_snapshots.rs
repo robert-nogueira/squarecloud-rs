@@ -3,10 +3,9 @@ use squarecloud_rs::ApiClient;
 #[tokio::main]
 async fn main() {
     let client = ApiClient::new();
-    let snapshots = client
-        .database("database_id")
-        .list_snapshots()
-        .await
-        .unwrap();
+    let db_id = std::env::args()
+        .nth(1)
+        .expect("usage: cargo run --example NAME -- <db_id>");
+    let snapshots = client.database(&db_id).list_snapshots().await.unwrap();
     println!("{snapshots:#?}");
 }
