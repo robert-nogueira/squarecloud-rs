@@ -42,6 +42,19 @@ async fn all_snapshots_returns_vec() {
 }
 
 #[tokio::test]
+async fn all_snapshots_with_scope_returns_vec() {
+    crate::setup();
+    crate::throttle().await;
+    let client = ApiClient::new();
+    let result = client.all_snapshots(Some("apps")).await;
+    assert!(
+        result.is_ok(),
+        "all_snapshots(Some) failed: {:?}",
+        result.err()
+    );
+}
+
+#[tokio::test]
 async fn all_workspaces_returns_vec() {
     crate::setup();
     crate::throttle().await;

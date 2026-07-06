@@ -1,5 +1,5 @@
 use serde_json::json;
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
 
 #[tokio::test]
@@ -81,6 +81,27 @@ async fn all_snapshots_returns_vec() {
 
     let result = client.all_snapshots(None).await;
     assert!(result.is_ok(), "all_snapshots() failed: {:?}", result.err());
+}
+
+#[tokio::test]
+async fn all_snapshots_with_scope_returns_vec() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/users/snapshots"))
+        .and(query_param("scope", "apps"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": []
+        })))
+        .mount(&server)
+        .await;
+
+    let result = client.all_snapshots(Some("apps")).await;
+    assert!(
+        result.is_ok(),
+        "all_snapshots(Some) failed: {:?}",
+        result.err()
+    );
 }
 
 #[tokio::test]
