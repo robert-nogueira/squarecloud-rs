@@ -7,6 +7,238 @@ license = "MIT"
 keywords = ["squarecloud", "api", "async", "http"]
 categories = ["api-bindings", "web-programming::http-client"]
 
+[[example]]
+name = "me"
+path = "examples/me.rs"
+
+[[example]]
+name = "service_status"
+path = "examples/service_status.rs"
+
+[[example]]
+name = "upload_app"
+path = "examples/upload_app.rs"
+
+[[example]]
+name = "app_info"
+path = "examples/apps/info.rs"
+
+[[example]]
+name = "app_status"
+path = "examples/apps/status.rs"
+
+[[example]]
+name = "app_logs"
+path = "examples/apps/logs.rs"
+
+[[example]]
+name = "app_metrics"
+path = "examples/apps/metrics.rs"
+
+[[example]]
+name = "app_start"
+path = "examples/apps/start.rs"
+
+[[example]]
+name = "app_stop"
+path = "examples/apps/stop.rs"
+
+[[example]]
+name = "app_restart"
+path = "examples/apps/restart.rs"
+
+[[example]]
+name = "app_commit"
+path = "examples/apps/commit.rs"
+
+[[example]]
+name = "app_delete"
+path = "examples/apps/delete.rs"
+
+[[example]]
+name = "all_apps_status"
+path = "examples/apps/all_apps_status.rs"
+
+[[example]]
+name = "domain_analytics"
+path = "examples/apps/domain_analytics.rs"
+
+[[example]]
+name = "app_dns_record"
+path = "examples/apps/dns_record.rs"
+
+[[example]]
+name = "set_custom_domain"
+path = "examples/apps/set_custom_domain.rs"
+
+[[example]]
+name = "app_network_errors"
+path = "examples/apps/network_errors.rs"
+
+[[example]]
+name = "app_network_logs"
+path = "examples/apps/network_logs.rs"
+
+[[example]]
+name = "app_network_performance"
+path = "examples/apps/network_performance.rs"
+
+[[example]]
+name = "app_purge_cache"
+path = "examples/apps/purge_cache.rs"
+
+[[example]]
+name = "list_envs"
+path = "examples/env/list_envs.rs"
+
+[[example]]
+name = "upsert_envs"
+path = "examples/env/upsert_envs.rs"
+
+[[example]]
+name = "overwrite_envs"
+path = "examples/env/overwrite_envs.rs"
+
+[[example]]
+name = "delete_envs"
+path = "examples/env/delete_envs.rs"
+
+[[example]]
+name = "list_files"
+path = "examples/files/list_files.rs"
+
+[[example]]
+name = "read_file"
+path = "examples/files/read_file.rs"
+
+[[example]]
+name = "write_file"
+path = "examples/files/write_file.rs"
+
+[[example]]
+name = "move_file"
+path = "examples/files/move_file.rs"
+
+[[example]]
+name = "delete_file"
+path = "examples/files/delete_file.rs"
+
+[[example]]
+name = "create_snapshot"
+path = "examples/snapshots/create_snapshot.rs"
+
+[[example]]
+name = "list_snapshots"
+path = "examples/snapshots/list_snapshots.rs"
+
+[[example]]
+name = "restore_snapshot"
+path = "examples/snapshots/restore_snapshot.rs"
+
+[[example]]
+name = "current_deploy"
+path = "examples/deployments/current_deploy.rs"
+
+[[example]]
+name = "list_deploys"
+path = "examples/deployments/list_deploys.rs"
+
+[[example]]
+name = "set_webhook_integration"
+path = "examples/deployments/set_webhook_integration.rs"
+
+[[example]]
+name = "create_database"
+path = "examples/database/create_database.rs"
+
+[[example]]
+name = "database_info"
+path = "examples/database/database_info.rs"
+
+[[example]]
+name = "database_status"
+path = "examples/database/database_status.rs"
+
+[[example]]
+name = "database_metrics"
+path = "examples/database/database_metrics.rs"
+
+[[example]]
+name = "all_databases_status"
+path = "examples/database/all_databases_status.rs"
+
+[[example]]
+name = "edit_database"
+path = "examples/database/edit_database.rs"
+
+[[example]]
+name = "start_database"
+path = "examples/database/start_database.rs"
+
+[[example]]
+name = "stop_database"
+path = "examples/database/stop_database.rs"
+
+[[example]]
+name = "get_certificate"
+path = "examples/database/get_certificate.rs"
+
+[[example]]
+name = "redefine_credential"
+path = "examples/database/redefine_credential.rs"
+
+[[example]]
+name = "delete_database"
+path = "examples/database/delete_database.rs"
+
+[[example]]
+name = "database_create_snapshot"
+path = "examples/database/create_snapshot.rs"
+
+[[example]]
+name = "database_list_snapshots"
+path = "examples/database/list_snapshots.rs"
+
+[[example]]
+name = "database_restore_snapshot"
+path = "examples/database/restore_snapshot.rs"
+
+[[example]]
+name = "all_workspaces"
+path = "examples/workspaces/all_workspaces.rs"
+
+[[example]]
+name = "create_workspace"
+path = "examples/workspaces/create_workspace.rs"
+
+[[example]]
+name = "get_workspace"
+path = "examples/workspaces/get_workspace.rs"
+
+[[example]]
+name = "get_invite_code"
+path = "examples/workspaces/get_invite_code.rs"
+
+[[example]]
+name = "invite_member"
+path = "examples/workspaces/invite_member.rs"
+
+[[example]]
+name = "remove_member"
+path = "examples/workspaces/remove_member.rs"
+
+[[example]]
+name = "change_member_permissions"
+path = "examples/workspaces/change_member_permissions.rs"
+
+[[example]]
+name = "leave_workspace"
+path = "examples/workspaces/leave_workspace.rs"
+
+[[example]]
+name = "delete_workspace"
+path = "examples/workspaces/delete_workspace.rs"
+
 [[test]]
 name = "integration"
 path = "tests/integration/mod.rs"
