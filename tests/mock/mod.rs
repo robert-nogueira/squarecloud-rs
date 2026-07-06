@@ -1,6 +1,6 @@
 use std::sync::Once;
 
-use squarecloud_rs::ApiClient;
+use squarecloud::ApiClient;
 use wiremock::MockServer;
 
 mod account;

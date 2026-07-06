@@ -1,4 +1,4 @@
-use squarecloud_rs::{ApiClient, ApiError, ApiErrorCode};
+use squarecloud::{ApiClient, ApiError, ApiErrorCode};
 
 #[tokio::test]
 async fn app_info_matches_uploaded() {

@@ -1,4 +1,4 @@
-use squarecloud_rs::{ApiClient, CredentialType};
+use squarecloud::{ApiClient, CredentialType};
 
 #[tokio::main]
 async fn main() {

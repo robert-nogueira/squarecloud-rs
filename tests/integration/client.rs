@@ -1,4 +1,4 @@
-use squarecloud_rs::ApiClient;
+use squarecloud::ApiClient;
 
 #[tokio::test]
 async fn service_status_returns_status() {

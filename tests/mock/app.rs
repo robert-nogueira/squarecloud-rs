@@ -1,5 +1,5 @@
 use serde_json::json;
-use squarecloud_rs::{ApiError, ApiErrorCode};
+use squarecloud::{ApiError, ApiErrorCode};
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
 

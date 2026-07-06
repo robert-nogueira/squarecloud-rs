@@ -1,4 +1,4 @@
-use squarecloud_rs::{ApiClient, types::CredentialType};
+use squarecloud::{ApiClient, types::CredentialType};
 
 macro_rules! require_db {
     () => {

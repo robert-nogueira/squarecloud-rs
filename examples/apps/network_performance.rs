@@ -1,4 +1,4 @@
-use squarecloud_rs::ApiClient;
+use squarecloud::ApiClient;
 
 #[tokio::main]
 async fn main() {

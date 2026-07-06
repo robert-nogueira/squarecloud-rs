@@ -13,7 +13,7 @@
 //! # Quick start
 //!
 //! ```no_run
-//! use squarecloud_rs::ApiClient;
+//! use squarecloud::ApiClient;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {

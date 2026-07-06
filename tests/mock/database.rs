@@ -1,5 +1,5 @@
 use serde_json::json;
-use squarecloud_rs::types::CredentialType;
+use squarecloud::types::CredentialType;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
 

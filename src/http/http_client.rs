@@ -138,7 +138,7 @@ impl Default for ApiClient {
 /// and [`workspace`](ApiClient::workspace) clone the client internally:
 ///
 /// ```no_run
-/// # use squarecloud_rs::ApiClient;
+/// # use squarecloud::ApiClient;
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let client = ApiClient::new();
 /// let me = client.me().await?;

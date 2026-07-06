@@ -1,4 +1,4 @@
-use squarecloud_rs::types::{
+use squarecloud::types::{
     AppInfo, AppSummary, DatabaseInfo, DatabaseSummary, Deploy, DnsRecord,
     FileInfo, NetworkErrors, Plan, RuntimeStats, RuntimeStatsListItem,
     Snapshot, UserInfo, WorkspaceApp, WorkspaceInfo, WorkspaceMember,

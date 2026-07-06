@@ -1,4 +1,4 @@
-use squarecloud_rs::{ApiClient, DatabaseType};
+use squarecloud::{ApiClient, DatabaseType};
 
 #[tokio::main]
 async fn main() {

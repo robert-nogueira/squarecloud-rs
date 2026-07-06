@@ -1,6 +1,6 @@
 use std::sync::{Once, OnceLock};
 
-use squarecloud_rs::ApiClient;
+use squarecloud::ApiClient;
 
 mod account;
 mod app;
@@ -65,7 +65,7 @@ pub fn shared_database_id() -> Option<&'static str> {
                         .create_database(
                             "squarecloud-rs-test".to_string(),
                             256,
-                            squarecloud_rs::DatabaseType::Postgres,
+                            squarecloud::DatabaseType::Postgres,
                             "16".to_string(),
                         )
                         .await

@@ -1,4 +1,4 @@
-use squarecloud_rs::ApiClient;
+use squarecloud::ApiClient;
 
 #[tokio::test]
 async fn me_returns_account_info() {

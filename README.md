@@ -1,5 +1,7 @@
 # squarecloud-rs
 
+[![Crates.io](https://img.shields.io/crates/v/squarecloud.svg)](https://crates.io/crates/squarecloud)
+[![Docs.rs](https://docs.rs/squarecloud/badge.svg)](https://docs.rs/squarecloud)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 A lightweight, idiomatic, async Rust client for the [SquareCloud](https://squarecloud.app) API. Deploy applications, manage files and environment variables, provision databases, take snapshots, and organize workspaces, with compile-time type safety and zero-cost async through Tokio.
@@ -8,7 +10,7 @@ A lightweight, idiomatic, async Rust client for the [SquareCloud](https://square
 
 ```toml
 [dependencies]
-squarecloud-rs = { git = "https://github.com/robert-nogueira/squarecloud-rs" }
+squarecloud = { git = "https://github.com/robert-nogueira/squarecloud-rs" }
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -19,7 +21,7 @@ The client reads `API_TOKEN` on first use, either from the process environment o
 ## Quick start
 
 ```rust
-use squarecloud_rs::ApiClient;
+use squarecloud::ApiClient;
 
 #[tokio::main]
 async fn main() {
