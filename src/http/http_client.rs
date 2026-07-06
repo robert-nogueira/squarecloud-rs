@@ -106,6 +106,13 @@ mod tests {
             })
         ));
     }
+
+    #[test]
+    fn api_client_default_is_same_as_new() {
+        unsafe { std::env::set_var("API_TOKEN", "test") };
+        let client = crate::http::ApiClient::default();
+        assert!(!client.base_url.is_empty());
+    }
 }
 
 impl Default for ApiClient {
@@ -236,12 +243,9 @@ impl ApiClient {
     /// [`ApiError::Api`] if the API responds with an error code.
     pub async fn service_status(&self) -> Result<ServiceStatus, ApiError> {
         let endpoint = Endpoint::service_status();
-        let mut req = self
+        let req = self
             .http_client
             .request(endpoint.method, self.url(&endpoint.path));
-        if let Some(body) = endpoint.json_body {
-            req = req.json(&body);
-        }
         Ok(req.send().await?.json().await?)
     }
 

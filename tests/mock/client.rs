@@ -111,3 +111,95 @@ async fn all_workspaces_returns_vec() {
         result.err()
     );
 }
+
+#[tokio::test]
+async fn upload_app_returns_uploaded_app() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "id": "app-new",
+                "name": "my-app",
+                "description": null,
+                "subdomain": null,
+                "ram": 512,
+                "cpu": 0.5,
+                "language": { "name": "rust", "version": "1.80" }
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let result = client.upload_app(vec![0u8; 4]).await;
+    assert!(result.is_ok(), "upload_app() failed: {:?}", result.err());
+    assert_eq!(result.unwrap().id, "app-new");
+}
+
+#[tokio::test]
+async fn create_database_returns_database() {
+    use squarecloud_rs::types::DatabaseType;
+
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/databases"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "id": "db-new",
+                "name": "my-db",
+                "memory": 256,
+                "cpu": 1,
+                "type": "postgres",
+                "password": "secret",
+                "certificate": "cert-pem",
+                "connection_url": "postgres://localhost/mydb"
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let result = client
+        .create_database(
+            "my-db".to_string(),
+            256,
+            DatabaseType::Postgres,
+            "16".to_string(),
+        )
+        .await;
+    assert!(
+        result.is_ok(),
+        "create_database() failed: {:?}",
+        result.err()
+    );
+    assert_eq!(result.unwrap().id, "db-new");
+}
+
+#[tokio::test]
+async fn create_workspace_returns_workspace_info() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/workspaces"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "id": "ws-new",
+                "name": "my-workspace",
+                "owner": "user-123",
+                "members": [],
+                "applications": [],
+                "createdAt": "2024-01-01T00:00:00Z"
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let result = client.create_workspace("my-workspace".to_string()).await;
+    assert!(
+        result.is_ok(),
+        "create_workspace() failed: {:?}",
+        result.err()
+    );
+    assert_eq!(result.unwrap().id, "ws-new");
+}

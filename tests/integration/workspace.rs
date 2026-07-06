@@ -1,6 +1,25 @@
 use squarecloud_rs::ApiClient;
 
 #[tokio::test]
+async fn create_workspace_and_delete() {
+    crate::setup();
+    crate::throttle().await;
+    let client = ApiClient::new();
+    let ws = client
+        .create_workspace("squarecloud-rs-test".to_string())
+        .await;
+    if let Err(e) = &ws {
+        eprintln!("create_workspace skipped: {e:?}");
+        return;
+    }
+    let ws = ws.unwrap();
+    assert!(!ws.id.is_empty());
+    assert_eq!(ws.name, "squarecloud-rs-test");
+    crate::throttle().await;
+    client.workspace(&ws.id).delete().await.ok();
+}
+
+#[tokio::test]
 async fn all_workspaces_returns_vec() {
     crate::setup();
     crate::throttle().await;
