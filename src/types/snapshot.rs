@@ -1,6 +1,25 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+/// Filters the resource type returned by
+/// [`ApiClient::all_snapshots`](crate::ApiClient::all_snapshots).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SnapshotScope {
+    /// Return only application snapshots.
+    Applications,
+    /// Return only database snapshots.
+    Databases,
+}
+
+impl SnapshotScope {
+    pub(crate) fn as_str(self) -> &'static str {
+        match self {
+            Self::Applications => "applications",
+            Self::Databases => "databases",
+        }
+    }
+}
+
 /// Metadata for a previously taken snapshot.
 ///
 /// Returned in list responses from

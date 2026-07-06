@@ -11,10 +11,12 @@ impl Endpoint {
         Self::builder("/users/me", Method::GET).build()
     }
 
-    pub(crate) fn list_all_snapshots(scope: Option<&str>) -> Endpoint {
+    pub(crate) fn list_all_snapshots(
+        scope: Option<crate::types::SnapshotScope>,
+    ) -> Endpoint {
         match scope {
             Some(s) => Self::builder(
-                &format!("/users/snapshots?scope={s}"),
+                &format!("/users/snapshots?scope={}", s.as_str()),
                 Method::GET,
             )
             .build(),

@@ -1,4 +1,4 @@
-use squarecloud::ApiClient;
+use squarecloud::{ApiClient, types::SnapshotScope};
 
 #[tokio::test]
 async fn service_status_returns_status() {
@@ -46,7 +46,9 @@ async fn all_snapshots_with_scope_returns_vec() {
     crate::setup();
     crate::throttle().await;
     let client = ApiClient::new();
-    let result = client.all_snapshots(Some("applications")).await;
+    let result = client
+        .all_snapshots(Some(SnapshotScope::Applications))
+        .await;
     assert!(
         result.is_ok(),
         "all_snapshots(scope=applications) failed: {:?}",

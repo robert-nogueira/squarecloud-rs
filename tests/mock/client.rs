@@ -96,7 +96,9 @@ async fn all_snapshots_with_scope_returns_vec() {
         .mount(&server)
         .await;
 
-    let result = client.all_snapshots(Some("applications")).await;
+    let result = client
+        .all_snapshots(Some(squarecloud::types::SnapshotScope::Applications))
+        .await;
     assert!(
         result.is_ok(),
         "all_snapshots(Some) failed: {:?}",

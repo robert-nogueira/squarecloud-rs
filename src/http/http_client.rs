@@ -17,7 +17,7 @@ use crate::{
     settings::SETTINGS,
     types::{
         AccountInfo, AppDomain, Database, DatabaseType, RuntimeStatsListItem,
-        ServiceStatus, Snapshot, UploadedApp, WorkspaceInfo,
+        ServiceStatus, Snapshot, SnapshotScope, UploadedApp, WorkspaceInfo,
     },
 };
 
@@ -396,11 +396,11 @@ impl ApiClient {
     }
 
     /// Returns all snapshots owned by the account, optionally filtered by
-    /// scope.
+    /// resource type.
     ///
-    /// Pass `Some("apps")` or `Some("databases")` to restrict the results to
-    /// a specific resource type. Pass `None` to retrieve snapshots for all
-    /// scopes.
+    /// Pass `Some(SnapshotScope::Applications)` or
+    /// `Some(SnapshotScope::Databases)` to restrict the results. Pass `None`
+    /// to retrieve snapshots for all resource types.
     ///
     /// # Errors
     ///
@@ -408,7 +408,7 @@ impl ApiClient {
     /// on an API-level error.
     pub async fn all_snapshots(
         &self,
-        scope: Option<&str>,
+        scope: Option<SnapshotScope>,
     ) -> Result<Vec<Snapshot>, ApiError> {
         self.request_endpoint(Endpoint::list_all_snapshots(scope))
             .await?
