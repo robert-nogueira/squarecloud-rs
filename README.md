@@ -14,12 +14,7 @@ tokio = { version = "1", features = ["full"] }
 
 ## Configuration
 
-The client reads two environment variables on first use, either from the process environment or a `.env` file in the working directory:
-
-| Variable | Description |
-|---|---|
-| `API_TOKEN` | Your SquareCloud API key |
-| `BASE_URL` | API base URL (e.g. `https://api.squarecloud.app/v2`) |
+The client reads `API_TOKEN` on first use, either from the process environment or a `.env` file in the working directory.
 
 ## Quick start
 

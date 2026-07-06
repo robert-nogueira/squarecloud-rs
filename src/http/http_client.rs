@@ -147,15 +147,15 @@ pub struct ApiClient {
 impl ApiClient {
     /// Creates a new `ApiClient` by reading credentials from the environment.
     ///
-    /// On first call, the `API_TOKEN` and `BASE_URL` environment variables are
-    /// loaded (a `.env` file in the current directory is automatically sourced
-    /// via [`dotenvy`]). The API token is set as the default `Authorization`
-    /// header on all subsequent requests.
+    /// On first call, the `API_TOKEN` environment variable is loaded (a `.env`
+    /// file in the current directory is automatically sourced via [`dotenvy`]).
+    /// The API token is set as the default `Authorization` header on all
+    /// subsequent requests.
     ///
     /// # Panics
     ///
-    /// Panics if either `API_TOKEN` or `BASE_URL` is not set in the
-    /// environment, or if `API_TOKEN` contains non-ASCII characters.
+    /// Panics if `API_TOKEN` is not set in the environment, or if it contains
+    /// non-ASCII characters.
     pub fn new() -> ApiClient {
         let mut headers = HeaderMap::new();
         headers.append(
@@ -173,7 +173,7 @@ impl ApiClient {
             .build()
             .unwrap();
         ApiClient {
-            base_url: SETTINGS.base_url.clone(),
+            base_url: "https://api.squarecloud.app/v2".to_string(),
             http_client: client,
         }
     }

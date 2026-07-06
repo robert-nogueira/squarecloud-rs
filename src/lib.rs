@@ -6,9 +6,9 @@
 //! SquareCloud platform: deploying and managing applications, provisioning
 //! databases, organising workspaces, and inspecting account information.
 //!
-//! The main entry point is [`ApiClient`]. It reads the `API_TOKEN` and
-//! `BASE_URL` environment variables (or a `.env` file) on first use, so no
-//! explicit configuration struct is needed.
+//! The main entry point is [`ApiClient`]. It reads the `API_TOKEN`
+//! environment variable (or a `.env` file) on first use, so no explicit
+//! configuration struct is needed.
 //!
 //! # Quick start
 //!
@@ -48,11 +48,9 @@
 //! | Variable | Description |
 //! |----------|-------------|
 //! | `API_TOKEN` | Your SquareCloud API key. |
-//! | `BASE_URL` | Base URL of the SquareCloud API (e.g. `https://api.squarecloud.app/v2`). |
 //!
-//! Both variables are read at first use via
-//! [`dotenvy`](https://docs.rs/dotenvy), so a `.env` file in the working
-//! directory is supported automatically.
+//! Read at first use via [`dotenvy`](https://docs.rs/dotenvy), so a `.env`
+//! file in the working directory is supported automatically.
 
 mod http;
 pub mod resources;
