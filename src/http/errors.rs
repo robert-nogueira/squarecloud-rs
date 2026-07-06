@@ -69,6 +69,8 @@ pub enum ApiErrorCode {
     RestoreInProgress,
     /// The daily snapshot creation limit for this resource has been reached.
     DailySnapshotsLimitReached,
+    /// The `scope` query parameter value is not recognised by the API.
+    InvalidScope,
     /// A code returned by the API that this client does not recognise.
     /// The inner string contains the raw value from the API response.
     Unknown(String),
@@ -108,6 +110,7 @@ impl ApiErrorCode {
             Self::DailySnapshotsLimitReached => {
                 "DAILY_SNAPSHOTS_LIMIT_REACHED"
             }
+            Self::InvalidScope => "INVALID_SCOPE",
             Self::Unknown(s) => s.as_str(),
         }
     }
@@ -159,6 +162,7 @@ impl<'de> Deserialize<'de> for ApiErrorCode {
             "DAILY_SNAPSHOTS_LIMIT_REACHED" => {
                 Self::DailySnapshotsLimitReached
             }
+            "INVALID_SCOPE" => Self::InvalidScope,
             _ => Self::Unknown(s),
         })
     }
@@ -209,6 +213,7 @@ mod tests {
             "DAILY_SNAPSHOTS_LIMIT_REACHED",
             ApiErrorCode::DailySnapshotsLimitReached,
         ),
+        ("INVALID_SCOPE", ApiErrorCode::InvalidScope),
     ];
 
     #[test]

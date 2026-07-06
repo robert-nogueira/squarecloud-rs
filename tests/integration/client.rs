@@ -46,10 +46,10 @@ async fn all_snapshots_with_scope_returns_vec() {
     crate::setup();
     crate::throttle().await;
     let client = ApiClient::new();
-    let result = client.all_snapshots(Some("apps")).await;
+    let result = client.all_snapshots(Some("applications")).await;
     assert!(
         result.is_ok(),
-        "all_snapshots(Some) failed: {:?}",
+        "all_snapshots(scope=applications) failed: {:?}",
         result.err()
     );
 }

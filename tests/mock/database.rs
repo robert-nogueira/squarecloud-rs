@@ -97,6 +97,22 @@ async fn database_edit_name() {
 }
 
 #[tokio::test]
+async fn database_edit_ram() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("PATCH"))
+        .and(path("/databases/db-123"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    let result = client.database("db-123").edit(None, Some(512)).await;
+    assert!(result.is_ok(), "edit(ram) failed: {:?}", result.err());
+    assert!(result.unwrap());
+}
+
+#[tokio::test]
 async fn database_edit_none_returns_false() {
     let (client, _server) = crate::mock_client().await;
 

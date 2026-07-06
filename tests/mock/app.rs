@@ -1,6 +1,6 @@
 use serde_json::json;
 use squarecloud::{ApiError, ApiErrorCode};
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
 
 #[tokio::test]
@@ -335,6 +335,33 @@ async fn app_network_errors_returns_result() {
     assert!(
         result.is_ok(),
         "network_errors() failed: {:?}",
+        result.err()
+    );
+}
+
+#[tokio::test]
+async fn app_network_errors_include_4xx() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/network/errors"))
+        .and(query_param("include_4xx", "true"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "summary": { "total": 2, "by_class": { "4xx": 2, "5xx": 0 } },
+                "by_status": [],
+                "timeseries": [],
+                "top_paths": [],
+                "by_method": {}
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let result = client.app("app-123").network_errors(true).await;
+    assert!(
+        result.is_ok(),
+        "network_errors(true) failed: {:?}",
         result.err()
     );
 }

@@ -152,6 +152,13 @@ async fn app_network_errors_returns_result() {
         }) => {}
         Err(e) => panic!("unexpected error: {e:?}"),
     }
+    match client.app(app_id).network_errors(true).await {
+        Ok(_) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::InvalidTimeRange,
+        }) => {}
+        Err(e) => panic!("unexpected error (include_4xx): {e:?}"),
+    }
 }
 
 #[tokio::test]

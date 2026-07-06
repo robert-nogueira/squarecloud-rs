@@ -147,3 +147,33 @@ impl FileResource {
             .into_result_t()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::FileResource;
+    use crate::http::ApiClient;
+
+    fn make_file(path: &str) -> FileResource {
+        unsafe { std::env::set_var("API_TOKEN", "test") };
+        FileResource {
+            path: path.to_string(),
+            app_id: "app-123".to_string(),
+            client: ApiClient::new(),
+        }
+    }
+
+    #[test]
+    fn find_by_path_returns_match() {
+        let files =
+            vec![make_file("/app/main.py"), make_file("/app/config.json")];
+        let found = FileResource::find_by_path(&files, "/app/main.py");
+        assert!(found.is_some());
+        assert_eq!(found.unwrap().path, "/app/main.py");
+    }
+
+    #[test]
+    fn find_by_path_returns_none_when_missing() {
+        let files = vec![make_file("/app/main.py")];
+        assert!(FileResource::find_by_path(&files, "/app/other.py").is_none());
+    }
+}

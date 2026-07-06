@@ -88,7 +88,7 @@ async fn all_snapshots_with_scope_returns_vec() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))
         .and(path("/users/snapshots"))
-        .and(query_param("scope", "apps"))
+        .and(query_param("scope", "applications"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success",
             "response": []
@@ -96,7 +96,7 @@ async fn all_snapshots_with_scope_returns_vec() {
         .mount(&server)
         .await;
 
-    let result = client.all_snapshots(Some("apps")).await;
+    let result = client.all_snapshots(Some("applications")).await;
     assert!(
         result.is_ok(),
         "all_snapshots(Some) failed: {:?}",

@@ -51,7 +51,10 @@ async fn database_edit_name() {
         .database(db_id)
         .edit(Some("squarecloud-rs-test"), None)
         .await;
-    assert!(result.is_ok(), "edit() failed: {:?}", result.err());
+    assert!(result.is_ok(), "edit(name) failed: {:?}", result.err());
+    assert!(result.unwrap());
+    let result = ApiClient::new().database(db_id).edit(None, Some(256)).await;
+    assert!(result.is_ok(), "edit(ram) failed: {:?}", result.err());
     assert!(result.unwrap());
 }
 
