@@ -61,24 +61,33 @@ async fn app_envs_crud() {
     let client = ApiClient::new();
     let app = client.app(app_id);
 
-    let envs = std::collections::HashMap::from([
-        ("TEST_KEY".to_string(), "hello".to_string()),
-    ]);
+    let envs = std::collections::HashMap::from([(
+        "TEST_KEY".to_string(),
+        "hello".to_string(),
+    )]);
 
     let after_upsert = app.upsert_envs(&envs).await.unwrap();
-    assert_eq!(after_upsert.get("TEST_KEY").map(String::as_str), Some("hello"));
+    assert_eq!(
+        after_upsert.get("TEST_KEY").map(String::as_str),
+        Some("hello")
+    );
 
     let listed = app.list_envs().await.unwrap();
     assert!(listed.contains_key("TEST_KEY"));
 
-    let overwrite = std::collections::HashMap::from([
-        ("OTHER_KEY".to_string(), "world".to_string()),
-    ]);
+    let overwrite = std::collections::HashMap::from([(
+        "OTHER_KEY".to_string(),
+        "world".to_string(),
+    )]);
     let after_overwrite = app.overwrite_envs(&overwrite).await.unwrap();
     assert!(!after_overwrite.contains_key("TEST_KEY"));
-    assert_eq!(after_overwrite.get("OTHER_KEY").map(String::as_str), Some("world"));
+    assert_eq!(
+        after_overwrite.get("OTHER_KEY").map(String::as_str),
+        Some("world")
+    );
 
-    let after_delete = app.delete_envs(&["OTHER_KEY".to_string()]).await.unwrap();
+    let after_delete =
+        app.delete_envs(&["OTHER_KEY".to_string()]).await.unwrap();
     assert!(!after_delete.contains_key("OTHER_KEY"));
 }
 
@@ -88,7 +97,13 @@ async fn app_commit_returns_true() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    assert!(client.app(app_id).commit(crate::helpers::dummy_zip()).await.unwrap());
+    assert!(
+        client
+            .app(app_id)
+            .commit(crate::helpers::dummy_zip())
+            .await
+            .unwrap()
+    );
 }
 
 #[tokio::test]
@@ -99,7 +114,9 @@ async fn app_analytics_returns_analytics() {
     let client = ApiClient::new();
     match client.app(app_id).analytics().await {
         Ok(_) => {}
-        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::InvalidTimeRange,
+        }) => {}
         Err(e) => panic!("unexpected error: {e:?}"),
     }
 }
@@ -115,7 +132,9 @@ async fn app_dns_record_returns_record() {
             assert!(!record.name.is_empty());
             assert!(!record.value.is_empty());
         }
-        Err(ApiError::Api { code: ApiErrorCode::NoCustomDomain }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::NoCustomDomain,
+        }) => {}
         Err(e) => panic!("unexpected error: {e:?}"),
     }
 }
@@ -128,7 +147,9 @@ async fn app_network_errors_returns_result() {
     let client = ApiClient::new();
     match client.app(app_id).network_errors(false).await {
         Ok(_) => {}
-        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::InvalidTimeRange,
+        }) => {}
         Err(e) => panic!("unexpected error: {e:?}"),
     }
 }
@@ -141,7 +162,9 @@ async fn app_network_logs_returns_vec() {
     let client = ApiClient::new();
     match client.app(app_id).network_logs().await {
         Ok(_) => {}
-        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::InvalidTimeRange,
+        }) => {}
         Err(e) => panic!("unexpected error: {e:?}"),
     }
 }
@@ -154,7 +177,9 @@ async fn app_network_performance_returns_result() {
     let client = ApiClient::new();
     match client.app(app_id).network_performance().await {
         Ok(_) => {}
-        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::InvalidTimeRange,
+        }) => {}
         Err(e) => panic!("unexpected error: {e:?}"),
     }
 }
@@ -167,7 +192,9 @@ async fn app_purge_cache_returns_true() {
     let client = ApiClient::new();
     match client.app(app_id).purge_cache().await {
         Ok(v) => assert!(v),
-        Err(ApiError::Api { code: ApiErrorCode::KeepCalm }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::KeepCalm,
+        }) => {}
         Err(e) => panic!("unexpected error: {e:?}"),
     }
 }
@@ -198,7 +225,9 @@ async fn app_start_returns_true_or_already_started() {
     let client = ApiClient::new();
     match client.app(app_id).start().await {
         Ok(v) => assert!(v),
-        Err(ApiError::Api { code: ApiErrorCode::ContainerAlreadyStarted }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::ContainerAlreadyStarted,
+        }) => {}
         Err(e) => panic!("unexpected error: {e:?}"),
     }
 }
@@ -219,7 +248,11 @@ async fn app_current_deploy_returns_deploy() {
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
     let result = client.app(app_id).current_deploy().await;
-    assert!(result.is_ok(), "current_deploy() failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "current_deploy() failed: {:?}",
+        result.err()
+    );
 }
 
 #[tokio::test]
@@ -289,10 +322,20 @@ async fn app_file_operations() {
     assert!(!content.data_type.is_empty());
 
     crate::throttle().await;
-    assert!(handle.move_to("/squarecloud_rs_test_moved.txt").await.unwrap());
+    assert!(
+        handle
+            .move_to("/squarecloud_rs_test_moved.txt")
+            .await
+            .unwrap()
+    );
 
     crate::throttle().await;
-    assert!(app.file("/squarecloud_rs_test_moved.txt").delete().await.unwrap());
+    assert!(
+        app.file("/squarecloud_rs_test_moved.txt")
+            .delete()
+            .await
+            .unwrap()
+    );
 }
 
 /// Must stay last alphabetically so it runs after all other app tests.
@@ -306,10 +349,8 @@ async fn z_cleanup_shared_app() {
                 Err(ApiError::Api {
                     code: ApiErrorCode::RestoreInProgress,
                 }) if attempt < 2 => {
-                    tokio::time::sleep(
-                        std::time::Duration::from_secs(15),
-                    )
-                    .await;
+                    tokio::time::sleep(std::time::Duration::from_secs(15))
+                        .await;
                 }
                 Err(ApiError::Api {
                     code: ApiErrorCode::Unknown(ref raw),

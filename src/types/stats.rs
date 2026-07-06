@@ -91,10 +91,9 @@ mod tests {
 
     #[test]
     fn app_network_accepts_mixed_counter_types() {
-        let n: AppNetwork = serde_json::from_value(
-            json!({ "total": "1 MB", "now": [0, 0] }),
-        )
-        .unwrap();
+        let n: AppNetwork =
+            serde_json::from_value(json!({ "total": "1 MB", "now": [0, 0] }))
+                .unwrap();
         assert!(matches!(n.total, NetworkCounter::Formatted(_)));
         assert!(matches!(n.now, NetworkCounter::Raw(_)));
     }

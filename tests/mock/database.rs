@@ -91,10 +91,7 @@ async fn database_edit_name() {
         .mount(&server)
         .await;
 
-    let result = client
-        .database("db-123")
-        .edit(Some("new-name"), None)
-        .await;
+    let result = client.database("db-123").edit(Some("new-name"), None).await;
     assert!(result.is_ok(), "edit() failed: {:?}", result.err());
     assert!(result.unwrap());
 }
@@ -226,9 +223,12 @@ async fn database_snapshot_lifecycle() {
 
     let first = &snapshots[0];
     assert!(
-        db.restore_snapshot(first.name.clone(), first.version_id().to_string())
-            .await
-            .unwrap()
+        db.restore_snapshot(
+            first.name.clone(),
+            first.version_id().to_string()
+        )
+        .await
+        .unwrap()
     );
 }
 

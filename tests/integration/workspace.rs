@@ -6,7 +6,11 @@ async fn all_workspaces_returns_vec() {
     crate::throttle().await;
     let client = ApiClient::new();
     let result = client.all_workspaces().await;
-    assert!(result.is_ok(), "all_workspaces() failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "all_workspaces() failed: {:?}",
+        result.err()
+    );
 }
 
 #[tokio::test]

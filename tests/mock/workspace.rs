@@ -26,7 +26,11 @@ async fn all_workspaces_returns_vec() {
         .await;
 
     let result = client.all_workspaces().await;
-    assert!(result.is_ok(), "all_workspaces() failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "all_workspaces() failed: {:?}",
+        result.err()
+    );
     assert_eq!(result.unwrap().len(), 1);
 }
 
@@ -83,11 +87,7 @@ async fn workspace_invite_member() {
         .workspace("ws-123")
         .invite_member("invite-abc123", "member")
         .await;
-    assert!(
-        result.is_ok(),
-        "invite_member() failed: {:?}",
-        result.err()
-    );
+    assert!(result.is_ok(), "invite_member() failed: {:?}", result.err());
     assert!(result.unwrap());
 }
 
@@ -102,15 +102,8 @@ async fn workspace_remove_member() {
         .mount(&server)
         .await;
 
-    let result = client
-        .workspace("ws-123")
-        .remove_member("user-456")
-        .await;
-    assert!(
-        result.is_ok(),
-        "remove_member() failed: {:?}",
-        result.err()
-    );
+    let result = client.workspace("ws-123").remove_member("user-456").await;
+    assert!(result.is_ok(), "remove_member() failed: {:?}", result.err());
     assert!(result.unwrap());
 }
 

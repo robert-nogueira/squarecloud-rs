@@ -28,8 +28,10 @@ pub fn dummy_zip() -> Vec<u8> {
     .unwrap();
 
     zip.start_file("package.json", opts).unwrap();
-    zip.write_all(b"{\"name\":\"squarecloud-rs-test\",\"version\":\"1.0.0\"}\n")
-        .unwrap();
+    zip.write_all(
+        b"{\"name\":\"squarecloud-rs-test\",\"version\":\"1.0.0\"}\n",
+    )
+    .unwrap();
 
     zip.finish().unwrap().into_inner()
 }

@@ -3,7 +3,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{http::ApiClient, resources::DatabaseResource};
 
-
 /// A single historical resource-usage sample for a database.
 ///
 /// Returned as part of a [`Vec`] by

@@ -1,7 +1,7 @@
 use squarecloud_rs::types::{
-    AppInfo, AppSummary, DatabaseInfo, DatabaseSummary, Deploy, DnsRecord, FileInfo,
-    RuntimeStats, RuntimeStatsListItem,
-    NetworkErrors, Plan, Snapshot, UserInfo, WorkspaceApp, WorkspaceInfo, WorkspaceMember,
+    AppInfo, AppSummary, DatabaseInfo, DatabaseSummary, Deploy, DnsRecord,
+    FileInfo, NetworkErrors, Plan, RuntimeStats, RuntimeStatsListItem,
+    Snapshot, UserInfo, WorkspaceApp, WorkspaceInfo, WorkspaceMember,
 };
 
 use crate::validation::generate_json_variants_from_schema;
@@ -129,8 +129,8 @@ async fn runtime_stats_schema_deserializes_as_runtime_stats() {
 }
 
 #[tokio::test]
-async fn runtime_stats_list_item_schema_deserializes_as_runtime_stats_list_item(
-) {
+async fn runtime_stats_list_item_schema_deserializes_as_runtime_stats_list_item()
+ {
     let spec = crate::fetch_full_spec().await;
     assert_schema!(&spec, "RuntimeStatsListItem", RuntimeStatsListItem);
 }

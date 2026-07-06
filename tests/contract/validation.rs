@@ -1,4 +1,4 @@
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Generates all meaningful JSON value variations from an OpenAPI schema node.
 ///
@@ -7,10 +7,16 @@ use serde_json::{json, Value};
 /// with all properties set, plus one extra object per field that has more
 /// than one variant (with that field swapped to its alternate value).
 /// Arrays are always empty. Scalars produce a single item.
-pub fn generate_json_variants_from_schema(schema: &Value, schemas: &Value) -> Vec<Value> {
+pub fn generate_json_variants_from_schema(
+    schema: &Value,
+    schemas: &Value,
+) -> Vec<Value> {
     if let Some(ref_path) = schema.get("$ref").and_then(|v| v.as_str()) {
         let name = ref_path.trim_start_matches("#/components/schemas/");
-        return generate_json_variants_from_schema(&schemas[name].clone(), schemas);
+        return generate_json_variants_from_schema(
+            &schemas[name].clone(),
+            schemas,
+        );
     }
 
     if let Some(c) = schema.get("const") {
@@ -33,8 +39,11 @@ pub fn generate_json_variants_from_schema(schema: &Value, schemas: &Value) -> Ve
 
     if let Some(arr) = type_val.and_then(|t| t.as_array()) {
         let mut results = vec![Value::Null];
-        if let Some(t) = arr.iter().find(|t| *t != "null").and_then(|t| t.as_str()) {
-            results.extend(generate_json_variants_from_type(t, schema, schemas));
+        if let Some(t) =
+            arr.iter().find(|t| *t != "null").and_then(|t| t.as_str())
+        {
+            results
+                .extend(generate_json_variants_from_type(t, schema, schemas));
         }
         return results;
     }
@@ -45,10 +54,17 @@ pub fn generate_json_variants_from_schema(schema: &Value, schemas: &Value) -> Ve
     }
 }
 
-fn generate_json_variants_from_type(type_str: &str, schema: &Value, schemas: &Value) -> Vec<Value> {
+fn generate_json_variants_from_type(
+    type_str: &str,
+    schema: &Value,
+    schemas: &Value,
+) -> Vec<Value> {
     match type_str {
         "object" => {
-            let props = match schema.get("properties").and_then(|p| p.as_object()) {
+            let props = match schema
+                .get("properties")
+                .and_then(|p| p.as_object())
+            {
                 Some(p) => p,
                 None => return vec![Value::Object(serde_json::Map::new())],
             };
@@ -86,11 +102,13 @@ fn generate_json_variants_from_type(type_str: &str, schema: &Value, schemas: &Va
         }
         "boolean" => vec![json!(false), json!(true)],
         "array" => vec![Value::Array(vec![])],
-        "string" => vec![match schema.get("format").and_then(|f| f.as_str()) {
-            Some("date-time") => json!("2024-01-01T00:00:00Z"),
-            Some("email") => json!("test@example.com"),
-            _ => json!(""),
-        }],
+        "string" => {
+            vec![match schema.get("format").and_then(|f| f.as_str()) {
+                Some("date-time") => json!("2024-01-01T00:00:00Z"),
+                Some("email") => json!("test@example.com"),
+                _ => json!(""),
+            }]
+        }
         "integer" => vec![json!(0)],
         "number" => vec![json!(0.0)],
         _ => vec![Value::Null],

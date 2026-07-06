@@ -25,7 +25,11 @@ async fn all_database_status_returns_vec() {
     crate::throttle().await;
     let client = ApiClient::new();
     let result = client.all_database_status().await;
-    assert!(result.is_ok(), "all_database_status() failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "all_database_status() failed: {:?}",
+        result.err()
+    );
 }
 
 #[tokio::test]
@@ -43,5 +47,9 @@ async fn all_workspaces_returns_vec() {
     crate::throttle().await;
     let client = ApiClient::new();
     let result = client.all_workspaces().await;
-    assert!(result.is_ok(), "all_workspaces() failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "all_workspaces() failed: {:?}",
+        result.err()
+    );
 }

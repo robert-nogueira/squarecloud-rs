@@ -6,8 +6,8 @@ mod account;
 mod app;
 mod client;
 mod database;
-mod workspace;
 pub mod helpers;
+mod workspace;
 
 static ENV: Once = Once::new();
 static APP_ID: OnceLock<Result<String, String>> = OnceLock::new();
@@ -60,23 +60,23 @@ pub fn shared_database_id() -> Option<&'static str> {
         .get_or_init(|| {
             setup();
             std::thread::spawn(|| {
-                tokio::runtime::Runtime::new()
-                    .unwrap()
-                    .block_on(async {
-                        ApiClient::new()
-                            .create_database(
-                                "squarecloud-rs-test".to_string(),
-                                256,
-                                squarecloud_rs::DatabaseType::Postgres,
-                                "16".to_string(),
-                            )
-                            .await
-                            .map(|d| d.id)
-                            .map_err(|e| {
-                                eprintln!("[database] create_database failed: {e:?}");
-                                format!("{e:?}")
-                            })
-                    })
+                tokio::runtime::Runtime::new().unwrap().block_on(async {
+                    ApiClient::new()
+                        .create_database(
+                            "squarecloud-rs-test".to_string(),
+                            256,
+                            squarecloud_rs::DatabaseType::Postgres,
+                            "16".to_string(),
+                        )
+                        .await
+                        .map(|d| d.id)
+                        .map_err(|e| {
+                            eprintln!(
+                                "[database] create_database failed: {e:?}"
+                            );
+                            format!("{e:?}")
+                        })
+                })
             })
             .join()
             .unwrap_or_else(|_| Err("database thread panicked".to_string()))

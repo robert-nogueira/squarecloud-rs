@@ -16,9 +16,8 @@ use crate::{
     resources::{AppResource, DatabaseResource, WorkspaceResource},
     settings::SETTINGS,
     types::{
-        AccountInfo, AppDomain, Database, DatabaseType,
-        RuntimeStatsListItem, ServiceStatus, Snapshot, UploadedApp,
-        WorkspaceInfo,
+        AccountInfo, AppDomain, Database, DatabaseType, RuntimeStatsListItem,
+        ServiceStatus, Snapshot, UploadedApp, WorkspaceInfo,
     },
 };
 
@@ -78,28 +77,33 @@ mod tests {
 
     #[test]
     fn into_result_t_error_returns_api_error() {
-        let resp: ApiResponse<u32> =
-            ApiResponse::Error { code: ApiErrorCode::NotFound };
+        let resp: ApiResponse<u32> = ApiResponse::Error {
+            code: ApiErrorCode::NotFound,
+        };
         assert!(matches!(
             resp.into_result_t(),
-            Err(ApiError::Api { code: ApiErrorCode::NotFound })
+            Err(ApiError::Api {
+                code: ApiErrorCode::NotFound
+            })
         ));
     }
 
     #[test]
     fn into_bool_result_success_returns_true() {
-        let resp: ApiResponse<()> =
-            ApiResponse::Success { response: None };
+        let resp: ApiResponse<()> = ApiResponse::Success { response: None };
         assert_eq!(resp.into_bool_result().unwrap(), true);
     }
 
     #[test]
     fn into_bool_result_error_returns_api_error() {
-        let resp: ApiResponse<()> =
-            ApiResponse::Error { code: ApiErrorCode::RateLimit };
+        let resp: ApiResponse<()> = ApiResponse::Error {
+            code: ApiErrorCode::RateLimit,
+        };
         assert!(matches!(
             resp.into_bool_result(),
-            Err(ApiError::Api { code: ApiErrorCode::RateLimit })
+            Err(ApiError::Api {
+                code: ApiErrorCode::RateLimit
+            })
         ));
     }
 }
@@ -312,7 +316,9 @@ impl ApiClient {
     ///
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
     /// on an API-level error.
-    pub async fn all_apps_status(&self) -> Result<Vec<RuntimeStatsListItem>, ApiError> {
+    pub async fn all_apps_status(
+        &self,
+    ) -> Result<Vec<RuntimeStatsListItem>, ApiError> {
         self.request_endpoint(Endpoint::all_apps_status())
             .await?
             .into_result_t()

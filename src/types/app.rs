@@ -114,4 +114,3 @@ pub struct AppMetrics {
     /// Network byte counts as `[bytes_in, bytes_out]`.
     pub net: [u32; 2],
 }
-

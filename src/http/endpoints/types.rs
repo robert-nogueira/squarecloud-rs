@@ -119,13 +119,11 @@ mod tests {
 
     #[test]
     fn multiple_params_all_substituted() {
-        let ep = Endpoint::builder(
-            "/apps/{app_id}/files/{file_id}",
-            Method::GET,
-        )
-        .param("app_id", "app-1")
-        .param("file_id", "index.js")
-        .build();
+        let ep =
+            Endpoint::builder("/apps/{app_id}/files/{file_id}", Method::GET)
+                .param("app_id", "app-1")
+                .param("file_id", "index.js")
+                .build();
         assert_eq!(ep.path, "/apps/app-1/files/index.js");
     }
 

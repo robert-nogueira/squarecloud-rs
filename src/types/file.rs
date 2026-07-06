@@ -16,10 +16,7 @@ where
     impl<'de> Visitor<'de> for V {
         type Value = Option<DateTime<Utc>>;
 
-        fn expecting(
-            &self,
-            f: &mut std::fmt::Formatter,
-        ) -> std::fmt::Result {
+        fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
             write!(f, "a unix timestamp in milliseconds or null")
         }
 

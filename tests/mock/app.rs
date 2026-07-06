@@ -164,9 +164,10 @@ async fn app_envs_crud() {
         .await;
 
     let app = client.app("app-123");
-    let envs = std::collections::HashMap::from([
-        ("TEST_KEY".to_string(), "hello".to_string()),
-    ]);
+    let envs = std::collections::HashMap::from([(
+        "TEST_KEY".to_string(),
+        "hello".to_string(),
+    )]);
 
     let after_upsert = app.upsert_envs(&envs).await.unwrap();
     assert_eq!(
@@ -177,9 +178,10 @@ async fn app_envs_crud() {
     let listed = app.list_envs().await.unwrap();
     assert!(listed.contains_key("TEST_KEY"));
 
-    let overwrite = std::collections::HashMap::from([
-        ("OTHER_KEY".to_string(), "world".to_string()),
-    ]);
+    let overwrite = std::collections::HashMap::from([(
+        "OTHER_KEY".to_string(),
+        "world".to_string(),
+    )]);
     let after_overwrite = app.overwrite_envs(&overwrite).await.unwrap();
     assert!(!after_overwrite.contains_key("TEST_KEY"));
     assert_eq!(
@@ -243,7 +245,9 @@ async fn app_analytics_invalid_time_range() {
         .await;
 
     match client.app("app-123").analytics().await {
-        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::InvalidTimeRange,
+        }) => {}
         other => panic!("expected InvalidTimeRange, got {other:?}"),
     }
 }
@@ -282,7 +286,9 @@ async fn app_dns_record_no_custom_domain() {
         .await;
 
     match client.app("app-123").dns_record().await {
-        Err(ApiError::Api { code: ApiErrorCode::NoCustomDomain }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::NoCustomDomain,
+        }) => {}
         other => panic!("expected NoCustomDomain, got {other:?}"),
     }
 }
@@ -299,7 +305,11 @@ async fn app_set_custom_domain_returns_true() {
         .await;
 
     assert!(
-        client.app("app-123").set_custom_domain("example.com").await.unwrap()
+        client
+            .app("app-123")
+            .set_custom_domain("example.com")
+            .await
+            .unwrap()
     );
 }
 
@@ -322,7 +332,11 @@ async fn app_network_errors_returns_result() {
         .await;
 
     let result = client.app("app-123").network_errors(false).await;
-    assert!(result.is_ok(), "network_errors() failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "network_errors() failed: {:?}",
+        result.err()
+    );
 }
 
 #[tokio::test]
@@ -337,7 +351,9 @@ async fn app_network_errors_invalid_time_range() {
         .await;
 
     match client.app("app-123").network_errors(false).await {
-        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::InvalidTimeRange,
+        }) => {}
         other => panic!("expected InvalidTimeRange, got {other:?}"),
     }
 }
@@ -388,7 +404,9 @@ async fn app_network_logs_invalid_time_range() {
         .await;
 
     match client.app("app-123").network_logs().await {
-        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::InvalidTimeRange,
+        }) => {}
         other => panic!("expected InvalidTimeRange, got {other:?}"),
     }
 }
@@ -413,7 +431,11 @@ async fn app_network_performance_returns_result() {
         .await;
 
     let result = client.app("app-123").network_performance().await;
-    assert!(result.is_ok(), "network_performance() failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "network_performance() failed: {:?}",
+        result.err()
+    );
 }
 
 #[tokio::test]
@@ -428,7 +450,9 @@ async fn app_network_performance_invalid_time_range() {
         .await;
 
     match client.app("app-123").network_performance().await {
-        Err(ApiError::Api { code: ApiErrorCode::InvalidTimeRange }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::InvalidTimeRange,
+        }) => {}
         other => panic!("expected InvalidTimeRange, got {other:?}"),
     }
 }
@@ -459,7 +483,9 @@ async fn app_purge_cache_keep_calm() {
         .await;
 
     match client.app("app-123").purge_cache().await {
-        Err(ApiError::Api { code: ApiErrorCode::KeepCalm }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::KeepCalm,
+        }) => {}
         other => panic!("expected KeepCalm, got {other:?}"),
     }
 }
@@ -526,7 +552,9 @@ async fn app_start_already_started() {
         .await;
 
     match client.app("app-123").start().await {
-        Err(ApiError::Api { code: ApiErrorCode::ContainerAlreadyStarted }) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::ContainerAlreadyStarted,
+        }) => {}
         other => panic!("expected ContainerAlreadyStarted, got {other:?}"),
     }
 }
@@ -620,7 +648,8 @@ async fn app_set_webhook_integration_returns_url() {
         .mount(&server)
         .await;
 
-    let url = client.app("app-123")
+    let url = client
+        .app("app-123")
         .set_webhook_integration("gh_token".to_string())
         .await
         .unwrap();
@@ -678,9 +707,12 @@ async fn app_snapshot_lifecycle() {
 
     let first = &snapshots[0];
     assert!(
-        app.restore_snapshot(first.name.clone(), first.version_id().to_string())
-            .await
-            .unwrap()
+        app.restore_snapshot(
+            first.name.clone(),
+            first.version_id().to_string()
+        )
+        .await
+        .unwrap()
     );
 }
 
@@ -751,7 +783,17 @@ async fn app_file_operations() {
     let content = handle.read("/squarecloud_rs_test.txt").await.unwrap();
     assert!(!content.data_type.is_empty());
 
-    assert!(handle.move_to("/squarecloud_rs_test_moved.txt").await.unwrap());
+    assert!(
+        handle
+            .move_to("/squarecloud_rs_test_moved.txt")
+            .await
+            .unwrap()
+    );
 
-    assert!(app.file("/squarecloud_rs_test_moved.txt").delete().await.unwrap());
+    assert!(
+        app.file("/squarecloud_rs_test_moved.txt")
+            .delete()
+            .await
+            .unwrap()
+    );
 }

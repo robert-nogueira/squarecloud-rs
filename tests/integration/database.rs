@@ -83,7 +83,11 @@ async fn database_redefine_credential_password() {
         .database(db_id)
         .redefine_credential(CredentialType::Password)
         .await;
-    assert!(result.is_ok(), "redefine_credential(Password) failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "redefine_credential(Password) failed: {:?}",
+        result.err()
+    );
     assert!(!result.unwrap().is_empty());
 }
 
@@ -96,7 +100,11 @@ async fn database_redefine_credential_certificate() {
         .database(db_id)
         .redefine_credential(CredentialType::Certificate)
         .await;
-    assert!(result.is_ok(), "redefine_credential(Certificate) failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "redefine_credential(Certificate) failed: {:?}",
+        result.err()
+    );
     assert!(!result.unwrap().is_empty());
 }
 
