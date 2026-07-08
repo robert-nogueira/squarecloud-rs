@@ -185,7 +185,7 @@ impl ApiClient {
         }
     }
 
-    fn url(&self, path: &str) -> String {
+    pub fn url(&self, path: &str) -> String {
         format!(
             "{}/{}",
             self.base_url.trim_end_matches('/'),
