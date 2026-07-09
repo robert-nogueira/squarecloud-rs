@@ -2,8 +2,13 @@
 name = "squarecloud"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.85"
 description = "Async Rust client for the SquareCloud API"
 license = "MIT"
+readme = "README.md"
+repository = "https://github.com/robert-nogueira/squarecloud-rs"
+homepage = "https://docs.rs/squarecloud"
+documentation = "https://docs.rs/squarecloud"
 keywords = ["squarecloud", "api", "async", "http"]
 categories = ["api-bindings", "web-programming::http-client"]
 
