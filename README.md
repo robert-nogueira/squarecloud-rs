@@ -72,7 +72,7 @@ The [`examples/`](examples/) directory contains one file per method, organized b
 | [`files/`](examples/files/) | list, read, write, move, delete |
 | [`snapshots/`](examples/snapshots/) | create, list, restore |
 | [`deployments/`](examples/deployments/) | current deploy, history, webhook integration |
-| [`database/`](examples/database/) | full lifecycle — create, status, metrics, credentials, snapshots, delete |
+| [`database/`](examples/database/) | full lifecycle: create, status, metrics, credentials, snapshots, delete |
 | [`workspaces/`](examples/workspaces/) | create, members, permissions, leave, delete |
 
 ```sh
@@ -81,6 +81,10 @@ cargo run --example app_status -- <app_id>
 cargo run --example app_realtime -- <app_id>
 cargo run --example database_info -- <db_id>
 ```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
