@@ -14,6 +14,8 @@ repos:
     - id: cargo-check
       args: ["--all-targets", "--all-features"]
     - id: fmt
+    - id: clippy
+      args: ["--", "-D", "warnings"]
 
 - repo: https://github.com/commitizen-tools/commitizen
   rev: v4.8.3
