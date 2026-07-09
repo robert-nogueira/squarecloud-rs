@@ -125,16 +125,9 @@ async fn app_dns_record_returns_record() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    match client.app(app_id).dns_record().await {
-        Ok(record) => {
-            assert!(!record.name.is_empty());
-            assert!(!record.value.is_empty());
-        }
-        Err(ApiError::Api {
-            code: ApiErrorCode::NoCustomDomain,
-        }) => {}
-        Err(e) => panic!("unexpected error: {e:?}"),
-    }
+    let record = client.app(app_id).dns_record().await.unwrap();
+    assert!(!record.name.is_empty());
+    assert!(!record.value.is_empty());
 }
 
 #[tokio::test]
@@ -189,13 +182,7 @@ async fn app_purge_cache_returns_true() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    match client.app(app_id).purge_cache().await {
-        Ok(v) => assert!(v),
-        Err(ApiError::Api {
-            code: ApiErrorCode::KeepCalm,
-        }) => {}
-        Err(e) => panic!("unexpected error: {e:?}"),
-    }
+    assert!(client.app(app_id).purge_cache().await.unwrap());
 }
 
 #[tokio::test]
@@ -217,18 +204,14 @@ async fn app_restart_returns_true() {
 }
 
 #[tokio::test]
-async fn app_start_returns_true_or_already_started() {
+async fn app_start_returns_true() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    match client.app(app_id).start().await {
-        Ok(v) => assert!(v),
-        Err(ApiError::Api {
-            code: ApiErrorCode::ContainerAlreadyStarted,
-        }) => {}
-        Err(e) => panic!("unexpected error: {e:?}"),
-    }
+    client.app(app_id).stop().await.unwrap();
+    crate::throttle().await;
+    assert!(client.app(app_id).start().await.unwrap());
 }
 
 #[tokio::test]
