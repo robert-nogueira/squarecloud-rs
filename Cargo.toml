@@ -32,6 +32,14 @@ name = "app_logs"
 path = "examples/apps/logs.rs"
 
 [[example]]
+name = "app_realtime"
+path = "examples/apps/realtime.rs"
+
+[[example]]
+name = "app_realtime_logs"
+path = "examples/apps/realtime_logs.rs"
+
+[[example]]
 name = "app_metrics"
 path = "examples/apps/metrics.rs"
 
