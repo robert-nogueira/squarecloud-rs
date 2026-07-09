@@ -23,7 +23,8 @@ pub fn dummy_zip() -> Vec<u8> {
     zip.start_file("index.js", opts).unwrap();
     zip.write_all(
         b"const http = require('http');\n\
-          http.createServer((_, res) => res.end('ok')).listen(80);\n",
+          http.createServer((_, res) => res.end('ok')).listen(80);\n\
+          setInterval(() => console.log('ping'), 1000);\n",
     )
     .unwrap();
 

@@ -1,5 +1,6 @@
+use futures_util::StreamExt;
 use serde_json::json;
-use squarecloud::{ApiError, ApiErrorCode};
+use squarecloud::{ApiError, ApiErrorCode, types::RealtimeEvent};
 use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
 
@@ -823,4 +824,76 @@ async fn app_file_operations() {
             .await
             .unwrap()
     );
+}
+
+#[tokio::test]
+async fn realtime_parses_log_event() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_bytes(
+                    b"event: system\ndata: REALTIME_CONNECTED\n\n\
+                      event: logs\ndata: hello from app\n\n"
+                        as &[u8],
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+
+    assert_eq!(events.len(), 2);
+    assert!(matches!(events[0], Ok(RealtimeEvent::System(_))));
+    assert!(matches!(events[1], Ok(RealtimeEvent::Log(_))));
+    if let Ok(RealtimeEvent::Log(msg)) = &events[1] {
+        assert_eq!(msg, "hello from app");
+    }
+}
+
+#[tokio::test]
+async fn realtime_multiline_data_is_concatenated() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_bytes(
+                    b"event: logs\ndata: line one\ndata: line two\n\n"
+                        as &[u8],
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+
+    assert_eq!(events.len(), 1);
+    if let Ok(RealtimeEvent::Log(msg)) = &events[0] {
+        assert_eq!(msg, "line one\nline two");
+    }
+}
+
+#[tokio::test]
+async fn realtime_comments_are_ignored() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_bytes(
+                    b": ping\n\nevent: logs\ndata: hello\n\n" as &[u8],
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+
+    assert_eq!(events.len(), 1);
+    assert!(matches!(events[0], Ok(RealtimeEvent::Log(_))));
 }

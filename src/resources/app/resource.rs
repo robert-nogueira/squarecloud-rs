@@ -1,5 +1,7 @@
 use std::borrow::Cow;
 
+use async_stream::stream;
+use futures_util::StreamExt;
 use reqwest::multipart::{Form, Part};
 
 use crate::{
@@ -9,7 +11,7 @@ use crate::{
         errors::{ApiError, CommitError},
     },
     resources::FileResource,
-    types::{AppInfo, AppLogs, AppMetrics, RuntimeStats},
+    types::{AppInfo, AppLogs, AppMetrics, RealtimeEvent, RuntimeStats},
 };
 
 /// A handle to a specific SquareCloud application.
@@ -42,6 +44,62 @@ impl AppResource {
         Self {
             client: http,
             id: id.to_string(),
+        }
+    }
+
+    pub fn realtime(
+        &self,
+    ) -> impl futures_util::Stream<Item = Result<RealtimeEvent, ApiError>>
+    {
+        let client = self.client.clone();
+        let id = self.id.clone();
+        let endpoint = Endpoint::sse_realtime_app_logs(&id);
+
+        stream! {
+            let mut bytes = client
+                .http_client
+                .request(endpoint.method, client.url(&endpoint.path))
+                .send()
+                .await
+                .map_err(ApiError::Transport)?
+                .bytes_stream();
+
+            let mut buffer = Vec::<u8>::new();
+            let mut event_type = String::new();
+            let mut data = String::new();
+
+            while let Some(chunk) = bytes.next().await {
+                let chunk = chunk.map_err(ApiError::Transport)?;
+                buffer.extend_from_slice(&chunk);
+
+                while let Some(pos) =
+                    buffer.iter().position(|&b| b == b'\n')
+                {
+                    let line =
+                        String::from_utf8_lossy(&buffer[..pos]).into_owned();
+                    buffer.drain(..=pos);
+                    let line = line.trim_end_matches('\r');
+
+                    if line.is_empty() {
+                        if !data.is_empty() {
+                            let event = match event_type.as_str() {
+                                "logs" => RealtimeEvent::Log(data.clone()),
+                                _ => RealtimeEvent::System(data.clone()),
+                            };
+                            yield Ok(event);
+                        }
+                        event_type.clear();
+                        data.clear();
+                    } else if let Some(val) = line.strip_prefix("event:") {
+                        event_type = val.trim().to_string();
+                    } else if let Some(val) = line.strip_prefix("data:") {
+                        if !data.is_empty() {
+                            data.push('\n');
+                        }
+                        data.push_str(val.trim());
+                    }
+                }
+            }
         }
     }
 

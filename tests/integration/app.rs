@@ -1,4 +1,5 @@
-use squarecloud::{ApiClient, ApiError, ApiErrorCode};
+use futures_util::StreamExt;
+use squarecloud::{ApiClient, ApiError, ApiErrorCode, types::RealtimeEvent};
 
 #[tokio::test]
 async fn app_info_matches_uploaded() {
@@ -374,4 +375,33 @@ async fn z_cleanup_shared_app() {
             }
         }
     }
+}
+
+#[tokio::test]
+async fn app_realtime_receives_log_events() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = ApiClient::new();
+
+    // The server emits System events (REALTIME_CONNECTING, cluster ID,
+    // REALTIME_CONNECTED) before any log events. Filter directly for Log
+    // events and wait up to 10s; the app logs every 1s.
+    let app = client.app(app_id);
+    let stream = app.realtime().filter(|e| {
+        futures_util::future::ready(matches!(e, Ok(RealtimeEvent::Log(_))))
+    });
+    tokio::pin!(stream);
+
+    let first_log = tokio::time::timeout(
+        std::time::Duration::from_secs(10),
+        stream.next(),
+    )
+    .await
+    .expect("timed out waiting for a Log event");
+
+    assert!(
+        matches!(first_log, Some(Ok(RealtimeEvent::Log(_)))),
+        "expected a Log event, got: {first_log:?}"
+    );
 }
