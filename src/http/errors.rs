@@ -286,7 +286,10 @@ pub enum ApiError {
     /// The HTTP request failed before the server could respond.
     Transport(reqwest::Error),
     /// The server responded with a structured API error code.
-    Api { code: ApiErrorCode },
+    Api {
+        /// The machine-readable error code from the API response.
+        code: ApiErrorCode,
+    },
 }
 
 /// An error that can occur during [`AppResource::commit`](crate::resources::AppResource::commit).

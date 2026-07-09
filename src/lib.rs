@@ -1,3 +1,4 @@
+#![warn(missing_docs)]
 //! Async Rust client for the [SquareCloud](https://squarecloud.app) API.
 //!
 //! # Overview
@@ -53,8 +54,10 @@
 //! file in the working directory is supported automatically.
 
 mod http;
+/// Resource handles returned by the factory methods on [`ApiClient`].
 pub mod resources;
 mod settings;
+/// Plain data structs deserialised from API responses.
 pub mod types;
 
 pub(crate) use http::endpoints::Endpoint;

@@ -147,6 +147,8 @@ impl Default for ApiClient {
 /// ```
 #[derive(Clone)]
 pub struct ApiClient {
+    /// Base URL for all API requests. Defaults to `https://api.squarecloud.app/v2`.
+    /// Override this field to point the client at a different endpoint.
     pub base_url: String,
     pub(crate) http_client: Client,
 }

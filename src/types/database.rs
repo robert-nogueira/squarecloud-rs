@@ -113,6 +113,7 @@ pub enum CredentialType {
 }
 
 impl CredentialType {
+    /// Returns the wire string for this credential type (`"certificate"` or `"password"`).
     pub fn as_str(&self) -> &str {
         match self {
             CredentialType::Certificate => "certificate",
