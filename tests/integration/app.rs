@@ -120,6 +120,7 @@ async fn app_analytics_returns_analytics() {
 }
 
 #[tokio::test]
+#[ignore = "requires a custom domain configured on the test app"]
 async fn app_dns_record_returns_record() {
     crate::setup();
     crate::throttle().await;
