@@ -46,15 +46,44 @@ impl AppResource {
         }
     }
 
+    /// Opens a live SSE stream of log and system events for this application.
+    ///
+    /// Yields [`RealtimeEvent::Log`] for application log lines and
+    /// [`RealtimeEvent::System`] for connection lifecycle messages (e.g.
+    /// `REALTIME_CONNECTING`, `REALTIME_CONNECTED`). The stream runs until the
+    /// server closes the connection.
+    ///
+    /// ```no_run
+    /// use futures_util::StreamExt;
+    /// use squarecloud::{ApiClient, RealtimeEvent};
+    ///
+    /// # #[tokio::main] async fn main() {
+    /// let client = ApiClient::new();
+    /// let mut stream = client.app("your-app-id").realtime();
+    /// while let Some(event) = stream.next().await {
+    ///     match event.unwrap() {
+    ///         RealtimeEvent::Log(msg) => println!("[log]    {msg}"),
+    ///         RealtimeEvent::System(msg) => println!("[system] {msg}"),
+    ///     }
+    /// }
+    /// # }
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Each item is `Result<RealtimeEvent, ApiError>`. A transport failure
+    /// mid-stream yields an `Err` and the stream terminates.
     pub fn realtime(
         &self,
-    ) -> impl futures_util::Stream<Item = Result<RealtimeEvent, ApiError>>
-    {
+    ) -> futures_util::stream::BoxStream<
+        'static,
+        Result<RealtimeEvent, ApiError>,
+    > {
         let client = self.client.clone();
         let id = self.id.clone();
         let endpoint = Endpoint::sse_realtime_app_logs(&id);
 
-        stream! {
+        Box::pin(stream! {
             let mut bytes = client
                 .http_client
                 .request(endpoint.method, client.url(&endpoint.path))
@@ -99,7 +128,7 @@ impl AppResource {
                     }
                 }
             }
-        }
+        })
     }
 
     /// Returns a [`FileResource`] scoped to the given path within this
