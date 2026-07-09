@@ -18,10 +18,9 @@ use crate::{
 /// | `applications.rs` | app membership |
 /// | `members.rs` | invite and member management |
 pub struct WorkspaceResource {
-    /// The underlying HTTP client.
-    pub client: ApiClient,
     /// The workspace's unique identifier.
     pub id: String,
+    pub(crate) client: ApiClient,
 }
 
 impl WorkspaceResource {

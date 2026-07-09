@@ -19,8 +19,7 @@ pub struct FileResource {
     pub path: String,
     /// The ID of the application this file belongs to.
     pub app_id: String,
-    /// The underlying HTTP client.
-    pub client: ApiClient,
+    pub(crate) client: ApiClient,
 }
 
 impl FileResource {

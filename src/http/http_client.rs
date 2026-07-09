@@ -185,7 +185,7 @@ impl ApiClient {
         }
     }
 
-    pub fn url(&self, path: &str) -> String {
+    pub(crate) fn url(&self, path: &str) -> String {
         format!(
             "{}/{}",
             self.base_url.trim_end_matches('/'),
@@ -193,7 +193,7 @@ impl ApiClient {
         )
     }
 
-    pub async fn execute_request<T: DeserializeOwned>(
+    pub(crate) async fn execute_request<T: DeserializeOwned>(
         &self,
         request: Request,
     ) -> Result<ApiResponse<T>, reqwest::Error> {
@@ -202,7 +202,7 @@ impl ApiClient {
         Ok(response)
     }
 
-    pub async fn request_endpoint<T: DeserializeOwned>(
+    pub(crate) async fn request_endpoint<T: DeserializeOwned>(
         &self,
         endpoint: Endpoint,
     ) -> Result<ApiResponse<T>, reqwest::Error> {
@@ -218,9 +218,8 @@ impl ApiClient {
 
     /// Returns a resource handle scoped to the application identified by `id`.
     ///
-    /// This method **consumes** `self`; call any account-level methods before
-    /// converting the client into a resource handle. See the struct-level
-    /// documentation for details.
+    /// The client is cloned internally; it remains usable for additional calls
+    /// after this returns.
     pub fn app(&self, id: &str) -> AppResource {
         AppResource::new(self.clone(), id)
     }

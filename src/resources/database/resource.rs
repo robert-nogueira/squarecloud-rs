@@ -20,10 +20,9 @@ use crate::{
 /// | `credentials.rs` | TLS certificate, credential rotation |
 /// | `snapshots.rs` | snapshot management |
 pub struct DatabaseResource {
-    /// The underlying HTTP client.
-    pub client: ApiClient,
     /// The database's unique identifier.
     pub id: String,
+    pub(crate) client: ApiClient,
 }
 
 impl DatabaseResource {

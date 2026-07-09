@@ -31,8 +31,7 @@ use crate::{
 pub struct AppResource {
     /// The application's unique identifier.
     pub id: String,
-    /// The underlying HTTP client.
-    pub client: ApiClient,
+    pub(crate) client: ApiClient,
 }
 
 impl AppResource {

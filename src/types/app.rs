@@ -122,9 +122,8 @@ mod tests {
 
 /// Wrapper for the logs response body.
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AppLogs {
-    /// The concatenated log output.
-    pub logs: String,
+pub(crate) struct AppLogs {
+    pub(crate) logs: String,
 }
 
 /// A domain entry associated with an application.

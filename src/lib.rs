@@ -57,12 +57,12 @@ pub mod resources;
 mod settings;
 pub mod types;
 
-pub use http::endpoints::Endpoint;
+pub(crate) use http::endpoints::Endpoint;
 #[cfg(feature = "test-utils")]
 pub use http::endpoints::EndpointSpec;
 pub use http::errors::{ApiError, ApiErrorCode, CommitError};
 pub use http::http_client::ApiClient;
-pub use types::{CredentialType, DatabaseType, SnapshotScope};
+pub use types::{CredentialType, DatabaseType, RealtimeEvent, SnapshotScope};
 
 #[cfg(test)]
 mod tests {
