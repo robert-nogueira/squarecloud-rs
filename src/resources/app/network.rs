@@ -1,3 +1,4 @@
+use chrono::{DateTime, SecondsFormat, Utc};
 use serde_json::json;
 
 use crate::{
@@ -12,19 +13,27 @@ use crate::{
 use super::AppResource;
 
 impl AppResource {
-    /// Returns edge-network analytics for the application.
+    /// Returns edge-network analytics for the application over a time window.
     ///
-    /// The [`Analytics`] value breaks down visits, requests, data transferred,
-    /// and origin metadata (countries, devices, browsers, etc.) across recent
-    /// traffic.
+    /// The maximum retention window is 7 days. Returns an [`Analytics`] with
+    /// empty vectors when the requested window precedes the application's
+    /// creation date.
     ///
     /// # Errors
     ///
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
     /// on an API-level error.
-    pub async fn analytics(&self) -> Result<Analytics, ApiError> {
+    pub async fn analytics(
+        &self,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
+    ) -> Result<Analytics, ApiError> {
         self.client
-            .request_endpoint(Endpoint::get_app_analytics(&self.id))
+            .request_endpoint(Endpoint::get_app_analytics(
+                &self.id,
+                &start.to_rfc3339_opts(SecondsFormat::Secs, true),
+                &end.to_rfc3339_opts(SecondsFormat::Secs, true),
+            ))
             .await?
             .into_result_t()
     }
@@ -87,9 +96,16 @@ impl AppResource {
     pub async fn network_errors(
         &self,
         include_4xx: bool,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
     ) -> Result<NetworkErrors, ApiError> {
         self.client
-            .request_endpoint(Endpoint::network_errors(&self.id, include_4xx))
+            .request_endpoint(Endpoint::network_errors(
+                &self.id,
+                include_4xx,
+                &start.to_rfc3339_opts(SecondsFormat::Secs, true),
+                &end.to_rfc3339_opts(SecondsFormat::Secs, true),
+            ))
             .await?
             .into_result_t()
     }
@@ -99,8 +115,7 @@ impl AppResource {
     /// Each [`NetworkLogEntry`] contains the timestamp, client information,
     /// request details, and response metadata for a single edge request.
     ///
-    /// Requires a Pro or Enterprise plan. The API retains logs for a maximum
-    /// of 7 days.
+    /// The API retains logs for a maximum of 7 days.
     ///
     /// # Errors
     ///
@@ -108,9 +123,15 @@ impl AppResource {
     /// on an API-level error.
     pub async fn network_logs(
         &self,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
     ) -> Result<Vec<NetworkLogEntry>, ApiError> {
         self.client
-            .request_endpoint(Endpoint::network_logs(&self.id))
+            .request_endpoint(Endpoint::network_logs(
+                &self.id,
+                &start.to_rfc3339_opts(SecondsFormat::Secs, true),
+                &end.to_rfc3339_opts(SecondsFormat::Secs, true),
+            ))
             .await?
             .into_result_t()
     }
@@ -121,8 +142,7 @@ impl AppResource {
     /// percentiles (p50/p95/p99), time-bucketed timeseries, and breakdowns
     /// by country, datacenter, and the slowest request paths.
     ///
-    /// Requires a Pro or Enterprise plan. Rate-limited to 10 requests per
-    /// 60 seconds per owner for cache misses.
+    /// Maximum window is 7 days.
     ///
     /// # Errors
     ///
@@ -130,9 +150,15 @@ impl AppResource {
     /// on an API-level error.
     pub async fn network_performance(
         &self,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
     ) -> Result<NetworkPerformance, ApiError> {
         self.client
-            .request_endpoint(Endpoint::network_performance(&self.id))
+            .request_endpoint(Endpoint::network_performance(
+                &self.id,
+                &start.to_rfc3339_opts(SecondsFormat::Secs, true),
+                &end.to_rfc3339_opts(SecondsFormat::Secs, true),
+            ))
             .await?
             .into_result_t()
     }

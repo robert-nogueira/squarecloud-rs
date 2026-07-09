@@ -23,9 +23,15 @@ impl Endpoint {
             .build()
     }
 
-    pub(crate) fn get_app_analytics(app_id: &str) -> Endpoint {
+    pub(crate) fn get_app_analytics(
+        app_id: &str,
+        start: &str,
+        end: &str,
+    ) -> Endpoint {
         Self::builder("/apps/{app_id}/network/analytics", Method::GET)
             .param("app_id", app_id)
+            .query("start", start)
+            .query("end", end)
             .build()
     }
 
@@ -41,25 +47,44 @@ impl Endpoint {
             .build()
     }
 
-    pub(crate) fn network_logs(app_id: &str) -> Endpoint {
+    pub(crate) fn network_logs(
+        app_id: &str,
+        start: &str,
+        end: &str,
+    ) -> Endpoint {
         Self::builder("/apps/{app_id}/network/logs", Method::GET)
             .param("app_id", app_id)
+            .query("start", start)
+            .query("end", end)
             .build()
     }
 
-    pub(crate) fn network_errors(app_id: &str, include_4xx: bool) -> Endpoint {
+    pub(crate) fn network_errors(
+        app_id: &str,
+        include_4xx: bool,
+        start: &str,
+        end: &str,
+    ) -> Endpoint {
         let mut b =
             Self::builder("/apps/{app_id}/network/errors", Method::GET)
-                .param("app_id", app_id);
+                .param("app_id", app_id)
+                .query("start", start)
+                .query("end", end);
         if include_4xx {
             b = b.query("include_4xx", "true");
         }
         b.build()
     }
 
-    pub(crate) fn network_performance(app_id: &str) -> Endpoint {
+    pub(crate) fn network_performance(
+        app_id: &str,
+        start: &str,
+        end: &str,
+    ) -> Endpoint {
         Self::builder("/apps/{app_id}/network/performance", Method::GET)
             .param("app_id", app_id)
+            .query("start", start)
+            .query("end", end)
             .build()
     }
 }

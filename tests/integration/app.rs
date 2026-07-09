@@ -1,3 +1,4 @@
+use chrono::{Duration, Utc};
 use futures_util::StreamExt;
 use squarecloud::{ApiClient, ApiError, ApiErrorCode, types::RealtimeEvent};
 
@@ -113,13 +114,9 @@ async fn app_analytics_returns_analytics() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    match client.app(app_id).analytics().await {
-        Ok(_) => {}
-        Err(ApiError::Api {
-            code: ApiErrorCode::InvalidTimeRange,
-        }) => {}
-        Err(e) => panic!("unexpected error: {e:?}"),
-    }
+    let end = Utc::now();
+    let start = end - Duration::days(7);
+    client.app(app_id).analytics(start, end).await.unwrap();
 }
 
 #[tokio::test]
@@ -146,20 +143,18 @@ async fn app_network_errors_returns_result() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    match client.app(app_id).network_errors(false).await {
-        Ok(_) => {}
-        Err(ApiError::Api {
-            code: ApiErrorCode::InvalidTimeRange,
-        }) => {}
-        Err(e) => panic!("unexpected error: {e:?}"),
-    }
-    match client.app(app_id).network_errors(true).await {
-        Ok(_) => {}
-        Err(ApiError::Api {
-            code: ApiErrorCode::InvalidTimeRange,
-        }) => {}
-        Err(e) => panic!("unexpected error (include_4xx): {e:?}"),
-    }
+    let end = Utc::now();
+    let start = end - Duration::days(7);
+    client
+        .app(app_id)
+        .network_errors(false, start, end)
+        .await
+        .unwrap();
+    client
+        .app(app_id)
+        .network_errors(true, start, end)
+        .await
+        .unwrap();
 }
 
 #[tokio::test]
@@ -168,13 +163,9 @@ async fn app_network_logs_returns_vec() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    match client.app(app_id).network_logs().await {
-        Ok(_) => {}
-        Err(ApiError::Api {
-            code: ApiErrorCode::InvalidTimeRange,
-        }) => {}
-        Err(e) => panic!("unexpected error: {e:?}"),
-    }
+    let end = Utc::now();
+    let start = end - Duration::days(7);
+    client.app(app_id).network_logs(start, end).await.unwrap();
 }
 
 #[tokio::test]
@@ -183,13 +174,13 @@ async fn app_network_performance_returns_result() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    match client.app(app_id).network_performance().await {
-        Ok(_) => {}
-        Err(ApiError::Api {
-            code: ApiErrorCode::InvalidTimeRange,
-        }) => {}
-        Err(e) => panic!("unexpected error: {e:?}"),
-    }
+    let end = Utc::now();
+    let start = end - Duration::days(7);
+    client
+        .app(app_id)
+        .network_performance(start, end)
+        .await
+        .unwrap();
 }
 
 #[tokio::test]

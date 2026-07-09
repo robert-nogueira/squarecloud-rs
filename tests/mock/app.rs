@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use futures_util::StreamExt;
 use serde_json::json;
 use squarecloud::{ApiError, ApiErrorCode, types::RealtimeEvent};
@@ -218,6 +219,8 @@ async fn app_analytics_returns_analytics() {
     });
     Mock::given(method("GET"))
         .and(path("/apps/app-123/network/analytics"))
+        .and(query_param("start", "2026-07-08T00:00:00Z"))
+        .and(query_param("end", "2026-07-09T00:00:00Z"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success",
             "response": {
@@ -230,7 +233,9 @@ async fn app_analytics_returns_analytics() {
         .mount(&server)
         .await;
 
-    let analytics = client.app("app-123").analytics().await.unwrap();
+    let start: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    let end: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let analytics = client.app("app-123").analytics(start, end).await.unwrap();
     assert_eq!(analytics.countries[0].item_type, "BR");
 }
 
@@ -245,7 +250,9 @@ async fn app_analytics_invalid_time_range() {
         .mount(&server)
         .await;
 
-    match client.app("app-123").analytics().await {
+    let start: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let end: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    match client.app("app-123").analytics(start, end).await {
         Err(ApiError::Api {
             code: ApiErrorCode::InvalidTimeRange,
         }) => {}
@@ -319,6 +326,8 @@ async fn app_network_errors_returns_result() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))
         .and(path("/apps/app-123/network/errors"))
+        .and(query_param("start", "2026-07-08T00:00:00Z"))
+        .and(query_param("end", "2026-07-09T00:00:00Z"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success",
             "response": {
@@ -332,7 +341,12 @@ async fn app_network_errors_returns_result() {
         .mount(&server)
         .await;
 
-    let result = client.app("app-123").network_errors(false).await;
+    let start: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    let end: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let result = client
+        .app("app-123")
+        .network_errors(false, start, end)
+        .await;
     assert!(
         result.is_ok(),
         "network_errors() failed: {:?}",
@@ -345,6 +359,8 @@ async fn app_network_errors_include_4xx() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))
         .and(path("/apps/app-123/network/errors"))
+        .and(query_param("start", "2026-07-08T00:00:00Z"))
+        .and(query_param("end", "2026-07-09T00:00:00Z"))
         .and(query_param("include_4xx", "true"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success",
@@ -359,7 +375,9 @@ async fn app_network_errors_include_4xx() {
         .mount(&server)
         .await;
 
-    let result = client.app("app-123").network_errors(true).await;
+    let start: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    let end: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let result = client.app("app-123").network_errors(true, start, end).await;
     assert!(
         result.is_ok(),
         "network_errors(true) failed: {:?}",
@@ -378,7 +396,13 @@ async fn app_network_errors_invalid_time_range() {
         .mount(&server)
         .await;
 
-    match client.app("app-123").network_errors(false).await {
+    let start: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let end: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    match client
+        .app("app-123")
+        .network_errors(false, start, end)
+        .await
+    {
         Err(ApiError::Api {
             code: ApiErrorCode::InvalidTimeRange,
         }) => {}
@@ -391,6 +415,8 @@ async fn app_network_logs_returns_vec() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))
         .and(path("/apps/app-123/network/logs"))
+        .and(query_param("start", "2026-07-08T00:00:00Z"))
+        .and(query_param("end", "2026-07-09T00:00:00Z"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success",
             "response": [{
@@ -416,7 +442,9 @@ async fn app_network_logs_returns_vec() {
         .mount(&server)
         .await;
 
-    let result = client.app("app-123").network_logs().await;
+    let start: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    let end: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let result = client.app("app-123").network_logs(start, end).await;
     assert!(result.is_ok(), "network_logs() failed: {:?}", result.err());
 }
 
@@ -431,7 +459,9 @@ async fn app_network_logs_invalid_time_range() {
         .mount(&server)
         .await;
 
-    match client.app("app-123").network_logs().await {
+    let start: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let end: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    match client.app("app-123").network_logs(start, end).await {
         Err(ApiError::Api {
             code: ApiErrorCode::InvalidTimeRange,
         }) => {}
@@ -445,6 +475,8 @@ async fn app_network_performance_returns_result() {
     let p = json!({ "p50": 10, "p95": 50, "p99": 100 });
     Mock::given(method("GET"))
         .and(path("/apps/app-123/network/performance"))
+        .and(query_param("start", "2026-07-08T00:00:00Z"))
+        .and(query_param("end", "2026-07-09T00:00:00Z"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success",
             "response": {
@@ -458,7 +490,9 @@ async fn app_network_performance_returns_result() {
         .mount(&server)
         .await;
 
-    let result = client.app("app-123").network_performance().await;
+    let start: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    let end: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let result = client.app("app-123").network_performance(start, end).await;
     assert!(
         result.is_ok(),
         "network_performance() failed: {:?}",
@@ -477,7 +511,9 @@ async fn app_network_performance_invalid_time_range() {
         .mount(&server)
         .await;
 
-    match client.app("app-123").network_performance().await {
+    let start: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let end: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    match client.app("app-123").network_performance(start, end).await {
         Err(ApiError::Api {
             code: ApiErrorCode::InvalidTimeRange,
         }) => {}

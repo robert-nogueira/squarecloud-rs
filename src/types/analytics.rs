@@ -24,23 +24,33 @@ pub struct AnalyticsItem {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Analytics {
     /// Traffic over time.
+    #[serde(default)]
     pub visits: Vec<AnalyticsItem>,
     /// Traffic by visitor country.
+    #[serde(default)]
     pub countries: Vec<AnalyticsItem>,
     /// Traffic by device category (mobile, desktop, tablet).
+    #[serde(default)]
     pub devices: Vec<AnalyticsItem>,
     /// Traffic by operating system.
+    #[serde(default)]
     pub os: Vec<AnalyticsItem>,
     /// Traffic by browser.
+    #[serde(default)]
     pub browsers: Vec<AnalyticsItem>,
     /// Traffic by HTTP protocol version (HTTP/1.1, HTTP/2, HTTP/3).
+    #[serde(default)]
     pub protocols: Vec<AnalyticsItem>,
     /// Traffic by HTTP method (GET, POST, etc.).
+    #[serde(default)]
     pub methods: Vec<AnalyticsItem>,
     /// Traffic by request path.
+    #[serde(default)]
     pub paths: Vec<AnalyticsItem>,
     /// Traffic by HTTP referrer.
+    #[serde(default)]
     pub referers: Vec<AnalyticsItem>,
     /// Traffic by network provider.
+    #[serde(default)]
     pub providers: Vec<AnalyticsItem>,
 }
