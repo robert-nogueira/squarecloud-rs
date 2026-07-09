@@ -71,6 +71,8 @@ pub enum ApiErrorCode {
     DailySnapshotsLimitReached,
     /// The `scope` query parameter value is not recognised by the API.
     InvalidScope,
+    /// The endpoint requires a higher plan than the account currently has.
+    UpgradeRequired,
     /// A code returned by the API that this client does not recognise.
     /// The inner string contains the raw value from the API response.
     Unknown(String),
@@ -111,6 +113,7 @@ impl ApiErrorCode {
                 "DAILY_SNAPSHOTS_LIMIT_REACHED"
             }
             Self::InvalidScope => "INVALID_SCOPE",
+            Self::UpgradeRequired => "UPGRADE_REQUIRED",
             Self::Unknown(s) => s.as_str(),
         }
     }
@@ -163,6 +166,7 @@ impl<'de> Deserialize<'de> for ApiErrorCode {
                 Self::DailySnapshotsLimitReached
             }
             "INVALID_SCOPE" => Self::InvalidScope,
+            "UPGRADE_REQUIRED" => Self::UpgradeRequired,
             _ => Self::Unknown(s),
         })
     }
@@ -214,6 +218,7 @@ mod tests {
             ApiErrorCode::DailySnapshotsLimitReached,
         ),
         ("INVALID_SCOPE", ApiErrorCode::InvalidScope),
+        ("UPGRADE_REQUIRED", ApiErrorCode::UpgradeRequired),
     ];
 
     #[test]

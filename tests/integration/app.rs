@@ -158,7 +158,17 @@ async fn app_network_logs_returns_vec() {
     let client = ApiClient::new();
     let end = Utc::now();
     let start = end - Duration::days(7);
-    client.app(app_id).network_logs(start, end).await.unwrap();
+    match client.app(app_id).network_logs(start, end).await {
+        Ok(_) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::UpgradeRequired,
+        }) => {
+            eprintln!(
+                "note: network_logs requires a plan upgrade -- skipping"
+            );
+        }
+        Err(e) => panic!("unexpected error: {e:?}"),
+    }
 }
 
 #[tokio::test]
@@ -169,11 +179,17 @@ async fn app_network_performance_returns_result() {
     let client = ApiClient::new();
     let end = Utc::now();
     let start = end - Duration::days(7);
-    client
-        .app(app_id)
-        .network_performance(start, end)
-        .await
-        .unwrap();
+    match client.app(app_id).network_performance(start, end).await {
+        Ok(_) => {}
+        Err(ApiError::Api {
+            code: ApiErrorCode::UpgradeRequired,
+        }) => {
+            eprintln!(
+                "note: network_performance requires a plan upgrade -- skipping"
+            );
+        }
+        Err(e) => panic!("unexpected error: {e:?}"),
+    }
 }
 
 #[tokio::test]
