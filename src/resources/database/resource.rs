@@ -137,14 +137,11 @@ impl DatabaseResource {
             return Ok(false);
         }
         let mut map = Map::new();
-        if name.is_some() {
-            map.insert(
-                "name".to_string(),
-                Value::String(name.unwrap().to_string()),
-            );
+        if let Some(name) = name {
+            map.insert("name".to_string(), Value::String(name.to_string()));
         }
-        if ram.is_some() {
-            map.insert("ram".to_string(), Value::Number(ram.unwrap().into()));
+        if let Some(ram) = ram {
+            map.insert("ram".to_string(), Value::Number(ram.into()));
         }
         let payload = Value::Object(map);
         let endpoint = Endpoint::edit_database(&self.id);

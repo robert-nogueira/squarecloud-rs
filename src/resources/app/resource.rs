@@ -287,7 +287,7 @@ impl AppResource {
             .execute_request::<()>(request)
             .await?
             .into_bool_result()
-            .map_err(|error| CommitError::Api(error))
+            .map_err(CommitError::Api)
     }
 
     /// Permanently deletes the application and all associated data.
