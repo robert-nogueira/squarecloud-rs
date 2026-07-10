@@ -152,6 +152,7 @@ async fn app_network_errors_returns_result() {
 }
 
 #[tokio::test]
+#[ignore = "requires a Pro or Enterprise plan"]
 async fn app_network_logs_returns_vec() {
     crate::setup();
     crate::throttle().await;
@@ -159,20 +160,11 @@ async fn app_network_logs_returns_vec() {
     let client = ApiClient::new();
     let end = Utc::now();
     let start = end - Duration::days(7);
-    match client.app(app_id).network_logs(start, end).await {
-        Ok(_) => {}
-        Err(ApiError::Api {
-            code: ApiErrorCode::UpgradeRequired,
-        }) => {
-            eprintln!(
-                "note: network_logs requires a plan upgrade -- skipping"
-            );
-        }
-        Err(e) => panic!("unexpected error: {e:?}"),
-    }
+    client.app(app_id).network_logs(start, end).await.unwrap();
 }
 
 #[tokio::test]
+#[ignore = "requires a Pro or Enterprise plan"]
 async fn app_network_performance_returns_result() {
     crate::setup();
     crate::throttle().await;
@@ -180,17 +172,11 @@ async fn app_network_performance_returns_result() {
     let client = ApiClient::new();
     let end = Utc::now();
     let start = end - Duration::days(7);
-    match client.app(app_id).network_performance(start, end).await {
-        Ok(_) => {}
-        Err(ApiError::Api {
-            code: ApiErrorCode::UpgradeRequired,
-        }) => {
-            eprintln!(
-                "note: network_performance requires a plan upgrade -- skipping"
-            );
-        }
-        Err(e) => panic!("unexpected error: {e:?}"),
-    }
+    client
+        .app(app_id)
+        .network_performance(start, end)
+        .await
+        .unwrap();
 }
 
 #[tokio::test]
