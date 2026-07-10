@@ -4,6 +4,7 @@ use squarecloud::ApiClient;
 
 mod account;
 mod app;
+mod blob;
 mod client;
 mod database;
 pub mod helpers;
