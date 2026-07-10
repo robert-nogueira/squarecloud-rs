@@ -13,7 +13,9 @@ use super::{
     errors::{ApiError, ApiErrorCode},
 };
 use crate::{
-    resources::{AppResource, DatabaseResource, WorkspaceResource},
+    resources::{
+        AppResource, BlobResource, DatabaseResource, WorkspaceResource,
+    },
     settings::SETTINGS,
     types::{
         AccountInfo, AppDomain, Database, DatabaseType, RuntimeStatsListItem,
@@ -150,6 +152,10 @@ pub struct ApiClient {
     /// Base URL for all API requests. Defaults to `https://api.squarecloud.app/v2`.
     /// Override this field to point the client at a different endpoint.
     pub base_url: String,
+    /// Base URL for the Blob Storage API. Defaults to
+    /// `https://blob.squarecloud.app/v1`. Override to redirect blob calls to a
+    /// mock server in tests.
+    pub blob_base_url: String,
     pub(crate) http_client: Client,
 }
 
@@ -183,6 +189,7 @@ impl ApiClient {
             .unwrap();
         ApiClient {
             base_url: "https://api.squarecloud.app/v2".to_string(),
+            blob_base_url: "https://blob.squarecloud.app/v1".to_string(),
             http_client: client,
         }
     }
@@ -234,6 +241,14 @@ impl ApiClient {
     /// Returns a resource handle scoped to the database identified by `id`.
     pub fn database(&self, id: &str) -> DatabaseResource {
         DatabaseResource::new(self.clone(), id)
+    }
+
+    /// Returns a handle to the Blob Storage API.
+    ///
+    /// All blob operations use `blob_base_url` as their base URL
+    /// (`https://blob.squarecloud.app/v1` by default).
+    pub fn blob(&self) -> BlobResource {
+        BlobResource::new(self.clone())
     }
 
     /// Returns the current operational status of the SquareCloud platform.

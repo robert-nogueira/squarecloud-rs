@@ -1,4 +1,5 @@
 pub mod apps;
+pub mod blob;
 pub mod databases;
 pub mod service;
 pub mod types;

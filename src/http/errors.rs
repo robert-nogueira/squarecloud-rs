@@ -73,6 +73,18 @@ pub enum ApiErrorCode {
     InvalidScope,
     /// The endpoint requires a higher plan than the account currently has.
     UpgradeRequired,
+    /// The blob object name or ID is malformed.
+    InvalidObject,
+    /// The blob deletion request failed; retrying may succeed.
+    FailedDelete,
+    /// The specified blob object does not exist.
+    ObjectNotFound,
+    /// The `prefix` query parameter for blob listing is malformed.
+    InvalidObjectPrefix,
+    /// The uploaded file's MIME type or content is not accepted by the blob API.
+    InvalidFiletype,
+    /// The uploaded file is below the minimum size accepted by the blob API.
+    FileTooSmall,
     /// A code returned by the API that this client does not recognise.
     /// The inner string contains the raw value from the API response.
     Unknown(String),
@@ -114,6 +126,12 @@ impl ApiErrorCode {
             }
             Self::InvalidScope => "INVALID_SCOPE",
             Self::UpgradeRequired => "UPGRADE_REQUIRED",
+            Self::InvalidObject => "INVALID_OBJECT",
+            Self::FailedDelete => "FAILED_DELETE",
+            Self::ObjectNotFound => "OBJECT_NOT_FOUND",
+            Self::InvalidObjectPrefix => "INVALID_OBJECT_PREFIX",
+            Self::InvalidFiletype => "INVALID_FILETYPE",
+            Self::FileTooSmall => "FILE_TOO_SMALL",
             Self::Unknown(s) => s.as_str(),
         }
     }
@@ -167,6 +185,12 @@ impl<'de> Deserialize<'de> for ApiErrorCode {
             }
             "INVALID_SCOPE" => Self::InvalidScope,
             "UPGRADE_REQUIRED" => Self::UpgradeRequired,
+            "INVALID_OBJECT" => Self::InvalidObject,
+            "FAILED_DELETE" => Self::FailedDelete,
+            "OBJECT_NOT_FOUND" => Self::ObjectNotFound,
+            "INVALID_OBJECT_PREFIX" => Self::InvalidObjectPrefix,
+            "INVALID_FILETYPE" => Self::InvalidFiletype,
+            "FILE_TOO_SMALL" => Self::FileTooSmall,
             _ => Self::Unknown(s),
         })
     }
@@ -219,6 +243,12 @@ mod tests {
         ),
         ("INVALID_SCOPE", ApiErrorCode::InvalidScope),
         ("UPGRADE_REQUIRED", ApiErrorCode::UpgradeRequired),
+        ("INVALID_OBJECT", ApiErrorCode::InvalidObject),
+        ("FAILED_DELETE", ApiErrorCode::FailedDelete),
+        ("OBJECT_NOT_FOUND", ApiErrorCode::ObjectNotFound),
+        ("INVALID_OBJECT_PREFIX", ApiErrorCode::InvalidObjectPrefix),
+        ("INVALID_FILETYPE", ApiErrorCode::InvalidFiletype),
+        ("FILE_TOO_SMALL", ApiErrorCode::FileTooSmall),
     ];
 
     #[test]

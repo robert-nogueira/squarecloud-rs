@@ -1,6 +1,7 @@
 mod account_info;
 mod analytics;
 mod app;
+mod blob;
 mod database;
 mod deploy;
 mod dns_record;
@@ -16,6 +17,7 @@ mod workspace;
 pub use account_info::*;
 pub use analytics::*;
 pub use app::*;
+pub use blob::*;
 pub use database::*;
 pub use deploy::*;
 pub use dns_record::*;

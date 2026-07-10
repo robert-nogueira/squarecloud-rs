@@ -217,6 +217,22 @@ name = "database_restore_snapshot"
 path = "examples/database/restore_snapshot.rs"
 
 [[example]]
+name = "blob_upload"
+path = "examples/blob/upload.rs"
+
+[[example]]
+name = "blob_list"
+path = "examples/blob/list.rs"
+
+[[example]]
+name = "blob_delete"
+path = "examples/blob/delete.rs"
+
+[[example]]
+name = "blob_stats"
+path = "examples/blob/stats.rs"
+
+[[example]]
 name = "all_workspaces"
 path = "examples/workspaces/all_workspaces.rs"
 
