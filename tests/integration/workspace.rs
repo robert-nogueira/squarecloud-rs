@@ -12,7 +12,7 @@ async fn create_workspace_and_delete() {
         eprintln!("create_workspace skipped: {e:?}");
         return;
     }
-    let ws = ws.unwrap();
+    let ws = ws.expect("create_workspace() should succeed after Err check");
     assert!(!ws.id.is_empty());
     assert_eq!(ws.name, "squarecloud-rs-test");
     crate::throttle().await;
@@ -37,12 +37,19 @@ async fn workspace_info_returns_info() {
     crate::setup();
     crate::throttle().await;
     let client = ApiClient::new();
-    let workspaces = client.all_workspaces().await.unwrap();
+    let workspaces = client
+        .all_workspaces()
+        .await
+        .expect("all_workspaces() should return workspace list");
     if workspaces.is_empty() {
         return;
     }
     let ws = &workspaces[0];
-    let info = ApiClient::new().workspace(&ws.id).info().await.unwrap();
+    let info = ApiClient::new()
+        .workspace(&ws.id)
+        .info()
+        .await
+        .expect("workspace info() should succeed for existing workspace");
     assert_eq!(info.id, ws.id);
     assert!(!info.name.is_empty());
 }

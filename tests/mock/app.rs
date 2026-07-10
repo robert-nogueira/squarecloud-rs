@@ -26,7 +26,11 @@ async fn app_info_matches_uploaded() {
         .mount(&server)
         .await;
 
-    let info = client.app("app-123").info().await.unwrap();
+    let info = client
+        .app("app-123")
+        .info()
+        .await
+        .expect("info() should succeed with mocked 200");
     assert_eq!(info.id, "app-123");
     assert_eq!(info.name, "squarecloud-rs-test");
     assert_eq!(info.ram, 512);
@@ -53,7 +57,11 @@ async fn app_status_returns_runtime_stats() {
         .mount(&server)
         .await;
 
-    let status = client.app("app-123").status().await.unwrap();
+    let status = client
+        .app("app-123")
+        .status()
+        .await
+        .expect("status() should succeed with mocked running state");
     assert!(!status.cpu.is_empty());
     assert!(!status.ram.is_empty());
     assert!(!status.status.is_empty());
@@ -81,7 +89,11 @@ async fn app_status_stopped() {
         .mount(&server)
         .await;
 
-    let status = client.app("app-123").status().await.unwrap();
+    let status = client
+        .app("app-123")
+        .status()
+        .await
+        .expect("status() should succeed with mocked stopped state");
     assert!(!status.running);
     assert!(status.uptime.is_none());
 }
@@ -117,7 +129,10 @@ async fn all_apps_status_includes_shared_app() {
         .mount(&server)
         .await;
 
-    let statuses = client.all_apps_status().await.unwrap();
+    let statuses = client
+        .all_apps_status()
+        .await
+        .expect("all_apps_status() should succeed with mocked vec");
     assert!(
         statuses.iter().any(|s| s.id == "app-123"),
         "app-123 not found in all_apps_status"
@@ -171,28 +186,39 @@ async fn app_envs_crud() {
         "hello".to_string(),
     )]);
 
-    let after_upsert = app.upsert_envs(&envs).await.unwrap();
+    let after_upsert = app
+        .upsert_envs(&envs)
+        .await
+        .expect("upsert_envs() should succeed with mocked 200");
     assert_eq!(
         after_upsert.get("TEST_KEY").map(String::as_str),
         Some("hello")
     );
 
-    let listed = app.list_envs().await.unwrap();
+    let listed = app
+        .list_envs()
+        .await
+        .expect("list_envs() should succeed with mocked 200");
     assert!(listed.contains_key("TEST_KEY"));
 
     let overwrite = std::collections::HashMap::from([(
         "OTHER_KEY".to_string(),
         "world".to_string(),
     )]);
-    let after_overwrite = app.overwrite_envs(&overwrite).await.unwrap();
+    let after_overwrite = app
+        .overwrite_envs(&overwrite)
+        .await
+        .expect("overwrite_envs() should succeed with mocked 200");
     assert!(!after_overwrite.contains_key("TEST_KEY"));
     assert_eq!(
         after_overwrite.get("OTHER_KEY").map(String::as_str),
         Some("world")
     );
 
-    let after_delete =
-        app.delete_envs(&["OTHER_KEY".to_string()]).await.unwrap();
+    let after_delete = app
+        .delete_envs(&["OTHER_KEY".to_string()])
+        .await
+        .expect("delete_envs() should succeed with mocked 200");
     assert!(!after_delete.contains_key("OTHER_KEY"));
 }
 
@@ -207,7 +233,13 @@ async fn app_commit_returns_true() {
         .mount(&server)
         .await;
 
-    assert!(client.app("app-123").commit(vec![]).await.unwrap());
+    assert!(
+        client
+            .app("app-123")
+            .commit(vec![])
+            .await
+            .expect("commit() should succeed with mocked 200")
+    );
 }
 
 #[tokio::test]
@@ -233,9 +265,17 @@ async fn app_analytics_returns_analytics() {
         .mount(&server)
         .await;
 
-    let start: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
-    let end: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
-    let analytics = client.app("app-123").analytics(start, end).await.unwrap();
+    let start: DateTime<Utc> = "2026-07-08T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let end: DateTime<Utc> = "2026-07-09T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let analytics = client
+        .app("app-123")
+        .analytics(start, end)
+        .await
+        .expect("analytics() should succeed with mocked 200");
     assert_eq!(analytics.countries[0].item_type, "BR");
 }
 
@@ -250,8 +290,12 @@ async fn app_analytics_invalid_time_range() {
         .mount(&server)
         .await;
 
-    let start: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
-    let end: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    let start: DateTime<Utc> = "2026-07-09T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let end: DateTime<Utc> = "2026-07-08T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
     match client.app("app-123").analytics(start, end).await {
         Err(ApiError::Api {
             code: ApiErrorCode::InvalidTimeRange,
@@ -277,7 +321,11 @@ async fn app_dns_record_returns_record() {
         .mount(&server)
         .await;
 
-    let record = client.app("app-123").dns_record().await.unwrap();
+    let record = client
+        .app("app-123")
+        .dns_record()
+        .await
+        .expect("dns_record() should succeed with mocked 200");
     assert!(!record.name.is_empty());
     assert!(!record.value.is_empty());
 }
@@ -317,7 +365,7 @@ async fn app_set_custom_domain_returns_true() {
             .app("app-123")
             .set_custom_domain("example.com")
             .await
-            .unwrap()
+            .expect("set_custom_domain() should succeed with mocked 200")
     );
 }
 
@@ -341,8 +389,12 @@ async fn app_network_errors_returns_result() {
         .mount(&server)
         .await;
 
-    let start: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
-    let end: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let start: DateTime<Utc> = "2026-07-08T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let end: DateTime<Utc> = "2026-07-09T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
     let result = client
         .app("app-123")
         .network_errors(false, start, end)
@@ -375,8 +427,12 @@ async fn app_network_errors_include_4xx() {
         .mount(&server)
         .await;
 
-    let start: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
-    let end: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let start: DateTime<Utc> = "2026-07-08T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let end: DateTime<Utc> = "2026-07-09T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
     let result = client.app("app-123").network_errors(true, start, end).await;
     assert!(
         result.is_ok(),
@@ -396,8 +452,12 @@ async fn app_network_errors_invalid_time_range() {
         .mount(&server)
         .await;
 
-    let start: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
-    let end: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    let start: DateTime<Utc> = "2026-07-09T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let end: DateTime<Utc> = "2026-07-08T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
     match client
         .app("app-123")
         .network_errors(false, start, end)
@@ -442,8 +502,12 @@ async fn app_network_logs_returns_vec() {
         .mount(&server)
         .await;
 
-    let start: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
-    let end: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let start: DateTime<Utc> = "2026-07-08T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let end: DateTime<Utc> = "2026-07-09T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
     let result = client.app("app-123").network_logs(start, end).await;
     assert!(result.is_ok(), "network_logs() failed: {:?}", result.err());
 }
@@ -459,8 +523,12 @@ async fn app_network_logs_invalid_time_range() {
         .mount(&server)
         .await;
 
-    let start: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
-    let end: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    let start: DateTime<Utc> = "2026-07-09T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let end: DateTime<Utc> = "2026-07-08T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
     match client.app("app-123").network_logs(start, end).await {
         Err(ApiError::Api {
             code: ApiErrorCode::InvalidTimeRange,
@@ -490,8 +558,12 @@ async fn app_network_performance_returns_result() {
         .mount(&server)
         .await;
 
-    let start: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
-    let end: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
+    let start: DateTime<Utc> = "2026-07-08T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let end: DateTime<Utc> = "2026-07-09T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
     let result = client.app("app-123").network_performance(start, end).await;
     assert!(
         result.is_ok(),
@@ -511,8 +583,12 @@ async fn app_network_performance_invalid_time_range() {
         .mount(&server)
         .await;
 
-    let start: DateTime<Utc> = "2026-07-09T00:00:00Z".parse().unwrap();
-    let end: DateTime<Utc> = "2026-07-08T00:00:00Z".parse().unwrap();
+    let start: DateTime<Utc> = "2026-07-09T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let end: DateTime<Utc> = "2026-07-08T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
     match client.app("app-123").network_performance(start, end).await {
         Err(ApiError::Api {
             code: ApiErrorCode::InvalidTimeRange,
@@ -532,7 +608,13 @@ async fn app_purge_cache_returns_true() {
         .mount(&server)
         .await;
 
-    assert!(client.app("app-123").purge_cache().await.unwrap());
+    assert!(
+        client
+            .app("app-123")
+            .purge_cache()
+            .await
+            .expect("purge_cache() should succeed with mocked 200")
+    );
 }
 
 #[tokio::test]
@@ -573,7 +655,11 @@ async fn app_metrics_returns_vec() {
         .mount(&server)
         .await;
 
-    let _ = client.app("app-123").metrics().await.unwrap();
+    let _ = client
+        .app("app-123")
+        .metrics()
+        .await
+        .expect("metrics() should succeed with mocked 200");
 }
 
 #[tokio::test]
@@ -587,7 +673,13 @@ async fn app_restart_returns_true() {
         .mount(&server)
         .await;
 
-    assert!(client.app("app-123").restart().await.unwrap());
+    assert!(
+        client
+            .app("app-123")
+            .restart()
+            .await
+            .expect("restart() should succeed with mocked 200")
+    );
 }
 
 #[tokio::test]
@@ -601,7 +693,13 @@ async fn app_start_returns_true() {
         .mount(&server)
         .await;
 
-    assert!(client.app("app-123").start().await.unwrap());
+    assert!(
+        client
+            .app("app-123")
+            .start()
+            .await
+            .expect("start() should succeed with mocked 200")
+    );
 }
 
 #[tokio::test]
@@ -634,7 +732,13 @@ async fn app_stop_returns_true() {
         .mount(&server)
         .await;
 
-    assert!(client.app("app-123").stop().await.unwrap());
+    assert!(
+        client
+            .app("app-123")
+            .stop()
+            .await
+            .expect("stop() should succeed with mocked 200")
+    );
 }
 
 #[tokio::test]
@@ -648,7 +752,13 @@ async fn app_delete_returns_true() {
         .mount(&server)
         .await;
 
-    assert!(client.app("app-123").delete().await.unwrap());
+    assert!(
+        client
+            .app("app-123")
+            .delete()
+            .await
+            .expect("delete() should succeed with mocked 200")
+    );
 }
 
 #[tokio::test]
@@ -670,7 +780,11 @@ async fn app_current_deploy_returns_deploy() {
         .mount(&server)
         .await;
 
-    let deploy = client.app("app-123").current_deploy().await.unwrap();
+    let deploy = client
+        .app("app-123")
+        .current_deploy()
+        .await
+        .expect("current_deploy() should succeed with mocked 200");
     assert_eq!(deploy.id.as_deref(), Some("deploy-1"));
     assert_eq!(deploy.state.as_deref(), Some("complete"));
 }
@@ -696,7 +810,11 @@ async fn app_list_deploys_returns_vec() {
         .mount(&server)
         .await;
 
-    let deploys = client.app("app-123").list_deploys().await.unwrap();
+    let deploys = client
+        .app("app-123")
+        .list_deploys()
+        .await
+        .expect("list_deploys() should succeed with mocked 200");
     assert!(!deploys.is_empty());
 }
 
@@ -716,7 +834,7 @@ async fn app_set_webhook_integration_returns_url() {
         .app("app-123")
         .set_webhook_integration("gh_token".to_string())
         .await
-        .unwrap();
+        .expect("set_webhook_integration() should succeed with mocked 200");
     assert!(url.starts_with("https://"));
 }
 
@@ -762,11 +880,17 @@ async fn app_snapshot_lifecycle() {
 
     let app = client.app("app-123");
 
-    let snap = app.create_snapshot().await.unwrap();
+    let snap = app
+        .create_snapshot()
+        .await
+        .expect("create_snapshot() should succeed with mocked 200");
     assert!(!snap.url.is_empty());
     assert!(!snap.key.is_empty());
 
-    let snapshots = app.list_snapshots().await.unwrap();
+    let snapshots = app
+        .list_snapshots()
+        .await
+        .expect("list_snapshots() should succeed with mocked 200");
     assert!(!snapshots.is_empty());
 
     let first = &snapshots[0];
@@ -776,7 +900,7 @@ async fn app_snapshot_lifecycle() {
             first.version_id().to_string()
         )
         .await
-        .unwrap()
+        .expect("restore_snapshot() should succeed with mocked 200")
     );
 }
 
@@ -838,27 +962,39 @@ async fn app_file_operations() {
 
     let app = client.app("app-123");
 
-    let files = app.file("/").all_files("/").await.unwrap();
+    let files = app
+        .file("/")
+        .all_files("/")
+        .await
+        .expect("all_files() should succeed with mocked 200");
     assert!(!files.is_empty());
 
     let handle = app.file("/squarecloud_rs_test.txt");
-    assert!(handle.write("hello from squarecloud-rs").await.unwrap());
+    assert!(
+        handle
+            .write("hello from squarecloud-rs")
+            .await
+            .expect("write() should succeed with mocked 200")
+    );
 
-    let content = handle.read("/squarecloud_rs_test.txt").await.unwrap();
+    let content = handle
+        .read("/squarecloud_rs_test.txt")
+        .await
+        .expect("read() should succeed with mocked 200");
     assert!(!content.data_type.is_empty());
 
     assert!(
         handle
             .move_to("/squarecloud_rs_test_moved.txt")
             .await
-            .unwrap()
+            .expect("move_to() should succeed with mocked 200")
     );
 
     assert!(
         app.file("/squarecloud_rs_test_moved.txt")
             .delete()
             .await
-            .unwrap()
+            .expect("delete() should succeed with mocked 200")
     );
 }
 

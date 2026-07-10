@@ -29,13 +29,15 @@ pub fn shared_app_id() -> &'static str {
         .get_or_init(|| {
             setup();
             std::thread::spawn(|| {
-                tokio::runtime::Runtime::new().unwrap().block_on(async {
-                    ApiClient::new()
-                        .upload_app(helpers::dummy_zip())
-                        .await
-                        .map(|a| a.id)
-                        .map_err(|e| format!("{e:?}"))
-                })
+                tokio::runtime::Runtime::new()
+                    .expect("failed to create tokio runtime for app upload")
+                    .block_on(async {
+                        ApiClient::new()
+                            .upload_app(helpers::dummy_zip())
+                            .await
+                            .map(|a| a.id)
+                            .map_err(|e| format!("{e:?}"))
+                    })
             })
             .join()
             .unwrap_or_else(|_| Err("upload thread panicked".to_string()))
@@ -60,23 +62,27 @@ pub fn shared_database_id() -> Option<&'static str> {
         .get_or_init(|| {
             setup();
             std::thread::spawn(|| {
-                tokio::runtime::Runtime::new().unwrap().block_on(async {
-                    ApiClient::new()
-                        .create_database(
-                            "squarecloud-rs-test".to_string(),
-                            256,
-                            squarecloud::DatabaseType::Postgres,
-                            "16".to_string(),
-                        )
-                        .await
-                        .map(|d| d.id)
-                        .map_err(|e| {
-                            eprintln!(
-                                "[database] create_database failed: {e:?}"
-                            );
-                            format!("{e:?}")
-                        })
-                })
+                tokio::runtime::Runtime::new()
+                    .expect(
+                        "failed to create tokio runtime for database create",
+                    )
+                    .block_on(async {
+                        ApiClient::new()
+                            .create_database(
+                                "squarecloud-rs-test".to_string(),
+                                256,
+                                squarecloud::DatabaseType::Postgres,
+                                "16".to_string(),
+                            )
+                            .await
+                            .map(|d| d.id)
+                            .map_err(|e| {
+                                eprintln!(
+                                    "[database] create_database failed: {e:?}"
+                                );
+                                format!("{e:?}")
+                            })
+                    })
             })
             .join()
             .unwrap_or_else(|_| Err("database thread panicked".to_string()))

@@ -28,6 +28,9 @@ async fn me_deserializes_success_response() {
         .mount(&server)
         .await;
 
-    let me = client.me().await.unwrap();
+    let me = client
+        .me()
+        .await
+        .expect("me() should succeed with mocked 200");
     assert_eq!(me.user.id, "user-123");
 }

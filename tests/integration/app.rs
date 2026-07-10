@@ -10,7 +10,7 @@ async fn app_info_matches_uploaded() {
     let client = ApiClient::new();
     let app = client.app(app_id);
 
-    let info = app.info().await.unwrap();
+    let info = app.info().await.expect("info() should return app info");
     assert_eq!(info.id, app_id);
     assert_eq!(info.name, "squarecloud-rs-test");
     assert_eq!(info.ram, 512);
@@ -23,7 +23,11 @@ async fn app_status_returns_runtime_stats() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    let status = client.app(app_id).status().await.unwrap();
+    let status = client
+        .app(app_id)
+        .status()
+        .await
+        .expect("status() should return runtime stats");
 
     assert!(!status.cpu.is_empty());
     assert!(!status.ram.is_empty());
@@ -47,7 +51,10 @@ async fn all_apps_status_includes_shared_app() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    let statuses = client.all_apps_status().await.unwrap();
+    let statuses = client
+        .all_apps_status()
+        .await
+        .expect("all_apps_status() should return a vec");
 
     assert!(
         statuses.iter().any(|s| s.id == app_id),
@@ -68,28 +75,39 @@ async fn app_envs_crud() {
         "hello".to_string(),
     )]);
 
-    let after_upsert = app.upsert_envs(&envs).await.unwrap();
+    let after_upsert = app
+        .upsert_envs(&envs)
+        .await
+        .expect("upsert_envs() should succeed");
     assert_eq!(
         after_upsert.get("TEST_KEY").map(String::as_str),
         Some("hello")
     );
 
-    let listed = app.list_envs().await.unwrap();
+    let listed = app
+        .list_envs()
+        .await
+        .expect("list_envs() should return the env map");
     assert!(listed.contains_key("TEST_KEY"));
 
     let overwrite = std::collections::HashMap::from([(
         "OTHER_KEY".to_string(),
         "world".to_string(),
     )]);
-    let after_overwrite = app.overwrite_envs(&overwrite).await.unwrap();
+    let after_overwrite = app
+        .overwrite_envs(&overwrite)
+        .await
+        .expect("overwrite_envs() should succeed");
     assert!(!after_overwrite.contains_key("TEST_KEY"));
     assert_eq!(
         after_overwrite.get("OTHER_KEY").map(String::as_str),
         Some("world")
     );
 
-    let after_delete =
-        app.delete_envs(&["OTHER_KEY".to_string()]).await.unwrap();
+    let after_delete = app
+        .delete_envs(&["OTHER_KEY".to_string()])
+        .await
+        .expect("delete_envs() should succeed");
     assert!(!after_delete.contains_key("OTHER_KEY"));
 }
 
@@ -104,7 +122,7 @@ async fn app_commit_returns_true() {
             .app(app_id)
             .commit(crate::helpers::dummy_zip())
             .await
-            .unwrap()
+            .expect("commit() should succeed")
     );
 }
 
@@ -116,7 +134,11 @@ async fn app_analytics_returns_analytics() {
     let client = ApiClient::new();
     let end = Utc::now();
     let start = end - Duration::days(7);
-    client.app(app_id).analytics(start, end).await.unwrap();
+    client
+        .app(app_id)
+        .analytics(start, end)
+        .await
+        .expect("analytics() should return data for valid date range");
 }
 
 #[tokio::test]
@@ -126,7 +148,11 @@ async fn app_dns_record_returns_record() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    let record = client.app(app_id).dns_record().await.unwrap();
+    let record = client
+        .app(app_id)
+        .dns_record()
+        .await
+        .expect("dns_record() should return DNS record");
     assert!(!record.name.is_empty());
     assert!(!record.value.is_empty());
 }
@@ -143,12 +169,12 @@ async fn app_network_errors_returns_result() {
         .app(app_id)
         .network_errors(false, start, end)
         .await
-        .unwrap();
+        .expect("network_errors(5xx only) should succeed");
     client
         .app(app_id)
         .network_errors(true, start, end)
         .await
-        .unwrap();
+        .expect("network_errors(include 4xx) should succeed");
 }
 
 #[tokio::test]
@@ -160,7 +186,11 @@ async fn app_network_logs_returns_vec() {
     let client = ApiClient::new();
     let end = Utc::now();
     let start = end - Duration::days(7);
-    client.app(app_id).network_logs(start, end).await.unwrap();
+    client
+        .app(app_id)
+        .network_logs(start, end)
+        .await
+        .expect("network_logs() should succeed");
 }
 
 #[tokio::test]
@@ -176,7 +206,7 @@ async fn app_network_performance_returns_result() {
         .app(app_id)
         .network_performance(start, end)
         .await
-        .unwrap();
+        .expect("network_performance() should succeed");
 }
 
 #[tokio::test]
@@ -185,7 +215,13 @@ async fn app_purge_cache_returns_true() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    assert!(client.app(app_id).purge_cache().await.unwrap());
+    assert!(
+        client
+            .app(app_id)
+            .purge_cache()
+            .await
+            .expect("purge_cache() should return true")
+    );
 }
 
 #[tokio::test]
@@ -194,7 +230,11 @@ async fn app_metrics_returns_vec() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    let _ = client.app(app_id).metrics().await.unwrap();
+    let _ = client
+        .app(app_id)
+        .metrics()
+        .await
+        .expect("metrics() should return vec");
 }
 
 #[tokio::test]
@@ -203,7 +243,13 @@ async fn app_restart_returns_true() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    assert!(client.app(app_id).restart().await.unwrap());
+    assert!(
+        client
+            .app(app_id)
+            .restart()
+            .await
+            .expect("restart() should return true")
+    );
 }
 
 #[tokio::test]
@@ -212,9 +258,19 @@ async fn app_start_returns_true() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    client.app(app_id).stop().await.unwrap();
+    client
+        .app(app_id)
+        .stop()
+        .await
+        .expect("stop() should succeed before start");
     crate::throttle().await;
-    assert!(client.app(app_id).start().await.unwrap());
+    assert!(
+        client
+            .app(app_id)
+            .start()
+            .await
+            .expect("start() should return true")
+    );
 }
 
 #[tokio::test]
@@ -223,7 +279,13 @@ async fn app_stop_returns_true() {
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = ApiClient::new();
-    assert!(client.app(app_id).stop().await.unwrap());
+    assert!(
+        client
+            .app(app_id)
+            .stop()
+            .await
+            .expect("stop() should return true")
+    );
 }
 
 #[tokio::test]
@@ -272,7 +334,10 @@ async fn app_snapshot_lifecycle() {
     assert!(!snap.key.is_empty());
 
     crate::throttle().await;
-    let snapshots = app.list_snapshots().await.unwrap();
+    let snapshots = app
+        .list_snapshots()
+        .await
+        .expect("list_snapshots() should return snapshots after create");
     assert!(!snapshots.is_empty());
 
     let first = &snapshots[0];
@@ -283,7 +348,7 @@ async fn app_snapshot_lifecycle() {
             first.version_id().to_string(),
         )
         .await
-        .unwrap()
+        .expect("restore_snapshot() should succeed")
     );
 }
 
@@ -295,15 +360,27 @@ async fn app_file_operations() {
     let client = ApiClient::new();
     let app = client.app(app_id);
 
-    let files = app.file("/").all_files("/").await.unwrap();
+    let files = app
+        .file("/")
+        .all_files("/")
+        .await
+        .expect("all_files() should return file list");
     assert!(!files.is_empty());
 
     let handle = app.file("/squarecloud_rs_test.txt");
     crate::throttle().await;
-    assert!(handle.write("hello from squarecloud-rs").await.unwrap());
+    assert!(
+        handle
+            .write("hello from squarecloud-rs")
+            .await
+            .expect("write() should succeed")
+    );
 
     crate::throttle().await;
-    let content = handle.read("/squarecloud_rs_test.txt").await.unwrap();
+    let content = handle
+        .read("/squarecloud_rs_test.txt")
+        .await
+        .expect("read() should return file content");
     assert!(!content.data_type.is_empty());
 
     crate::throttle().await;
@@ -311,7 +388,7 @@ async fn app_file_operations() {
         handle
             .move_to("/squarecloud_rs_test_moved.txt")
             .await
-            .unwrap()
+            .expect("move_to() should succeed")
     );
 
     crate::throttle().await;
@@ -319,7 +396,7 @@ async fn app_file_operations() {
         app.file("/squarecloud_rs_test_moved.txt")
             .delete()
             .await
-            .unwrap()
+            .expect("delete() should succeed")
     );
 }
 

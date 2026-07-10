@@ -31,7 +31,7 @@ async fn all_workspaces_returns_vec() {
         "all_workspaces() failed: {:?}",
         result.err()
     );
-    assert_eq!(result.unwrap().len(), 1);
+    assert_eq!(result.expect("all_workspaces() should return vec").len(), 1);
 }
 
 #[tokio::test]
@@ -46,7 +46,11 @@ async fn workspace_info_returns_info() {
         .mount(&server)
         .await;
 
-    let info = client.workspace("ws-123").info().await.unwrap();
+    let info = client
+        .workspace("ws-123")
+        .info()
+        .await
+        .expect("info() should succeed with mocked 200");
     assert_eq!(info.id, "ws-123");
     assert_eq!(info.name, "My Workspace");
 }
@@ -69,7 +73,10 @@ async fn workspace_get_invite_code() {
         "get_invite_code() failed: {:?}",
         result.err()
     );
-    assert_eq!(result.unwrap(), "invite-abc123");
+    assert_eq!(
+        result.expect("get_invite_code() should return code"),
+        "invite-abc123"
+    );
 }
 
 #[tokio::test]
@@ -88,7 +95,7 @@ async fn workspace_invite_member() {
         .invite_member("invite-abc123", "member")
         .await;
     assert!(result.is_ok(), "invite_member() failed: {:?}", result.err());
-    assert!(result.unwrap());
+    assert!(result.expect("invite_member() should return true"));
 }
 
 #[tokio::test]
@@ -104,7 +111,7 @@ async fn workspace_remove_member() {
 
     let result = client.workspace("ws-123").remove_member("user-456").await;
     assert!(result.is_ok(), "remove_member() failed: {:?}", result.err());
-    assert!(result.unwrap());
+    assert!(result.expect("remove_member() should return true"));
 }
 
 #[tokio::test]
@@ -127,7 +134,7 @@ async fn workspace_change_member_permissions() {
         "change_member_permissions() failed: {:?}",
         result.err()
     );
-    assert!(result.unwrap());
+    assert!(result.expect("change_member_permissions() should return true"));
 }
 
 #[tokio::test]
@@ -143,7 +150,7 @@ async fn workspace_add_app() {
 
     let result = client.workspace("ws-123").add_app("app-456").await;
     assert!(result.is_ok(), "add_app() failed: {:?}", result.err());
-    assert!(result.unwrap());
+    assert!(result.expect("add_app() should return true"));
 }
 
 #[tokio::test]
@@ -159,7 +166,7 @@ async fn workspace_remove_app() {
 
     let result = client.workspace("ws-123").remove_app("app-456").await;
     assert!(result.is_ok(), "remove_app() failed: {:?}", result.err());
-    assert!(result.unwrap());
+    assert!(result.expect("remove_app() should return true"));
 }
 
 #[tokio::test]
@@ -175,7 +182,7 @@ async fn workspace_leave() {
 
     let result = client.workspace("ws-123").leave().await;
     assert!(result.is_ok(), "leave() failed: {:?}", result.err());
-    assert!(result.unwrap());
+    assert!(result.expect("leave() should return true"));
 }
 
 #[tokio::test]
@@ -191,5 +198,5 @@ async fn workspace_delete() {
 
     let result = client.workspace("ws-123").delete().await;
     assert!(result.is_ok(), "delete() failed: {:?}", result.err());
-    assert!(result.unwrap());
+    assert!(result.expect("delete() should return true"));
 }

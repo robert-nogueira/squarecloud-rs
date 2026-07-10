@@ -14,7 +14,10 @@ async fn service_status_returns_status() {
         .mount(&server)
         .await;
 
-    let status = client.service_status().await.unwrap();
+    let status = client
+        .service_status()
+        .await
+        .expect("service_status() should succeed with mocked 200");
     assert!(!status.status.is_empty());
     assert!(!status.message.is_empty());
 }
@@ -35,7 +38,7 @@ async fn all_domains_returns_vec() {
 
     let result = client.all_domains().await;
     assert!(result.is_ok(), "all_domains() failed: {:?}", result.err());
-    assert_eq!(result.unwrap().len(), 1);
+    assert_eq!(result.expect("all_domains() should return vec").len(), 1);
 }
 
 #[tokio::test]
@@ -157,7 +160,10 @@ async fn upload_app_returns_uploaded_app() {
 
     let result = client.upload_app(vec![0u8; 4]).await;
     assert!(result.is_ok(), "upload_app() failed: {:?}", result.err());
-    assert_eq!(result.unwrap().id, "app-new");
+    assert_eq!(
+        result.expect("upload_app() should return uploaded app").id,
+        "app-new"
+    );
 }
 
 #[tokio::test]
@@ -196,7 +202,12 @@ async fn create_database_returns_database() {
         "create_database() failed: {:?}",
         result.err()
     );
-    assert_eq!(result.unwrap().id, "db-new");
+    assert_eq!(
+        result
+            .expect("create_database() should return created database")
+            .id,
+        "db-new"
+    );
 }
 
 #[tokio::test]
@@ -224,5 +235,10 @@ async fn create_workspace_returns_workspace_info() {
         "create_workspace() failed: {:?}",
         result.err()
     );
-    assert_eq!(result.unwrap().id, "ws-new");
+    assert_eq!(
+        result
+            .expect("create_workspace() should return created workspace")
+            .id,
+        "ws-new"
+    );
 }

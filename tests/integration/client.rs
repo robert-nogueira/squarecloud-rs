@@ -5,7 +5,10 @@ async fn service_status_returns_status() {
     crate::setup();
     crate::throttle().await;
     let client = ApiClient::new();
-    let status = client.service_status().await.unwrap();
+    let status = client
+        .service_status()
+        .await
+        .expect("service_status() should return status");
     assert!(!status.status.is_empty());
     assert!(!status.message.is_empty());
 }

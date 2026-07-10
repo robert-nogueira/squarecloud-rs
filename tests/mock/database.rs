@@ -24,7 +24,11 @@ async fn database_info_returns_info() {
         .mount(&server)
         .await;
 
-    let info = client.database("db-123").info().await.unwrap();
+    let info = client
+        .database("db-123")
+        .info()
+        .await
+        .expect("database info() should succeed with mocked 200");
     assert_eq!(info.id, "db-123");
     assert_eq!(info.name, "my-db");
     assert_eq!(info.ram, 256);
@@ -50,7 +54,11 @@ async fn database_status_returns_runtime_stats() {
         .mount(&server)
         .await;
 
-    let status = client.database("db-123").status().await.unwrap();
+    let status = client
+        .database("db-123")
+        .status()
+        .await
+        .expect("database status() should succeed with mocked 200");
     assert!(!status.cpu.is_empty());
     assert!(!status.ram.is_empty());
     assert!(!status.status.is_empty());
@@ -77,7 +85,7 @@ async fn database_metrics_returns_vec() {
 
     let result = client.database("db-123").metrics().await;
     assert!(result.is_ok(), "metrics() failed: {:?}", result.err());
-    assert_eq!(result.unwrap().len(), 1);
+    assert_eq!(result.expect("metrics() should return vec").len(), 1);
 }
 
 #[tokio::test]
@@ -93,7 +101,7 @@ async fn database_edit_name() {
 
     let result = client.database("db-123").edit(Some("new-name"), None).await;
     assert!(result.is_ok(), "edit() failed: {:?}", result.err());
-    assert!(result.unwrap());
+    assert!(result.expect("edit(name) should return true"));
 }
 
 #[tokio::test]
@@ -109,7 +117,7 @@ async fn database_edit_ram() {
 
     let result = client.database("db-123").edit(None, Some(512)).await;
     assert!(result.is_ok(), "edit(ram) failed: {:?}", result.err());
-    assert!(result.unwrap());
+    assert!(result.expect("edit(ram) should return true"));
 }
 
 #[tokio::test]
@@ -117,7 +125,10 @@ async fn database_edit_none_returns_false() {
     let (client, _server) = crate::mock_client().await;
 
     let result = client.database("db-123").edit(None, None).await;
-    assert_eq!(result.unwrap(), false);
+    assert_eq!(
+        result.expect("edit(None, None) should return Ok(false)"),
+        false
+    );
 }
 
 #[tokio::test]
@@ -136,7 +147,11 @@ async fn database_certificate_returns_string() {
 
     let result = client.database("db-123").certificate().await;
     assert!(result.is_ok(), "certificate() failed: {:?}", result.err());
-    assert!(!result.unwrap().is_empty());
+    assert!(
+        !result
+            .expect("certificate() should return non-empty string")
+            .is_empty()
+    );
 }
 
 #[tokio::test]
@@ -162,7 +177,12 @@ async fn database_redefine_credential_password() {
         "redefine_credential(Password) failed: {:?}",
         result.err()
     );
-    assert_eq!(result.unwrap(), "new-secret-password");
+    assert_eq!(
+        result.expect(
+            "redefine_credential(Password) should return new password"
+        ),
+        "new-secret-password"
+    );
 }
 
 #[tokio::test]
@@ -188,7 +208,13 @@ async fn database_redefine_credential_certificate() {
         "redefine_credential(Certificate) failed: {:?}",
         result.err()
     );
-    assert!(!result.unwrap().is_empty());
+    assert!(
+        !result
+            .expect(
+                "redefine_credential(Certificate) should return certificate"
+            )
+            .is_empty()
+    );
 }
 
 #[tokio::test]
@@ -230,11 +256,17 @@ async fn database_snapshot_lifecycle() {
 
     let db = client.database("db-123");
 
-    let snap = db.create_snapshot().await.unwrap();
+    let snap = db
+        .create_snapshot()
+        .await
+        .expect("create_snapshot() should succeed with mocked 200");
     assert_eq!(snap.url, "https://storage.example.com/snap.tar.gz");
     assert!(!snap.key.is_empty());
 
-    let snapshots = db.list_snapshots().await.unwrap();
+    let snapshots = db
+        .list_snapshots()
+        .await
+        .expect("list_snapshots() should succeed with mocked 200");
     assert_eq!(snapshots.len(), 1);
 
     let first = &snapshots[0];
@@ -244,7 +276,7 @@ async fn database_snapshot_lifecycle() {
             first.version_id().to_string()
         )
         .await
-        .unwrap()
+        .expect("restore_snapshot() should succeed with mocked 200")
     );
 }
 
@@ -261,7 +293,7 @@ async fn database_start_returns_true() {
 
     let result = client.database("db-123").start().await;
     assert!(result.is_ok(), "start() failed: {:?}", result.err());
-    assert!(result.unwrap());
+    assert!(result.expect("database start() should return true"));
 }
 
 #[tokio::test]
@@ -277,7 +309,7 @@ async fn database_stop_returns_true() {
 
     let result = client.database("db-123").stop().await;
     assert!(result.is_ok(), "stop() failed: {:?}", result.err());
-    assert!(result.unwrap());
+    assert!(result.expect("database stop() should return true"));
 }
 
 #[tokio::test]
@@ -294,5 +326,5 @@ async fn database_delete_returns_true() {
 
     let result = client.database("db-123").delete().await;
     assert!(result.is_ok(), "delete() failed: {:?}", result.err());
-    assert!(result.unwrap());
+    assert!(result.expect("database delete() should return true"));
 }
