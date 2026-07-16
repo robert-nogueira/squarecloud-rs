@@ -3,15 +3,54 @@ use reqwest::Method;
 use serde_json::json;
 
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/files" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/files",
+    domain: "FileErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::FileErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/files/content" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/files/content",
+    domain: "FileErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::FileErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "put",    path: "/apps/{app_id}/files" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "put",
+    path: "/apps/{app_id}/files",
+    domain: "FileErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::FileErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "patch",  path: "/apps/{app_id}/files" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "patch",
+    path: "/apps/{app_id}/files",
+    domain: "FileErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::FileErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "delete", path: "/apps/{app_id}/files" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "delete",
+    path: "/apps/{app_id}/files",
+    domain: "FileErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::FileErrorCode>,
+    }
+}
 
 impl Endpoint {
     pub(crate) fn read_app_file(app_id: &str, path: &str) -> Endpoint {

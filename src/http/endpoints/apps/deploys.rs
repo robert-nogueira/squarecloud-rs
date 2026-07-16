@@ -2,11 +2,34 @@ use super::Endpoint;
 use reqwest::Method;
 
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/deployments" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/deployments",
+    domain: "DeployErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DeployErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/deployments/current" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/deployments/current",
+    domain: "DeployErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DeployErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post", path: "/apps/{app_id}/deploy/webhook" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/apps/{app_id}/deploy/webhook",
+    domain: "DeployErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DeployErrorCode>,
+    }
+}
 
 impl Endpoint {
     pub(crate) fn list_app_deploys(app_id: &str) -> Endpoint {

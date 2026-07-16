@@ -2,11 +2,34 @@ use super::Endpoint;
 use reqwest::Method;
 
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/snapshots" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/snapshots",
+    domain: "SnapshotErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::SnapshotErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post", path: "/apps/{app_id}/snapshots" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/apps/{app_id}/snapshots",
+    domain: "SnapshotErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::SnapshotErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post", path: "/apps/{app_id}/snapshots/restore" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/apps/{app_id}/snapshots/restore",
+    domain: "SnapshotErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::SnapshotErrorCode>,
+    }
+}
 
 impl Endpoint {
     pub(crate) fn list_app_snapshots(app_id: &str) -> Endpoint {

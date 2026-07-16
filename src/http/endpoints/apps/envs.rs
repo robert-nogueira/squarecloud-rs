@@ -2,13 +2,44 @@ use super::Endpoint;
 use reqwest::Method;
 
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/envs" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/envs",
+    domain: "EnvErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::EnvErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post",   path: "/apps/{app_id}/envs" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/apps/{app_id}/envs",
+    domain: "EnvErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::EnvErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "put",    path: "/apps/{app_id}/envs" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "put",
+    path: "/apps/{app_id}/envs",
+    domain: "EnvErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::EnvErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "delete", path: "/apps/{app_id}/envs" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "delete",
+    path: "/apps/{app_id}/envs",
+    domain: "EnvErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::EnvErrorCode>,
+    }
+}
 
 impl Endpoint {
     pub(crate) fn list_app_envs(app_id: &str) -> Endpoint {

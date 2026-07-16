@@ -2,19 +2,74 @@ use super::Endpoint;
 use reqwest::Method;
 
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/network/dns" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/network/dns",
+    domain: "NetworkErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::NetworkErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/network/analytics" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/network/analytics",
+    domain: "NetworkErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::NetworkErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post", path: "/apps/{app_id}/network/custom" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/apps/{app_id}/network/custom",
+    domain: "NetworkErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::NetworkErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post", path: "/apps/{app_id}/network/purge_cache" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/apps/{app_id}/network/purge_cache",
+    domain: "NetworkErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::NetworkErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/network/logs" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/network/logs",
+    domain: "NetworkErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::NetworkErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/network/errors" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/network/errors",
+    domain: "NetworkErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::NetworkErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",  path: "/apps/{app_id}/network/performance" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/network/performance",
+    domain: "NetworkErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::NetworkErrorCode>,
+    }
+}
 
 impl Endpoint {
     pub(crate) fn get_app_dns_record(app_id: &str) -> Endpoint {

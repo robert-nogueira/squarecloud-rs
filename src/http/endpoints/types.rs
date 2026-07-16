@@ -91,13 +91,23 @@ impl EndpointBuilder {
 }
 
 /// A (method, path-template) pair used by contract tests to verify that an
-/// implemented endpoint exists in the live OpenAPI spec.
+/// implemented endpoint exists in the live OpenAPI spec, plus the
+/// error-code domain the route belongs to.
 ///
 /// Only available with the `test-utils` feature.
 #[cfg(feature = "test-utils")]
 pub struct EndpointSpec {
+    /// Lowercase HTTP method as it appears in the OpenAPI spec.
     pub method: &'static str,
+    /// Path template relative to the API base URL (crate parameter style,
+    /// e.g. `/apps/{app_id}/envs`).
     pub path: &'static str,
+    /// Name of the domain error-code enum this route's methods return.
+    pub domain: &'static str,
+    /// Returns `true` when the given wire code is catalogued in this
+    /// route's domain enum (see
+    /// [`code_is_known`](crate::errors::code_is_known)).
+    pub known_code: fn(&str) -> bool,
 }
 
 #[cfg(feature = "test-utils")]

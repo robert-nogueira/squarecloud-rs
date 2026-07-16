@@ -8,31 +8,134 @@ use super::Endpoint;
 use reqwest::Method;
 
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post",   path: "/apps" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/apps",
+    domain: "UploadErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::UploadErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/status" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/status",
+    domain: "AppErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::AppErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/domains" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/domains",
+    domain: "NetworkErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::NetworkErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}",
+    domain: "AppErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::AppErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "delete", path: "/apps/{app_id}" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "delete",
+    path: "/apps/{app_id}",
+    domain: "AppErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::AppErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/status" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/status",
+    domain: "AppErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::AppErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/logs" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/logs",
+    domain: "AppErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::AppErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/metrics" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/metrics",
+    domain: "AppErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::AppErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/apps/{app_id}/realtime" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/apps/{app_id}/realtime",
+    domain: "AppErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::AppErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post",   path: "/apps/{app_id}/start" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/apps/{app_id}/start",
+    domain: "AppErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::AppErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post",   path: "/apps/{app_id}/restart" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/apps/{app_id}/restart",
+    domain: "AppErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::AppErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post",   path: "/apps/{app_id}/stop" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/apps/{app_id}/stop",
+    domain: "AppErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::AppErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post",   path: "/apps/{app_id}/commit" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/apps/{app_id}/commit",
+    domain: "UploadErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::UploadErrorCode>,
+    }
+}
 
 impl Endpoint {
     pub(crate) fn upload_app() -> Endpoint {
