@@ -92,12 +92,12 @@ mod tests {
     #[test]
     fn into_result_t_error_returns_service_error() {
         let resp: ApiResponse<u32> = ApiResponse::Error {
-            code: "NOT_FOUND".to_owned(),
+            code: "APP_NOT_FOUND".to_owned(),
         };
         assert!(matches!(
             resp.into_result_t::<AppErrorCode>(),
             Err(ApiError::Service {
-                code: AppErrorCode::NotFound
+                code: AppErrorCode::AppNotFound
             })
         ));
     }
@@ -301,14 +301,12 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Service`] with one of the following codes if the
-    /// uploaded archive is malformed: [`UploadErrorCode::MissingConfig`],
-    /// [`UploadErrorCode::MissingMain`], [`UploadErrorCode::InvalidMain`],
-    /// [`UploadErrorCode::MissingDisplayName`],
-    /// [`UploadErrorCode::InvalidDisplayName`],
-    /// [`UploadErrorCode::MissingMemory`], [`UploadErrorCode::InvalidMemory`],
-    /// [`UploadErrorCode::MissingVersion`], [`UploadErrorCode::InvalidVersion`],
-    /// [`UploadErrorCode::FewMemory`], or [`UploadErrorCode::BadMemory`].
+    /// Returns [`ApiError::Service`] with codes such as
+    /// [`UploadErrorCode::InvalidFile`], [`UploadErrorCode::InvalidFilename`]
+    /// or [`UploadErrorCode::InvalidContentType`] if the archive is
+    /// malformed, [`UploadErrorCode::InsufficientMemory`] if the account's
+    /// memory quota does not cover the app, or
+    /// [`UploadErrorCode::FileTooLarge`] past the 100 MB limit.
     pub async fn upload_app(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
@@ -374,7 +372,7 @@ impl Client {
     /// # Errors
     ///
     /// Returns [`ApiError::Service`] with [`DatabaseErrorCode::InvalidMemory`]
-    /// or [`DatabaseErrorCode::FewMemory`] if the memory allocation is not
+    /// or [`DatabaseErrorCode::InsufficientMemory`] if the memory allocation is not
     /// permitted,
     /// or [`ApiError::Transport`] on network failure.
     pub async fn create_database(

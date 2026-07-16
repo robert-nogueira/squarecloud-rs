@@ -213,7 +213,7 @@ mod tests {
         }
         fn env_op() -> Result<(), ApiError<EnvErrorCode>> {
             Err(ApiError::Service {
-                code: EnvErrorCode::Unknown("ENV_NAME_TOO_LONG".into()),
+                code: EnvErrorCode::Unknown("APPLICATION_STOPPING".into()),
             })
         }
         fn composed(pick_blob: bool) -> Result<(), ApiError> {
@@ -233,7 +233,7 @@ mod tests {
         }
         match composed(false) {
             Err(ApiError::Service { code }) => {
-                assert!(code == "ENV_NAME_TOO_LONG");
+                assert!(code == "APPLICATION_STOPPING");
             }
             other => panic!("expected service error, got {other:?}"),
         }

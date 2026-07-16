@@ -10,10 +10,12 @@ use crate::http::errors::ErrorCode;
 pub enum AccountErrorCode {
     /// The API token in the `Authorization` header is invalid or revoked.
     InvalidAccessToken,
-    /// The request was rejected by the rate limiter.
+    /// The authenticated token does not map to an existing user record.
+    UserNotFound,
+    /// Global rate limit of the authentication layer.
     RateLimit,
     /// A code returned by the API that this client does not recognise.
-    /// The inner string contains the raw value from the API response.
+    /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]
     Unknown(ErrorCode),
 }

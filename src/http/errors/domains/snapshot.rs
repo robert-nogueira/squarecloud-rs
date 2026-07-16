@@ -8,26 +8,48 @@ use crate::http::errors::ErrorCode;
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[non_exhaustive]
 pub enum SnapshotErrorCode {
-    /// The snapshot version ID is not valid or does not exist.
+    /// The snapshot request was accepted (HTTP 202) and is being
+    /// processed asynchronously.
+    SnapshotProcessing,
+    /// The cluster could not create the snapshot.
+    SnapshotFailed,
+    /// No snapshot exists at that ID and version for this resource.
+    SnapshotNotFound,
+    /// The cluster could not dispatch the restore.
+    SnapshotRestoreFailed,
+    /// The snapshot's engine does not match this database's `type`.
+    SnapshotDatabaseMismatch,
+    /// `snapshotId` is not a valid UUID v4.
+    InvalidSnapshotId,
+    /// `versionId` does not match the expected S3 version-key format.
     InvalidVersionId,
-    /// A snapshot restore is already in progress for this resource.
-    RestoreInProgress,
-    /// The daily snapshot creation limit for this resource has been reached.
-    DailySnapshotsLimitReached,
-    /// The `scope` query parameter value is not recognised by the API.
+    /// `snapshotId` or `versionId` is missing.
+    MissingParameters,
+    /// The `scope` query parameter is not `applications` or `databases`.
     InvalidScope,
-    /// The application does not exist or is not owned by the caller.
-    AppNotFound,
-    /// The requested resource was not found.
-    NotFound,
-    /// The API token in the `Authorization` header is invalid or revoked.
-    InvalidAccessToken,
-    /// The request was rejected by the rate limiter.
-    RateLimit,
+    /// The plan's daily snapshot creation quota was reached (distinct from
+    /// `KEEP_CALM`).
+    DailySnapshotsLimitReached,
+    /// Short-lived rate limit; retry after a few seconds.
+    KeepCalm,
+    /// 429 em `GET .../network/analytics`, `.../network/errors`,
+    /// `.../network/logs`, `.../network/performance`, `GET
+    /// /v2/users/snapshots`
+    RateLimitExceeded,
     /// The endpoint requires a higher plan than the account currently has.
     UpgradeRequired,
+    /// The resource owner could not be resolved.
+    UserNotFound,
+    /// The application does not exist or is not owned by the caller.
+    AppNotFound,
+    /// The database does not exist or is not owned by the caller.
+    DatabaseNotFound,
+    /// The API token in the `Authorization` header is invalid or revoked.
+    InvalidAccessToken,
+    /// Global rate limit of the authentication layer.
+    RateLimit,
     /// A code returned by the API that this client does not recognise.
-    /// The inner string contains the raw value from the API response.
+    /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]
     Unknown(ErrorCode),
 }

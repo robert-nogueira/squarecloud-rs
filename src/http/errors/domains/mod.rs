@@ -67,8 +67,8 @@ mod tests {
 
     #[test]
     fn from_wire_falls_back_to_unknown() {
-        let got = EnvErrorCode::from_wire("TOO_MANY_ENV_VARS".to_owned());
-        assert_eq!(got, EnvErrorCode::Unknown("TOO_MANY_ENV_VARS".into()));
+        let got = EnvErrorCode::from_wire("APPLICATION_STOPPING".to_owned());
+        assert_eq!(got, EnvErrorCode::Unknown("APPLICATION_STOPPING".into()));
     }
 
     #[test]
@@ -81,24 +81,24 @@ mod tests {
 
     #[test]
     fn erase_preserves_unknown_raw_string() {
-        let code = BlobErrorCode::Unknown("STORAGE_QUOTA_EXCEEDED".into());
-        assert_eq!(code.erase(), ErrorCode::from("STORAGE_QUOTA_EXCEEDED"));
+        let code = BlobErrorCode::Unknown("APPLICATION_STOPPING".into());
+        assert_eq!(code.erase(), ErrorCode::from("APPLICATION_STOPPING"));
     }
 
     #[test]
     fn domain_code_roundtrips_through_serde() {
-        let json = serde_json::to_string(&EnvErrorCode::RegexValidation)
+        let json = serde_json::to_string(&EnvErrorCode::TooManyEnvVars)
             .expect("serializes");
-        assert_eq!(json, r#""REGEX_VALIDATION""#);
+        assert_eq!(json, r#""TOO_MANY_ENV_VARS""#);
         let back: EnvErrorCode =
             serde_json::from_str(&json).expect("deserializes");
-        assert_eq!(back, EnvErrorCode::RegexValidation);
+        assert_eq!(back, EnvErrorCode::TooManyEnvVars);
     }
 
     #[test]
     fn domain_enum_compares_with_error_code_symmetrically() {
-        let erased = ErrorCode::from("REGEX_VALIDATION");
-        assert!(EnvErrorCode::RegexValidation == erased);
-        assert!(erased == EnvErrorCode::RegexValidation);
+        let erased = ErrorCode::from("TOO_MANY_ENV_VARS");
+        assert!(EnvErrorCode::TooManyEnvVars == erased);
+        assert!(erased == EnvErrorCode::TooManyEnvVars);
     }
 }

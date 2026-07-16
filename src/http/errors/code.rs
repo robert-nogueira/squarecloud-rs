@@ -83,13 +83,13 @@ mod tests {
         assert!(code == BlobErrorCode::ObjectNotFound);
         assert!(code != BlobErrorCode::InvalidObject);
         assert!(code == "OBJECT_NOT_FOUND");
-        assert!(code != EnvErrorCode::RegexValidation);
+        assert!(code != EnvErrorCode::TooManyEnvVars);
     }
 
     #[test]
     fn compares_with_unknown_variants_by_wire_string() {
-        let code = ErrorCode::from("TOO_MANY_ENV_VARS");
-        assert!(code == EnvErrorCode::Unknown("TOO_MANY_ENV_VARS".into()));
+        let code = ErrorCode::from("APPLICATION_STOPPING");
+        assert!(code == EnvErrorCode::Unknown("APPLICATION_STOPPING".into()));
     }
 
     #[test]

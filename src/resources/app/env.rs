@@ -33,7 +33,7 @@ impl AppResource {
     /// # Errors
     ///
     /// Returns [`ApiError::Service`] with
-    /// [`EnvErrorCode::RegexValidation`]
+    /// [`EnvErrorCode::InvalidEnvContent`]
     /// if a key or value is rejected, or [`ApiError::Transport`] on network
     /// failure.
     pub async fn upsert_envs(
