@@ -24,9 +24,9 @@
 //!     let me = client.me().await?;
 //!     println!("Logged in as {} ({})", me.user.name, me.user.email);
 //!
-//!     // Inspect a running application.
-//!     // Note: `app()` consumes the client, so call account-level
-//!     // methods first.
+//!     // Inspect a running application. Resource factories borrow the
+//!     // client and clone it internally (cheap: the connection pool is
+//!     // shared), so the client stays usable afterwards.
 //!     let status = client.app("your-app-id").status().await?;
 //!     println!("CPU: {}  RAM: {}", status.cpu, status.ram);
 //!
