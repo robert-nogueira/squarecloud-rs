@@ -13,6 +13,10 @@ keywords = ["squarecloud", "api", "async", "http"]
 categories = ["api-bindings", "web-programming::http-client"]
 
 [[example]]
+name = "error_handling"
+path = "examples/error_handling.rs"
+
+[[example]]
 name = "me"
 path = "examples/me.rs"
 
