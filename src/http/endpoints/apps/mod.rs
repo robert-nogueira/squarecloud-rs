@@ -41,6 +41,16 @@ inventory::submit! {
 inventory::submit! {
     crate::EndpointSpec {
     method: "get",
+    path: "/apps/load-balancers",
+    domain: "NetworkErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::NetworkErrorCode>,
+    }
+}
+
+#[cfg(feature = "test-utils")]
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
     path: "/apps/{app_id}",
     domain: "AppErrorCode",
     known_code: crate::errors::code_is_known::<crate::errors::AppErrorCode>,
@@ -202,6 +212,10 @@ impl Endpoint {
 
     pub(crate) fn app_domains() -> Endpoint {
         Self::builder("/apps/domains", Method::GET).build()
+    }
+
+    pub(crate) fn app_load_balancers() -> Endpoint {
+        Self::builder("/apps/load-balancers", Method::GET).build()
     }
 
     pub(crate) fn app_metrics(app_id: &str) -> Endpoint {

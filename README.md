@@ -102,7 +102,7 @@ The [`examples/`](examples/) directory contains one file per method, organized b
 
 | Folder | Covers |
 |---|---|
-| [`apps/`](examples/apps/) | info, status, logs, realtime stream, metrics, start/stop/restart, commit, delete, network, domain |
+| [`apps/`](examples/apps/) | info, status, logs, realtime stream, metrics, start/stop/restart, commit, delete, network, domains, load balancers |
 | [`env/`](examples/env/) | list, upsert, overwrite, delete |
 | [`files/`](examples/files/) | list, read, write, move, delete |
 | [`snapshots/`](examples/snapshots/) | create, list, restore |

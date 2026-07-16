@@ -29,6 +29,10 @@ name = "upload_app"
 path = "examples/upload_app.rs"
 
 [[example]]
+name = "app_load_balancers"
+path = "examples/apps/load_balancers.rs"
+
+[[example]]
 name = "app_info"
 path = "examples/apps/info.rs"
 

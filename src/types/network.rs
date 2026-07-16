@@ -252,3 +252,40 @@ pub struct NetworkLogEntry {
     /// The edge cache result (e.g. `"HIT"` or `"MISS"`), if applicable.
     pub cache: Option<String>,
 }
+
+/// One custom domain and the applications serving it.
+///
+/// Part of [`LoadBalancers`]. A group with two or more applications is an
+/// active load balancer: traffic is balanced across them at the edge,
+/// with automatic failover when an application is offline.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LoadBalancer {
+    /// The custom domain.
+    pub hostname: String,
+    /// Applications serving this domain.
+    pub apps: Vec<LoadBalancerApp>,
+}
+
+/// One application inside a [`LoadBalancer`] group.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LoadBalancerApp {
+    /// The application's unique identifier.
+    pub id: String,
+    /// The application's name.
+    pub name: String,
+    /// The cluster currently hosting the application.
+    pub cluster: Option<String>,
+}
+
+/// The account's custom domains grouped by hostname.
+///
+/// Returned by [`Client::load_balancers`](crate::Client::load_balancers).
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LoadBalancers {
+    /// Maximum applications allowed on one domain for the account's plan:
+    /// 2 on Standard, 5 on Pro, 10 on Enterprise.
+    pub limit: u8,
+    /// Custom domains grouped by hostname. Empty when no application has
+    /// a custom domain attached.
+    pub balancers: Vec<LoadBalancer>,
+}
