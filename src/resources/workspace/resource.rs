@@ -1,6 +1,9 @@
 use crate::{
     Endpoint,
-    http::{ApiClient, errors::ApiError},
+    http::{
+        ApiClient,
+        errors::{ApiError, WorkspaceErrorCode},
+    },
     types::WorkspaceInfo,
 };
 
@@ -40,9 +43,11 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn info(&self) -> Result<WorkspaceInfo, ApiError> {
+    pub async fn info(
+        &self,
+    ) -> Result<WorkspaceInfo, ApiError<WorkspaceErrorCode>> {
         self.client
             .request_endpoint(Endpoint::get_workspace(&self.id))
             .await?
@@ -56,9 +61,9 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// if the account is the owner or is not a member.
-    pub async fn leave(&self) -> Result<bool, ApiError> {
+    pub async fn leave(&self) -> Result<bool, ApiError<WorkspaceErrorCode>> {
         self.client
             .request_endpoint::<()>(Endpoint::leave_workspace())
             .await?
@@ -73,9 +78,9 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// if the authenticated account is not the owner.
-    pub async fn delete(&self) -> Result<bool, ApiError> {
+    pub async fn delete(&self) -> Result<bool, ApiError<WorkspaceErrorCode>> {
         self.client
             .request_endpoint::<()>(Endpoint::delete_workspace())
             .await?

@@ -1,7 +1,11 @@
 use chrono::{DateTime, Utc};
 use futures_util::StreamExt;
 use serde_json::json;
-use squarecloud::{ApiError, ApiErrorCode, types::RealtimeEvent};
+use squarecloud::{
+    ApiError,
+    errors::{AppErrorCode, NetworkErrorCode},
+    types::RealtimeEvent,
+};
 use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
 
@@ -297,8 +301,8 @@ async fn app_analytics_invalid_time_range() {
         .parse()
         .expect("hardcoded RFC3339 timestamp");
     match client.app("app-123").analytics(start, end).await {
-        Err(ApiError::Api {
-            code: ApiErrorCode::InvalidTimeRange,
+        Err(ApiError::Service {
+            code: NetworkErrorCode::InvalidTimeRange,
         }) => {}
         other => panic!("expected InvalidTimeRange, got {other:?}"),
     }
@@ -342,8 +346,8 @@ async fn app_dns_record_no_custom_domain() {
         .await;
 
     match client.app("app-123").dns_record().await {
-        Err(ApiError::Api {
-            code: ApiErrorCode::NoCustomDomain,
+        Err(ApiError::Service {
+            code: NetworkErrorCode::NoCustomDomain,
         }) => {}
         other => panic!("expected NoCustomDomain, got {other:?}"),
     }
@@ -463,8 +467,8 @@ async fn app_network_errors_invalid_time_range() {
         .network_errors(false, start, end)
         .await
     {
-        Err(ApiError::Api {
-            code: ApiErrorCode::InvalidTimeRange,
+        Err(ApiError::Service {
+            code: NetworkErrorCode::InvalidTimeRange,
         }) => {}
         other => panic!("expected InvalidTimeRange, got {other:?}"),
     }
@@ -530,8 +534,8 @@ async fn app_network_logs_invalid_time_range() {
         .parse()
         .expect("hardcoded RFC3339 timestamp");
     match client.app("app-123").network_logs(start, end).await {
-        Err(ApiError::Api {
-            code: ApiErrorCode::InvalidTimeRange,
+        Err(ApiError::Service {
+            code: NetworkErrorCode::InvalidTimeRange,
         }) => {}
         other => panic!("expected InvalidTimeRange, got {other:?}"),
     }
@@ -590,8 +594,8 @@ async fn app_network_performance_invalid_time_range() {
         .parse()
         .expect("hardcoded RFC3339 timestamp");
     match client.app("app-123").network_performance(start, end).await {
-        Err(ApiError::Api {
-            code: ApiErrorCode::InvalidTimeRange,
+        Err(ApiError::Service {
+            code: NetworkErrorCode::InvalidTimeRange,
         }) => {}
         other => panic!("expected InvalidTimeRange, got {other:?}"),
     }
@@ -629,8 +633,8 @@ async fn app_purge_cache_keep_calm() {
         .await;
 
     match client.app("app-123").purge_cache().await {
-        Err(ApiError::Api {
-            code: ApiErrorCode::KeepCalm,
+        Err(ApiError::Service {
+            code: NetworkErrorCode::KeepCalm,
         }) => {}
         other => panic!("expected KeepCalm, got {other:?}"),
     }
@@ -714,8 +718,8 @@ async fn app_start_already_started() {
         .await;
 
     match client.app("app-123").start().await {
-        Err(ApiError::Api {
-            code: ApiErrorCode::ContainerAlreadyStarted,
+        Err(ApiError::Service {
+            code: AppErrorCode::ContainerAlreadyStarted,
         }) => {}
         other => panic!("expected ContainerAlreadyStarted, got {other:?}"),
     }

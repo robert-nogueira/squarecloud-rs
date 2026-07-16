@@ -41,7 +41,7 @@
 //! | [`ApiClient`] | Root entry point; construct with [`ApiClient::new`]. |
 //! | [`resources`] | Resource handles returned by the factory methods on `ApiClient`. |
 //! | [`types`] | Plain data structs deserialised from API responses. |
-//! | [`ApiError`] / [`ApiErrorCode`] | Errors returned by every API call. |
+//! | [`ApiError`] / [`errors`] | Errors returned by every API call; one error-code enum per domain. |
 //! | [`CommitError`] | Error type specific to [`resources::AppResource::commit`]. |
 //!
 //! # Environment variables
@@ -63,7 +63,8 @@ pub mod types;
 pub(crate) use http::endpoints::Endpoint;
 #[cfg(feature = "test-utils")]
 pub use http::endpoints::EndpointSpec;
-pub use http::errors::{ApiError, ApiErrorCode, CommitError};
+pub use http::errors;
+pub use http::errors::{ApiError, CommitError, ErrorCode, ServiceErrorCode};
 pub use http::http_client::ApiClient;
 pub use types::{CredentialType, DatabaseType, RealtimeEvent, SnapshotScope};
 

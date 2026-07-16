@@ -2,7 +2,7 @@ use serde_json::json;
 
 use crate::{
     Endpoint,
-    http::errors::ApiError,
+    http::errors::{ApiError, SnapshotErrorCode},
     types::{Snapshot, SnapshotReference},
 };
 
@@ -13,9 +13,11 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn list_snapshots(&self) -> Result<Vec<Snapshot>, ApiError> {
+    pub async fn list_snapshots(
+        &self,
+    ) -> Result<Vec<Snapshot>, ApiError<SnapshotErrorCode>> {
         self.client
             .request_endpoint(Endpoint::list_app_snapshots(&self.id))
             .await?
@@ -29,11 +31,11 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn create_snapshot(
         &self,
-    ) -> Result<SnapshotReference, ApiError> {
+    ) -> Result<SnapshotReference, ApiError<SnapshotErrorCode>> {
         self.client
             .request_endpoint(Endpoint::app_create_snapshot(&self.id))
             .await?
@@ -50,13 +52,13 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// if the snapshot or version is not found.
     pub async fn restore_snapshot(
         &self,
         snapshot_id: String,
         version_id: String,
-    ) -> Result<bool, ApiError> {
+    ) -> Result<bool, ApiError<SnapshotErrorCode>> {
         let endpoint = Endpoint::restore_app_snapshot(&self.id);
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)

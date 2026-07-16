@@ -2,7 +2,10 @@ use serde_json::{Map, Value};
 
 use crate::{
     Endpoint,
-    http::{ApiClient, errors::ApiError},
+    http::{
+        ApiClient,
+        errors::{ApiError, DatabaseErrorCode},
+    },
     types::{DatabaseInfo, DatabaseMetrics, RuntimeStats},
 };
 
@@ -46,9 +49,11 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn info(&self) -> Result<DatabaseInfo, ApiError> {
+    pub async fn info(
+        &self,
+    ) -> Result<DatabaseInfo, ApiError<DatabaseErrorCode>> {
         self.client
             .request_endpoint(Endpoint::database_info(&self.id))
             .await?
@@ -61,9 +66,9 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn start(&self) -> Result<bool, ApiError> {
+    pub async fn start(&self) -> Result<bool, ApiError<DatabaseErrorCode>> {
         self.client
             .request_endpoint::<()>(Endpoint::start_database(&self.id))
             .await?
@@ -76,9 +81,9 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn stop(&self) -> Result<bool, ApiError> {
+    pub async fn stop(&self) -> Result<bool, ApiError<DatabaseErrorCode>> {
         self.client
             .request_endpoint::<()>(Endpoint::stop_database(&self.id))
             .await?
@@ -90,9 +95,11 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn status(&self) -> Result<RuntimeStats, ApiError> {
+    pub async fn status(
+        &self,
+    ) -> Result<RuntimeStats, ApiError<DatabaseErrorCode>> {
         self.client
             .request_endpoint(Endpoint::database_status(&self.id))
             .await?
@@ -106,9 +113,11 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn metrics(&self) -> Result<Vec<DatabaseMetrics>, ApiError> {
+    pub async fn metrics(
+        &self,
+    ) -> Result<Vec<DatabaseMetrics>, ApiError<DatabaseErrorCode>> {
         self.client
             .request_endpoint(Endpoint::database_metrics(&self.id))
             .await?
@@ -123,16 +132,16 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Api`] with
-    /// [`ApiErrorCode::InvalidMemory`](crate::ApiErrorCode::InvalidMemory) or
-    /// [`ApiErrorCode::FewMemory`](crate::ApiErrorCode::FewMemory) if the new
+    /// Returns [`ApiError::Service`] with
+    /// [`DatabaseErrorCode::InvalidMemory`] or
+    /// [`DatabaseErrorCode::FewMemory`] if the new
     /// memory value is not permitted, or [`ApiError::Transport`] on network
     /// failure.
     pub async fn edit(
         &self,
         name: Option<&str>,
         ram: Option<u32>,
-    ) -> Result<bool, ApiError> {
+    ) -> Result<bool, ApiError<DatabaseErrorCode>> {
         if name.is_none() && ram.is_none() {
             return Ok(false);
         }
@@ -161,9 +170,9 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn delete(&self) -> Result<bool, ApiError> {
+    pub async fn delete(&self) -> Result<bool, ApiError<DatabaseErrorCode>> {
         self.client
             .request_endpoint(Endpoint::delete_database(&self.id))
             .await?

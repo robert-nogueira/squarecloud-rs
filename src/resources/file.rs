@@ -1,6 +1,9 @@
 use crate::{
     Endpoint,
-    http::{ApiClient, errors::ApiError},
+    http::{
+        ApiClient,
+        errors::{ApiError, FileErrorCode},
+    },
     types::{FileContent, FileInfo},
 };
 
@@ -43,9 +46,12 @@ impl FileResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn write(&self, content: &str) -> Result<bool, ApiError> {
+    pub async fn write(
+        &self,
+        content: &str,
+    ) -> Result<bool, ApiError<FileErrorCode>> {
         let endpoint =
             Endpoint::put_app_file(&self.app_id, &self.path, content);
         self.client
@@ -62,9 +68,12 @@ impl FileResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// if the file does not exist.
-    pub async fn read(&self, path: &str) -> Result<FileContent, ApiError> {
+    pub async fn read(
+        &self,
+        path: &str,
+    ) -> Result<FileContent, ApiError<FileErrorCode>> {
         self.client
             .request_endpoint(Endpoint::read_app_file(&self.app_id, path))
             .await?
@@ -77,9 +86,9 @@ impl FileResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// if the file does not exist.
-    pub async fn delete(&self) -> Result<bool, ApiError> {
+    pub async fn delete(&self) -> Result<bool, ApiError<FileErrorCode>> {
         let endpoint = Endpoint::delete_app_file(&self.app_id, &self.path);
         self.client
             .request_endpoint::<bool>(endpoint)
@@ -94,12 +103,12 @@ impl FileResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// if the source does not exist or the destination is invalid.
     pub async fn move_to(
         &self,
         destination_path: &str,
-    ) -> Result<bool, ApiError> {
+    ) -> Result<bool, ApiError<FileErrorCode>> {
         let endpoint = Endpoint::move_app_file(
             &self.app_id,
             &self.path,
@@ -133,12 +142,12 @@ impl FileResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// if `path` is not a directory or does not exist.
     pub async fn all_files(
         &self,
         path: &str,
-    ) -> Result<Vec<FileInfo>, ApiError> {
+    ) -> Result<Vec<FileInfo>, ApiError<FileErrorCode>> {
         let endpoint = Endpoint::list_app_files(&self.app_id, path);
         self.client
             .request_endpoint(endpoint)

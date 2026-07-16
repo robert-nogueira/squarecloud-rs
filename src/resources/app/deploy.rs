@@ -2,7 +2,10 @@ use serde_json::{Value, json};
 
 use crate::{
     Endpoint,
-    http::{ApiResponse, errors::ApiError},
+    http::{
+        ApiResponse,
+        errors::{ApiError, DeployErrorCode},
+    },
     types::Deploy,
 };
 
@@ -13,9 +16,11 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
-    /// on an API-level error.
-    pub async fn current_deploy(&self) -> Result<Deploy, ApiError> {
+    /// Returns [`ApiError::Transport`] on network failure or
+    /// [`ApiError::Service`] on an API-level error.
+    pub async fn current_deploy(
+        &self,
+    ) -> Result<Deploy, ApiError<DeployErrorCode>> {
         self.client
             .request_endpoint(Endpoint::get_current_app_deploy(&self.id))
             .await?
@@ -27,9 +32,11 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
-    /// on an API-level error.
-    pub async fn list_deploys(&self) -> Result<Vec<Deploy>, ApiError> {
+    /// Returns [`ApiError::Transport`] on network failure or
+    /// [`ApiError::Service`] on an API-level error.
+    pub async fn list_deploys(
+        &self,
+    ) -> Result<Vec<Deploy>, ApiError<DeployErrorCode>> {
         self.client
             .request_endpoint(Endpoint::list_app_deploys(&self.id))
             .await?
@@ -44,14 +51,13 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Api`] with
-    /// [`ApiErrorCode::InvalidAccessToken`](crate::ApiErrorCode::InvalidAccessToken)
-    /// if the token is rejected, or [`ApiError::Transport`] on network
-    /// failure.
+    /// Returns [`ApiError::Service`] with
+    /// [`DeployErrorCode::InvalidAccessToken`] if the token is rejected, or
+    /// [`ApiError::Transport`] on network failure.
     pub async fn set_webhook_integration(
         &self,
         access_token: String,
-    ) -> Result<String, ApiError> {
+    ) -> Result<String, ApiError<DeployErrorCode>> {
         let endpoint = Endpoint::set_webhook_integration(&self.id);
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)

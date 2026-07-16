@@ -10,7 +10,11 @@ use serde_json::json;
 
 use super::{
     Endpoint,
-    errors::{ApiError, ApiErrorCode},
+    errors::{
+        AccountErrorCode, ApiError, AppErrorCode, DatabaseErrorCode,
+        NetworkErrorCode, ServiceErrorCode, SnapshotErrorCode,
+        UploadErrorCode, WorkspaceErrorCode,
+    },
 };
 use crate::{
     resources::{
@@ -27,7 +31,9 @@ use crate::{
 ///
 /// The wire format uses `"status": "success"` or `"status": "error"` as the
 /// discriminator. Callers convert it to a `Result` using
-/// [`ApiResponse::into_result_t`] or [`ApiResponse::into_bool_result`].
+/// [`ApiResponse::into_result_t`] or [`ApiResponse::into_bool_result`],
+/// which parse the raw error code string into the domain-scoped error
+/// code enum `C` chosen by the caller's return type.
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "status", rename_all = "lowercase")]
 pub enum ApiResponse<T> {
@@ -36,20 +42,22 @@ pub enum ApiResponse<T> {
         response: Option<T>,
     },
     Error {
-        code: ApiErrorCode,
+        code: String,
     },
 }
 
 impl<T> ApiResponse<T> {
     /// Unwraps the `response` field on success, or maps the error code to
-    /// [`ApiError::Api`].
+    /// [`ApiError::Service`].
     ///
     /// # Panics
     ///
     /// Panics if the API returns a success envelope without a `response` body.
-    pub fn into_result_t(self) -> Result<T, ApiError> {
+    pub fn into_result_t<C: ServiceErrorCode>(self) -> Result<T, ApiError<C>> {
         match self {
-            ApiResponse::Error { code } => Err(ApiError::Api { code }),
+            ApiResponse::Error { code } => Err(ApiError::Service {
+                code: C::from_wire(code),
+            }),
             ApiResponse::Success { response } => {
                 response.ok_or_else(|| panic!("Expected response data"))
             }
@@ -57,10 +65,14 @@ impl<T> ApiResponse<T> {
     }
 
     /// Returns `Ok(true)` on success, or propagates the API error code.
-    pub fn into_bool_result(self) -> Result<bool, ApiError> {
+    pub fn into_bool_result<C: ServiceErrorCode>(
+        self,
+    ) -> Result<bool, ApiError<C>> {
         match self {
             ApiResponse::Success { .. } => Ok(true),
-            ApiResponse::Error { code } => Err(ApiError::Api { code }),
+            ApiResponse::Error { code } => Err(ApiError::Service {
+                code: C::from_wire(code),
+            }),
         }
     }
 }
@@ -68,24 +80,24 @@ impl<T> ApiResponse<T> {
 #[cfg(test)]
 mod tests {
     use super::ApiResponse;
-    use crate::http::errors::{ApiError, ApiErrorCode};
+    use crate::http::errors::{ApiError, AppErrorCode};
 
     #[test]
     fn into_result_t_success_returns_inner_value() {
         let resp: ApiResponse<u32> =
             ApiResponse::Success { response: Some(42) };
-        assert_eq!(resp.into_result_t().unwrap(), 42);
+        assert_eq!(resp.into_result_t::<AppErrorCode>().unwrap(), 42);
     }
 
     #[test]
-    fn into_result_t_error_returns_api_error() {
+    fn into_result_t_error_returns_service_error() {
         let resp: ApiResponse<u32> = ApiResponse::Error {
-            code: ApiErrorCode::NotFound,
+            code: "NOT_FOUND".to_owned(),
         };
         assert!(matches!(
-            resp.into_result_t(),
-            Err(ApiError::Api {
-                code: ApiErrorCode::NotFound
+            resp.into_result_t::<AppErrorCode>(),
+            Err(ApiError::Service {
+                code: AppErrorCode::NotFound
             })
         ));
     }
@@ -93,18 +105,18 @@ mod tests {
     #[test]
     fn into_bool_result_success_returns_true() {
         let resp: ApiResponse<()> = ApiResponse::Success { response: None };
-        assert_eq!(resp.into_bool_result().unwrap(), true);
+        assert_eq!(resp.into_bool_result::<AppErrorCode>().unwrap(), true);
     }
 
     #[test]
-    fn into_bool_result_error_returns_api_error() {
+    fn into_bool_result_error_returns_service_error() {
         let resp: ApiResponse<()> = ApiResponse::Error {
-            code: ApiErrorCode::RateLimit,
+            code: "RATE_LIMIT".to_owned(),
         };
         assert!(matches!(
-            resp.into_bool_result(),
-            Err(ApiError::Api {
-                code: ApiErrorCode::RateLimit
+            resp.into_bool_result::<AppErrorCode>(),
+            Err(ApiError::Service {
+                code: AppErrorCode::RateLimit
             })
         ));
     }
@@ -255,9 +267,13 @@ impl ApiClient {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] if the HTTP request fails, or
-    /// [`ApiError::Api`] if the API responds with an error code.
-    pub async fn service_status(&self) -> Result<ServiceStatus, ApiError> {
+    /// Returns [`ApiError::Transport`] if the HTTP request fails. This
+    /// endpoint does not use the standard response envelope, so the error
+    /// type parameter is [`Infallible`](std::convert::Infallible): the
+    /// compiler knows [`ApiError::Service`] can never be produced here.
+    pub async fn service_status(
+        &self,
+    ) -> Result<ServiceStatus, ApiError<std::convert::Infallible>> {
         let endpoint = Endpoint::service_status();
         let req = self
             .http_client
@@ -269,9 +285,9 @@ impl ApiClient {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
-    /// if the token is invalid ([`ApiErrorCode::InvalidAccessToken`]).
-    pub async fn me(&self) -> Result<AccountInfo, ApiError> {
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
+    /// if the token is invalid ([`AccountErrorCode::InvalidAccessToken`]).
+    pub async fn me(&self) -> Result<AccountInfo, ApiError<AccountErrorCode>> {
         self.request_endpoint::<AccountInfo>(Endpoint::me())
             .await?
             .into_result_t()
@@ -285,18 +301,18 @@ impl ApiClient {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Api`] with one of the following codes if the
-    /// uploaded archive is malformed: [`ApiErrorCode::MissingConfig`],
-    /// [`ApiErrorCode::MissingMain`], [`ApiErrorCode::InvalidMain`],
-    /// [`ApiErrorCode::MissingDisplayName`],
-    /// [`ApiErrorCode::InvalidDisplayName`], [`ApiErrorCode::MissingMemory`],
-    /// [`ApiErrorCode::InvalidMemory`], [`ApiErrorCode::MissingVersion`],
-    /// [`ApiErrorCode::InvalidVersion`], [`ApiErrorCode::FewMemory`], or
-    /// [`ApiErrorCode::BadMemory`].
+    /// Returns [`ApiError::Service`] with one of the following codes if the
+    /// uploaded archive is malformed: [`UploadErrorCode::MissingConfig`],
+    /// [`UploadErrorCode::MissingMain`], [`UploadErrorCode::InvalidMain`],
+    /// [`UploadErrorCode::MissingDisplayName`],
+    /// [`UploadErrorCode::InvalidDisplayName`],
+    /// [`UploadErrorCode::MissingMemory`], [`UploadErrorCode::InvalidMemory`],
+    /// [`UploadErrorCode::MissingVersion`], [`UploadErrorCode::InvalidVersion`],
+    /// [`UploadErrorCode::FewMemory`], or [`UploadErrorCode::BadMemory`].
     pub async fn upload_app(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
-    ) -> Result<UploadedApp, ApiError> {
+    ) -> Result<UploadedApp, ApiError<UploadErrorCode>> {
         let endpoint = Endpoint::upload_app();
         let form = Form::new().part(
             "file",
@@ -322,9 +338,11 @@ impl ApiClient {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn all_domains(&self) -> Result<Vec<AppDomain>, ApiError> {
+    pub async fn all_domains(
+        &self,
+    ) -> Result<Vec<AppDomain>, ApiError<NetworkErrorCode>> {
         self.request_endpoint(Endpoint::app_domains())
             .await?
             .into_result_t()
@@ -334,11 +352,11 @@ impl ApiClient {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn all_apps_status(
         &self,
-    ) -> Result<Vec<RuntimeStatsListItem>, ApiError> {
+    ) -> Result<Vec<RuntimeStatsListItem>, ApiError<AppErrorCode>> {
         self.request_endpoint(Endpoint::all_apps_status())
             .await?
             .into_result_t()
@@ -355,8 +373,9 @@ impl ApiClient {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Api`] with [`ApiErrorCode::InvalidMemory`] or
-    /// [`ApiErrorCode::FewMemory`] if the memory allocation is not permitted,
+    /// Returns [`ApiError::Service`] with [`DatabaseErrorCode::InvalidMemory`]
+    /// or [`DatabaseErrorCode::FewMemory`] if the memory allocation is not
+    /// permitted,
     /// or [`ApiError::Transport`] on network failure.
     pub async fn create_database(
         &self,
@@ -364,7 +383,7 @@ impl ApiClient {
         memory: u32,
         r#type: DatabaseType,
         version: String,
-    ) -> Result<Database, ApiError> {
+    ) -> Result<Database, ApiError<DatabaseErrorCode>> {
         let endpoint = Endpoint::create_database();
         let request = endpoint
             .request_builder(&self.http_client, &self.base_url)
@@ -382,11 +401,11 @@ impl ApiClient {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn all_database_status(
         &self,
-    ) -> Result<Vec<RuntimeStatsListItem>, ApiError> {
+    ) -> Result<Vec<RuntimeStatsListItem>, ApiError<DatabaseErrorCode>> {
         self.request_endpoint(Endpoint::all_database_status())
             .await?
             .into_result_t()
@@ -396,13 +415,13 @@ impl ApiClient {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Api`] if the name is invalid or the account has
+    /// Returns [`ApiError::Service`] if the name is invalid or the account has
     /// reached its workspace quota, or [`ApiError::Transport`] on network
     /// failure.
     pub async fn create_workspace(
         &self,
         name: String,
-    ) -> Result<WorkspaceInfo, ApiError> {
+    ) -> Result<WorkspaceInfo, ApiError<WorkspaceErrorCode>> {
         let endpoint = Endpoint::create_workspace();
         let request = endpoint
             .request_builder(&self.http_client, &self.base_url)
@@ -420,12 +439,12 @@ impl ApiClient {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn all_snapshots(
         &self,
         scope: Option<SnapshotScope>,
-    ) -> Result<Vec<Snapshot>, ApiError> {
+    ) -> Result<Vec<Snapshot>, ApiError<SnapshotErrorCode>> {
         self.request_endpoint(Endpoint::list_all_snapshots(scope))
             .await?
             .into_result_t()
@@ -435,11 +454,11 @@ impl ApiClient {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn all_workspaces(
         &self,
-    ) -> Result<Vec<WorkspaceInfo>, ApiError> {
+    ) -> Result<Vec<WorkspaceInfo>, ApiError<WorkspaceErrorCode>> {
         self.request_endpoint(Endpoint::list_workspaces())
             .await?
             .into_result_t()

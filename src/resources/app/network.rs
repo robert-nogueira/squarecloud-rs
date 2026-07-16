@@ -3,7 +3,7 @@ use serde_json::json;
 
 use crate::{
     Endpoint,
-    http::errors::ApiError,
+    http::errors::{ApiError, NetworkErrorCode},
     types::{
         Analytics, DnsRecord, NetworkErrors, NetworkLogEntry,
         NetworkPerformance,
@@ -21,13 +21,13 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn analytics(
         &self,
         start: DateTime<Utc>,
         end: DateTime<Utc>,
-    ) -> Result<Analytics, ApiError> {
+    ) -> Result<Analytics, ApiError<NetworkErrorCode>> {
         self.client
             .request_endpoint(Endpoint::get_app_analytics(
                 &self.id,
@@ -43,9 +43,11 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn dns_record(&self) -> Result<DnsRecord, ApiError> {
+    pub async fn dns_record(
+        &self,
+    ) -> Result<DnsRecord, ApiError<NetworkErrorCode>> {
         self.client
             .request_endpoint(Endpoint::get_app_dns_record(&self.id))
             .await?
@@ -61,14 +63,14 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Api`] with
-    /// [`ApiErrorCode::InvalidSubdomain`](crate::ApiErrorCode::InvalidSubdomain)
+    /// Returns [`ApiError::Service`] with
+    /// [`NetworkErrorCode::InvalidSubdomain`]
     /// if the domain is malformed or already in use, or
     /// [`ApiError::Transport`] on network failure.
     pub async fn set_custom_domain(
         &self,
         custom: &str,
-    ) -> Result<bool, ApiError> {
+    ) -> Result<bool, ApiError<NetworkErrorCode>> {
         let endpoint = Endpoint::set_app_custom_domain(&self.id);
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)
@@ -91,14 +93,14 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn network_errors(
         &self,
         include_4xx: bool,
         start: DateTime<Utc>,
         end: DateTime<Utc>,
-    ) -> Result<NetworkErrors, ApiError> {
+    ) -> Result<NetworkErrors, ApiError<NetworkErrorCode>> {
         self.client
             .request_endpoint(Endpoint::network_errors(
                 &self.id,
@@ -119,13 +121,13 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn network_logs(
         &self,
         start: DateTime<Utc>,
         end: DateTime<Utc>,
-    ) -> Result<Vec<NetworkLogEntry>, ApiError> {
+    ) -> Result<Vec<NetworkLogEntry>, ApiError<NetworkErrorCode>> {
         self.client
             .request_endpoint(Endpoint::network_logs(
                 &self.id,
@@ -146,13 +148,13 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn network_performance(
         &self,
         start: DateTime<Utc>,
         end: DateTime<Utc>,
-    ) -> Result<NetworkPerformance, ApiError> {
+    ) -> Result<NetworkPerformance, ApiError<NetworkErrorCode>> {
         self.client
             .request_endpoint(Endpoint::network_performance(
                 &self.id,
@@ -169,9 +171,11 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn purge_cache(&self) -> Result<bool, ApiError> {
+    pub async fn purge_cache(
+        &self,
+    ) -> Result<bool, ApiError<NetworkErrorCode>> {
         self.client
             .request_endpoint::<()>(Endpoint::purge_edge_cache(&self.id))
             .await?
