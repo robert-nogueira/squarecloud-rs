@@ -1,7 +1,7 @@
 use crate::{
     Endpoint,
     http::{
-        ApiClient,
+        Client,
         errors::{ApiError, FileErrorCode},
     },
     types::{FileContent, FileInfo},
@@ -22,7 +22,7 @@ pub struct FileResource {
     pub path: String,
     /// The ID of the application this file belongs to.
     pub app_id: String,
-    pub(crate) client: ApiClient,
+    pub(crate) client: Client,
 }
 
 impl FileResource {
@@ -31,7 +31,7 @@ impl FileResource {
     ///
     /// Prefer [`AppResource::file`](crate::resources::AppResource::file) over
     /// calling this directly.
-    pub fn new(api: ApiClient, path: &str, app_id: &str) -> Self {
+    pub fn new(api: Client, path: &str, app_id: &str) -> Self {
         Self {
             client: api,
             app_id: app_id.to_string(),
@@ -159,14 +159,14 @@ impl FileResource {
 #[cfg(test)]
 mod tests {
     use super::FileResource;
-    use crate::http::ApiClient;
+    use crate::http::Client;
 
     fn make_file(path: &str) -> FileResource {
         unsafe { std::env::set_var("API_TOKEN", "test") };
         FileResource {
             path: path.to_string(),
             app_id: "app-123".to_string(),
-            client: ApiClient::new(),
+            client: Client::new(),
         }
     }
 

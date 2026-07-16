@@ -43,7 +43,7 @@ pub struct UserInfo {
 
 /// Full account information returned by `me`.
 ///
-/// Returned by [`ApiClient::me`](crate::ApiClient::me).
+/// Returned by [`Client::me`](crate::Client::me).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AccountInfo {
     /// The authenticated user's profile.

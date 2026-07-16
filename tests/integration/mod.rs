@@ -1,6 +1,6 @@
 use std::sync::{Once, OnceLock};
 
-use squarecloud::ApiClient;
+use squarecloud::Client;
 
 mod account;
 mod app;
@@ -33,7 +33,7 @@ pub fn shared_app_id() -> &'static str {
                 tokio::runtime::Runtime::new()
                     .expect("failed to create tokio runtime for app upload")
                     .block_on(async {
-                        ApiClient::new()
+                        Client::new()
                             .upload_app(helpers::dummy_zip())
                             .await
                             .map(|a| a.id)
@@ -68,7 +68,7 @@ pub fn shared_database_id() -> Option<&'static str> {
                         "failed to create tokio runtime for database create",
                     )
                     .block_on(async {
-                        ApiClient::new()
+                        Client::new()
                             .create_database(
                                 "squarecloud-rs-test".to_string(),
                                 256,

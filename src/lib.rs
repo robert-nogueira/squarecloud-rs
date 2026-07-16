@@ -7,18 +7,18 @@
 //! SquareCloud platform: deploying and managing applications, provisioning
 //! databases, organising workspaces, and inspecting account information.
 //!
-//! The main entry point is [`ApiClient`]. It reads the `API_TOKEN`
+//! The main entry point is [`Client`]. It reads the `API_TOKEN`
 //! environment variable (or a `.env` file) on first use, so no explicit
 //! configuration struct is needed.
 //!
 //! # Quick start
 //!
 //! ```no_run
-//! use squarecloud::ApiClient;
+//! use squarecloud::Client;
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let client = ApiClient::new();
+//!     let client = Client::new();
 //!
 //!     // Fetch your account information.
 //!     let me = client.me().await?;
@@ -38,8 +38,8 @@
 //!
 //! | Item | Purpose |
 //! |------|---------|
-//! | [`ApiClient`] | Root entry point; construct with [`ApiClient::new`]. |
-//! | [`resources`] | Resource handles returned by the factory methods on `ApiClient`. |
+//! | [`Client`] | Root entry point; construct with [`Client::new`]. |
+//! | [`resources`] | Resource handles returned by the factory methods on `Client`. |
 //! | [`types`] | Plain data structs deserialised from API responses. |
 //! | [`ApiError`] / [`errors`] | Errors returned by every API call; one error-code enum per domain. |
 //! | [`CommitError`] | Error type specific to [`resources::AppResource::commit`]. |
@@ -54,7 +54,7 @@
 //! file in the working directory is supported automatically.
 
 mod http;
-/// Resource handles returned by the factory methods on [`ApiClient`].
+/// Resource handles returned by the factory methods on [`Client`].
 pub mod resources;
 mod settings;
 /// Plain data structs deserialised from API responses.
@@ -65,7 +65,7 @@ pub(crate) use http::endpoints::Endpoint;
 pub use http::endpoints::EndpointSpec;
 pub use http::errors;
 pub use http::errors::{ApiError, CommitError, ErrorCode, ServiceErrorCode};
-pub use http::http_client::ApiClient;
+pub use http::http_client::Client;
 pub use types::{CredentialType, DatabaseType, RealtimeEvent, SnapshotScope};
 
 #[cfg(test)]

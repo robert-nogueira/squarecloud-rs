@@ -1,7 +1,7 @@
-use squarecloud::{ApiClient, ApiError, errors::AppErrorCode};
+use squarecloud::{ApiError, Client, errors::AppErrorCode};
 
 async fn ensure_running(
-    client: &ApiClient,
+    client: &Client,
     app_id: &str,
 ) -> Result<(), ApiError> {
     let app = client.app(app_id);
@@ -13,7 +13,7 @@ async fn ensure_running(
 
 #[tokio::main]
 async fn main() {
-    let client = ApiClient::new();
+    let client = Client::new();
     let app_id = std::env::args()
         .nth(1)
         .expect("usage: cargo run --example error_handling -- <app_id>");

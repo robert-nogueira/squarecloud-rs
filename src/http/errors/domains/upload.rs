@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::http::errors::ErrorCode;
 
 /// Error codes returned when uploading or committing application archives
-/// ([`ApiClient::upload_app`](crate::ApiClient::upload_app),
+/// ([`Client::upload_app`](crate::Client::upload_app),
 /// [`AppResource::commit`](crate::resources::AppResource::commit)).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]

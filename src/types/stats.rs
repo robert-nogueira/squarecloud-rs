@@ -148,8 +148,8 @@ pub struct AppNetwork {
 /// all-databases list response.
 ///
 /// Returned as part of a [`Vec`] by
-/// [`ApiClient::all_apps_status`](crate::ApiClient::all_apps_status) and
-/// [`ApiClient::all_database_status`](crate::ApiClient::all_database_status).
+/// [`Client::all_apps_status`](crate::Client::all_apps_status) and
+/// [`Client::all_database_status`](crate::Client::all_database_status).
 /// `cpu` and `ram` are only present when `running` is `true`.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RuntimeStatsListItem {

@@ -59,7 +59,7 @@ pub trait ServiceErrorCode:
 
 /// An error returned by any API operation.
 ///
-/// Most methods on [`ApiClient`](crate::ApiClient) and on resource handles
+/// Most methods on [`Client`](crate::Client) and on resource handles
 /// return `Result<_, ApiError<C>>`, where `C` is the domain-scoped error
 /// code enum for that group of routes (e.g. [`EnvErrorCode`] for
 /// environment variable operations). Match on this enum to distinguish

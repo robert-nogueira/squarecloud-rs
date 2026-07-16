@@ -1,10 +1,10 @@
-use squarecloud::ApiClient;
+use squarecloud::Client;
 
 #[tokio::test]
 async fn create_workspace_and_delete() {
     crate::setup();
     crate::throttle().await;
-    let client = ApiClient::new();
+    let client = Client::new();
     let ws = client
         .create_workspace("squarecloud-rs-test".to_string())
         .await;
@@ -23,7 +23,7 @@ async fn create_workspace_and_delete() {
 async fn all_workspaces_returns_vec() {
     crate::setup();
     crate::throttle().await;
-    let client = ApiClient::new();
+    let client = Client::new();
     let result = client.all_workspaces().await;
     assert!(
         result.is_ok(),
@@ -36,7 +36,7 @@ async fn all_workspaces_returns_vec() {
 async fn workspace_info_returns_info() {
     crate::setup();
     crate::throttle().await;
-    let client = ApiClient::new();
+    let client = Client::new();
     let workspaces = client
         .all_workspaces()
         .await
@@ -45,7 +45,7 @@ async fn workspace_info_returns_info() {
         return;
     }
     let ws = &workspaces[0];
-    let info = ApiClient::new()
+    let info = Client::new()
         .workspace(&ws.id)
         .info()
         .await

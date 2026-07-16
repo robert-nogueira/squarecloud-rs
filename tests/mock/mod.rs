@@ -1,6 +1,6 @@
 use std::sync::Once;
 
-use squarecloud::ApiClient;
+use squarecloud::Client;
 use wiremock::MockServer;
 
 mod account;
@@ -25,10 +25,10 @@ fn setup() {
     });
 }
 
-pub async fn mock_client() -> (ApiClient, MockServer) {
+pub async fn mock_client() -> (Client, MockServer) {
     setup();
     let server = MockServer::start().await;
-    let mut client = ApiClient::new();
+    let mut client = Client::new();
     client.base_url = server.uri();
     client.blob_base_url = server.uri();
     (client, server)

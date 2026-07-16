@@ -7,7 +7,7 @@ use reqwest::multipart::{Form, Part};
 use crate::{
     Endpoint,
     http::{
-        ApiClient,
+        Client,
         errors::{ApiError, AppErrorCode, CommitError},
     },
     resources::FileResource,
@@ -16,7 +16,7 @@ use crate::{
 
 /// A handle to a specific SquareCloud application.
 ///
-/// Obtain an `AppResource` by calling [`ApiClient::app`] with the application
+/// Obtain an `AppResource` by calling [`Client::app`] with the application
 /// ID, or via [`AppInfo::into_resource`](crate::types::AppInfo::into_resource).
 ///
 /// Methods are spread across multiple `impl` blocks in submodules:
@@ -31,15 +31,15 @@ use crate::{
 pub struct AppResource {
     /// The application's unique identifier.
     pub id: String,
-    pub(crate) client: ApiClient,
+    pub(crate) client: Client,
 }
 
 impl AppResource {
     /// Creates a new `AppResource` bound to the given client and application
     /// ID.
     ///
-    /// Prefer [`ApiClient::app`] over calling this directly.
-    pub fn new(http: ApiClient, id: &str) -> Self {
+    /// Prefer [`Client::app`] over calling this directly.
+    pub fn new(http: Client, id: &str) -> Self {
         Self {
             client: http,
             id: id.to_string(),
@@ -55,10 +55,10 @@ impl AppResource {
     ///
     /// ```no_run
     /// use futures_util::StreamExt;
-    /// use squarecloud::{ApiClient, RealtimeEvent};
+    /// use squarecloud::{Client, RealtimeEvent};
     ///
     /// # #[tokio::main] async fn main() {
-    /// let client = ApiClient::new();
+    /// let client = Client::new();
     /// let mut stream = client.app("your-app-id").realtime();
     /// while let Some(event) = stream.next().await {
     ///     match event.unwrap() {
@@ -260,7 +260,7 @@ impl AppResource {
     /// parameter accepts anything that converts to a `Cow<'static, [u8]>`,
     /// such as a `Vec<u8>`.
     ///
-    /// Unlike [`ApiClient::upload_app`](crate::ApiClient::upload_app),
+    /// Unlike [`Client::upload_app`](crate::Client::upload_app),
     /// `commit` updates an existing application in place rather than creating
     /// a new one.
     ///

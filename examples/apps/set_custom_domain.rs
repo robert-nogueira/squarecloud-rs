@@ -1,4 +1,4 @@
-use squarecloud::ApiClient;
+use squarecloud::Client;
 
 #[tokio::main]
 async fn main() {
@@ -8,7 +8,7 @@ async fn main() {
     let domain = std::env::args().nth(2).expect(
         "usage: cargo run --example set_custom_domain -- <app_id> <domain>",
     );
-    let client = ApiClient::new();
+    let client = Client::new();
     client
         .app(&app_id)
         .set_custom_domain(&domain)

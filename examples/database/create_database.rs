@@ -1,8 +1,8 @@
-use squarecloud::{ApiClient, DatabaseType};
+use squarecloud::{Client, DatabaseType};
 
 #[tokio::main]
 async fn main() {
-    let client = ApiClient::new();
+    let client = Client::new();
     let db = client
         .create_database(
             "my-db".to_string(),

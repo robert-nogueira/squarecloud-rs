@@ -5,7 +5,7 @@ use reqwest::multipart::{Form, Part};
 use crate::{
     Endpoint,
     http::{
-        ApiClient,
+        Client,
         errors::{ApiError, BlobErrorCode},
     },
     types::{BlobObject, BlobObjectList, BlobStats, UploadOptions},
@@ -13,13 +13,13 @@ use crate::{
 
 /// A handle to the SquareCloud Blob Storage API.
 ///
-/// Obtain a `BlobResource` by calling [`ApiClient::blob`].
+/// Obtain a `BlobResource` by calling [`Client::blob`].
 pub struct BlobResource {
-    pub(crate) client: ApiClient,
+    pub(crate) client: Client,
 }
 
 impl BlobResource {
-    pub(crate) fn new(client: ApiClient) -> Self {
+    pub(crate) fn new(client: Client) -> Self {
         Self { client }
     }
 

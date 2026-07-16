@@ -1,9 +1,9 @@
-use squarecloud::{ApiClient, types::UploadOptions};
+use squarecloud::{Client, types::UploadOptions};
 
 #[tokio::test]
 async fn blob_upload_and_list_and_delete() {
     crate::setup();
-    let client = ApiClient::new();
+    let client = Client::new();
 
     let bytes: Vec<u8> = vec![b'a'; 1024];
     // name must be [a-zA-Z0-9_], 3-32 chars (no dots, dashes, or slashes)
@@ -33,7 +33,7 @@ async fn blob_upload_and_list_and_delete() {
 #[tokio::test]
 async fn blob_list_with_prefix() {
     crate::setup();
-    let client = ApiClient::new();
+    let client = Client::new();
 
     // prefix must be [a-zA-Z0-9_], 3-32 chars
     let listing = client
@@ -47,7 +47,7 @@ async fn blob_list_with_prefix() {
 #[tokio::test]
 async fn blob_stats_returns_data() {
     crate::setup();
-    let client = ApiClient::new();
+    let client = Client::new();
 
     let stats = client
         .blob()
