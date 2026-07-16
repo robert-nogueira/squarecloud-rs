@@ -8,9 +8,9 @@ pub struct AnalyticsItem {
     #[serde(rename = "type")]
     pub item_type: String,
     /// Total number of unique visits attributed to this item.
-    pub visits: u32,
+    pub visits: u64,
     /// Total number of HTTP requests attributed to this item.
-    pub requests: u32,
+    pub requests: u64,
     /// Total bytes transferred for this item.
     pub bytes: u64,
     /// The time period these metrics cover, as an ISO 8601 date string.

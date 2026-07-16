@@ -16,7 +16,7 @@ pub struct DatabaseMetrics {
     /// RAM usage as a percentage at this point in time.
     pub ram: f32,
     /// Network byte counts as `[bytes_in, bytes_out]`.
-    pub net: [u32; 2],
+    pub net: [u64; 2],
 }
 
 /// The type of managed database engine to provision.
@@ -53,7 +53,7 @@ pub struct DatabaseInfo {
     #[serde(rename = "type")]
     pub db_type: String,
     /// The network port the database listens on.
-    pub port: u32,
+    pub port: u16,
     /// The UTC timestamp when the database was created.
     pub created_at: DateTime<Utc>,
 }
