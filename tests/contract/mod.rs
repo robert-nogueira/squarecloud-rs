@@ -11,6 +11,7 @@ use std::collections::HashMap;
 use serde_json::Value;
 
 mod endpoints;
+mod error_codes;
 mod schemas;
 mod validation;
 

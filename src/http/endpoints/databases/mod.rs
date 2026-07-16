@@ -5,25 +5,104 @@ use super::Endpoint;
 use reqwest::Method;
 
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post",   path: "/databases" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/databases",
+    domain: "DatabaseErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DatabaseErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/databases/status" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/databases/status",
+    domain: "DatabaseErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DatabaseErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/databases/{database_id}" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/databases/{database_id}",
+    domain: "DatabaseErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DatabaseErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "delete", path: "/databases/{database_id}" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "delete",
+    path: "/databases/{database_id}",
+    domain: "DatabaseErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DatabaseErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "patch",  path: "/databases/{database_id}" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "patch",
+    path: "/databases/{database_id}",
+    domain: "DatabaseErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DatabaseErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/databases/{database_id}/status" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/databases/{database_id}/status",
+    domain: "DatabaseErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DatabaseErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/databases/{database_id}/metrics" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/databases/{database_id}/metrics",
+    domain: "DatabaseErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DatabaseErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post",   path: "/databases/{database_id}/start" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/databases/{database_id}/start",
+    domain: "DatabaseErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DatabaseErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post",   path: "/databases/{database_id}/stop" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/databases/{database_id}/stop",
+    domain: "DatabaseErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DatabaseErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/databases/{database_id}/credentials/certificate" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/databases/{database_id}/credentials/certificate",
+    domain: "DatabaseErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::DatabaseErrorCode>,
+    }
+}
 
 impl Endpoint {
     pub(crate) fn create_database() -> Endpoint {

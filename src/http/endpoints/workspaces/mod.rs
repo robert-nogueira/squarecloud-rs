@@ -5,15 +5,54 @@ use super::Endpoint;
 use reqwest::Method;
 
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "post",   path: "/workspaces" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "post",
+    path: "/workspaces",
+    domain: "WorkspaceErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::WorkspaceErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/workspaces" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/workspaces",
+    domain: "WorkspaceErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::WorkspaceErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "delete", path: "/workspaces" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "delete",
+    path: "/workspaces",
+    domain: "WorkspaceErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::WorkspaceErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "get",    path: "/workspaces/{workspace_id}" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/workspaces/{workspace_id}",
+    domain: "WorkspaceErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::WorkspaceErrorCode>,
+    }
+}
+
 #[cfg(feature = "test-utils")]
-inventory::submit! { crate::EndpointSpec { method: "delete", path: "/workspaces/leave" } }
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "delete",
+    path: "/workspaces/leave",
+    domain: "WorkspaceErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::WorkspaceErrorCode>,
+    }
+}
 
 impl Endpoint {
     pub(crate) fn create_workspace() -> Endpoint {

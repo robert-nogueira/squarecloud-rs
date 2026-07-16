@@ -55,6 +55,26 @@ pub trait ServiceErrorCode:
             other => unreachable!("error code serialized as {other:?}"),
         }
     }
+
+    /// Returns `true` when this value is the enum's `Unknown` fallback,
+    /// i.e. the API sent a code this catalogue does not recognise.
+    fn is_unknown(&self) -> bool;
+}
+
+/// Returns `true` when `code` parses into a catalogued (non-`Unknown`)
+/// variant of `C`.
+///
+/// Used by contract tests to verify that every error code documented in
+/// the OpenAPI spec is catalogued in the error-code enum of the route
+/// that returns it.
+pub fn code_is_known<C: ServiceErrorCode>(code: &str) -> bool {
+    !C::from_wire(code.to_owned()).is_unknown()
+}
+
+/// Checker for endpoints that bypass the error envelope and can never
+/// yield a service error code (e.g. `service_status`).
+pub fn no_error_codes(_: &str) -> bool {
+    false
 }
 
 /// An error returned by any API operation.

@@ -11,7 +11,11 @@
 macro_rules! impl_service_error_code {
     ($ty:ty) => {
         impl crate::http::errors::sealed::Sealed for $ty {}
-        impl crate::http::errors::ServiceErrorCode for $ty {}
+        impl crate::http::errors::ServiceErrorCode for $ty {
+            fn is_unknown(&self) -> bool {
+                matches!(self, Self::Unknown(_))
+            }
+        }
         impl PartialEq<crate::http::errors::ErrorCode> for $ty {
             fn eq(&self, other: &crate::http::errors::ErrorCode) -> bool {
                 other == self
