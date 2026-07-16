@@ -8,16 +8,14 @@ use crate::http::errors::ErrorCode;
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[non_exhaustive]
 pub enum DeployErrorCode {
-    /// The application does not exist or is not owned by the caller.
-    AppNotFound,
-    /// The requested resource was not found.
-    NotFound,
     /// The API token in the `Authorization` header is invalid or revoked.
     InvalidAccessToken,
-    /// The request was rejected by the rate limiter.
+    /// The application does not exist or is not owned by the caller.
+    AppNotFound,
+    /// Global rate limit of the authentication layer.
     RateLimit,
     /// A code returned by the API that this client does not recognise.
-    /// The inner string contains the raw value from the API response.
+    /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]
     Unknown(ErrorCode),
 }

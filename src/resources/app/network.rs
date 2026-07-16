@@ -64,7 +64,7 @@ impl AppResource {
     /// # Errors
     ///
     /// Returns [`ApiError::Service`] with
-    /// [`NetworkErrorCode::InvalidSubdomain`]
+    /// [`NetworkErrorCode::InvalidDomain`]
     /// if the domain is malformed or already in use, or
     /// [`ApiError::Transport`] on network failure.
     pub async fn set_custom_domain(

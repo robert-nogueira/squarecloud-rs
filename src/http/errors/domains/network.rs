@@ -8,26 +8,45 @@ use crate::http::errors::ErrorCode;
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[non_exhaustive]
 pub enum NetworkErrorCode {
-    /// The requested time range has no data or is invalid.
-    InvalidTimeRange,
-    /// The application has no custom domain configured.
+    /// The domain is not a valid fully qualified domain name.
+    InvalidDomain,
+    /// Square Cloud domains cannot be used as a custom domain.
+    ReservedDomain,
+    /// The domain is already attached to an application owned by another
+    /// account.
+    DomainAlreadyExists,
+    /// The domain attachment failed at the edge provider.
+    DnsFailed,
+    /// The plan's limit of applications on this domain was reached.
+    LoadBalancerLimitReached,
+    /// The application does not have a custom domain attached.
     NoCustomDomain,
-    /// The requested subdomain is malformed or already taken.
-    InvalidSubdomain,
-    /// Rate limit: too many expensive operations in a short window.
+    /// `start`/`end` are missing, malformed, or invert the time range.
+    InvalidTimeRange,
+    /// A drill-down filter does not match its expected format.
+    InvalidFilter,
+    /// Failed to fetch analytics from the edge provider.
+    UnableToFetchAnalytics,
+    /// Failed to fetch error data from the edge provider.
+    UnableToFetchErrors,
+    /// Failed to fetch performance data from the edge provider.
+    UnableToFetchPerformance,
+    /// 429 em `GET .../network/analytics`, `.../network/errors`,
+    /// `.../network/logs`, `.../network/performance`, `GET
+    /// /v2/users/snapshots`
+    RateLimitExceeded,
+    /// Short-lived rate limit; retry after a few seconds.
     KeepCalm,
-    /// The application does not exist or is not owned by the caller.
-    AppNotFound,
-    /// The requested resource was not found.
-    NotFound,
-    /// The API token in the `Authorization` header is invalid or revoked.
-    InvalidAccessToken,
-    /// The request was rejected by the rate limiter.
-    RateLimit,
     /// The endpoint requires a higher plan than the account currently has.
     UpgradeRequired,
+    /// The application does not exist or is not owned by the caller.
+    AppNotFound,
+    /// The API token in the `Authorization` header is invalid or revoked.
+    InvalidAccessToken,
+    /// Global rate limit of the authentication layer.
+    RateLimit,
     /// A code returned by the API that this client does not recognise.
-    /// The inner string contains the raw value from the API response.
+    /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]
     Unknown(ErrorCode),
 }

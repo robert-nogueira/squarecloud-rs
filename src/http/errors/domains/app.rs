@@ -10,20 +10,35 @@ use crate::http::errors::ErrorCode;
 pub enum AppErrorCode {
     /// The application does not exist or is not owned by the caller.
     AppNotFound,
-    /// Start was rejected because the container is already running.
+    /// The cluster rejected the action, for example the application is already
+    /// mid-deploy.
+    ActionFailed,
+    /// Start was rejected because the container is already running. Possibly
+    /// superseded by `ACTION_FAILED`; kept until verified against the live
+    /// API.
     ContainerAlreadyStarted,
-    /// A snapshot restore is already in progress for this application.
+    /// A snapshot restore is currently running for this application;
+    /// wait for it to finish.
     RestoreInProgress,
+    /// The delete operation was rejected or failed.
+    DeleteFailed,
+    /// The application has less than 512 MB of RAM allocated and does not
+    /// collect metrics.
+    MetricsNotSupported,
+    /// The caller already has 5 concurrent realtime connections open.
+    RealtimeMaxConnections,
+    /// The application already has 30 concurrent realtime connections open
+    /// across all users.
+    RealtimeMaxConnectionsApp,
+    /// The workspace does not exist or the caller is not the owner or a
+    /// member.
+    WorkspaceNotFound,
     /// The API token in the `Authorization` header is invalid or revoked.
     InvalidAccessToken,
-    /// The request was rejected by the rate limiter.
+    /// Global rate limit of the authentication layer.
     RateLimit,
-    /// The requested resource was not found.
-    NotFound,
-    /// Rate limit: too many expensive operations in a short window.
-    KeepCalm,
     /// A code returned by the API that this client does not recognise.
-    /// The inner string contains the raw value from the API response.
+    /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]
     Unknown(ErrorCode),
 }

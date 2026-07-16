@@ -8,18 +8,27 @@ use crate::http::errors::ErrorCode;
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[non_exhaustive]
 pub enum EnvErrorCode {
-    /// A field value did not pass server-side regex validation.
-    RegexValidation,
+    /// `envs` is missing, not an object, or an array.
+    InvalidEnvContent,
+    /// A variable key exceeds 1024 characters.
+    EnvNameTooLong,
+    /// A variable value exceeds 4096 characters.
+    EnvContentTooLong,
+    /// The merged set would exceed 256 environment variables.
+    TooManyEnvVars,
+    /// The application is static; static apps don't support environment
+    /// variables.
+    StaticAppEnvNotSupported,
+    /// The requested content could not be read from the cluster.
+    ReadFailed,
     /// The application does not exist or is not owned by the caller.
     AppNotFound,
-    /// The requested resource was not found.
-    NotFound,
     /// The API token in the `Authorization` header is invalid or revoked.
     InvalidAccessToken,
-    /// The request was rejected by the rate limiter.
+    /// Global rate limit of the authentication layer.
     RateLimit,
     /// A code returned by the API that this client does not recognise.
-    /// The inner string contains the raw value from the API response.
+    /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]
     Unknown(ErrorCode),
 }

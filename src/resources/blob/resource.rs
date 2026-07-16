@@ -39,7 +39,7 @@ impl BlobResource {
     /// # Errors
     ///
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error (e.g. [`BlobErrorCode::InvalidObject`]).
+    /// on an API-level error (e.g. [`BlobErrorCode::InvalidObjectName`]).
     pub async fn upload(
         &self,
         name: &str,

@@ -8,16 +8,52 @@ use crate::http::errors::ErrorCode;
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[non_exhaustive]
 pub enum FileErrorCode {
+    /// The `path` value contains traversal or shell metacharacters.
+    InvalidPath,
+    /// The requested path is on the platform's blocked-paths list.
+    BlockedPath,
+    /// No file exists at the given path.
+    FileNotFound,
+    /// The file exceeds the 100 MB per-file limit.
+    FileTooLarge,
+    /// `content` is missing or empty.
+    InvalidContent,
+    /// The cluster could not rename the file.
+    RenameFailed,
+    /// The delete operation was rejected or failed.
+    DeleteFailed,
+    /// The parsed config update could not be persisted.
+    SaveFailed,
+    /// The `display_name` field parsed from a `squarecloud.app`/
+    /// `squarecloud.config` write failed validation.
+    InvalidDisplayName,
+    /// The `description` field parsed from a `squarecloud.app`/
+    /// `squarecloud.config` write failed validation.
+    InvalidDescription,
+    /// The memory value is not permitted for this resource or plan.
+    InvalidMemory,
+    /// The `autorestart` field parsed from a `squarecloud.app`/
+    /// `squarecloud.config` write failed validation.
+    InvalidAutorestart,
+    /// The `subdomain` field parsed from a `squarecloud.app`/
+    /// `squarecloud.config` write failed validation.
+    InvalidSubdomain,
+    /// The parsed config tried to set a subdomain the plan or account cannot
+    /// use.
+    CannotSetSubdomain,
+    /// The caller lacks permission for this resource (restricted file or plan
+    /// gate).
+    PermissionDenied,
+    /// Short-lived rate limit; retry after a few seconds.
+    KeepCalm,
     /// The application does not exist or is not owned by the caller.
     AppNotFound,
-    /// The requested resource was not found.
-    NotFound,
     /// The API token in the `Authorization` header is invalid or revoked.
     InvalidAccessToken,
-    /// The request was rejected by the rate limiter.
+    /// Global rate limit of the authentication layer.
     RateLimit,
     /// A code returned by the API that this client does not recognise.
-    /// The inner string contains the raw value from the API response.
+    /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]
     Unknown(ErrorCode),
 }

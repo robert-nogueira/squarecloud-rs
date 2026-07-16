@@ -134,7 +134,7 @@ impl DatabaseResource {
     ///
     /// Returns [`ApiError::Service`] with
     /// [`DatabaseErrorCode::InvalidMemory`] or
-    /// [`DatabaseErrorCode::FewMemory`] if the new
+    /// [`DatabaseErrorCode::InsufficientMemory`] if the new
     /// memory value is not permitted, or [`ApiError::Transport`] on network
     /// failure.
     pub async fn edit(
