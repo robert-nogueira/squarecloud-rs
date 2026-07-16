@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::{http::ApiClient, resources::WorkspaceResource};
+use crate::{http::Client, resources::WorkspaceResource};
 
 /// A member of a SquareCloud workspace.
 #[derive(Debug, Serialize, Deserialize)]
@@ -39,8 +39,8 @@ pub struct WorkspaceApp {
 
 /// Full details for a SquareCloud workspace.
 ///
-/// Returned by [`ApiClient::all_workspaces`](crate::ApiClient::all_workspaces),
-/// [`ApiClient::create_workspace`](crate::ApiClient::create_workspace), and
+/// Returned by [`Client::all_workspaces`](crate::Client::all_workspaces),
+/// [`Client::create_workspace`](crate::Client::create_workspace), and
 /// [`WorkspaceResource::info`](crate::resources::WorkspaceResource::info). To
 /// obtain a [`WorkspaceResource`] handle from this value, call
 /// [`into_resource`](WorkspaceInfo::into_resource).
@@ -65,7 +65,7 @@ pub struct WorkspaceInfo {
 
 impl WorkspaceInfo {
     /// Converts this value into a [`WorkspaceResource`] handle bound to `api`.
-    pub fn into_resource(&self, api: ApiClient) -> WorkspaceResource {
+    pub fn into_resource(&self, api: Client) -> WorkspaceResource {
         WorkspaceResource::new(api, &self.id)
     }
 }
@@ -75,7 +75,7 @@ mod tests {
     use chrono::Utc;
 
     use super::WorkspaceInfo;
-    use crate::http::ApiClient;
+    use crate::http::Client;
 
     #[test]
     fn into_resource_binds_correct_id() {
@@ -88,7 +88,7 @@ mod tests {
             applications: vec![],
             created_at: Utc::now(),
         };
-        let resource = ws.into_resource(ApiClient::new());
+        let resource = ws.into_resource(Client::new());
         assert_eq!(resource.id, "ws-abc");
     }
 }

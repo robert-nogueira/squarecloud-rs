@@ -1,4 +1,4 @@
-use squarecloud::ApiClient;
+use squarecloud::Client;
 
 #[tokio::main]
 async fn main() {
@@ -11,7 +11,7 @@ async fn main() {
     let role = std::env::args().nth(3).expect(
         "usage: cargo run --example change_member_permissions -- <workspace_id> <invite_code> <role>",
     );
-    let client = ApiClient::new();
+    let client = Client::new();
     client
         .workspace(&ws_id)
         .change_member_permissions(&invite_code, &role)

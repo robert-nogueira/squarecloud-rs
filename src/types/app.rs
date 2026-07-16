@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::http::ApiClient;
+use crate::http::Client;
 use crate::resources::AppResource;
 
 /// Detected runtime language returned by the upload endpoint.
@@ -13,7 +13,7 @@ pub struct AppLanguage {
     pub version: String,
 }
 
-/// Response returned by [`ApiClient::upload_app`](crate::ApiClient::upload_app).
+/// Response returned by [`Client::upload_app`](crate::Client::upload_app).
 ///
 /// This differs from [`AppInfo`] in that `language` is a structured object and
 /// `cpu` is included. To obtain an [`AppResource`] handle from this value, call
@@ -38,7 +38,7 @@ pub struct UploadedApp {
 
 impl UploadedApp {
     /// Converts this value into an [`AppResource`] handle bound to `api`.
-    pub fn into_resource(&self, api: ApiClient) -> AppResource {
+    pub fn into_resource(&self, api: Client) -> AppResource {
         AppResource::new(api, &self.id)
     }
 }
@@ -70,7 +70,7 @@ pub struct AppInfo {
 
 impl AppInfo {
     /// Converts this value into an [`AppResource`] handle bound to `api`.
-    pub fn into_resource(&self, api: ApiClient) -> AppResource {
+    pub fn into_resource(&self, api: Client) -> AppResource {
         AppResource::new(api, &self.id)
     }
 }
@@ -78,11 +78,11 @@ impl AppInfo {
 #[cfg(test)]
 mod tests {
     use super::{AppInfo, AppLanguage, UploadedApp};
-    use crate::http::ApiClient;
+    use crate::http::Client;
 
-    fn client() -> ApiClient {
+    fn client() -> Client {
         unsafe { std::env::set_var("API_TOKEN", "test") };
-        ApiClient::new()
+        Client::new()
     }
 
     #[test]
@@ -129,7 +129,7 @@ pub(crate) struct AppLogs {
 /// A domain entry associated with an application.
 ///
 /// Returned as part of a [`Vec`] by
-/// [`ApiClient::all_domains`](crate::ApiClient::all_domains).
+/// [`Client::all_domains`](crate::Client::all_domains).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AppDomain {
     /// The owning application's unique identifier.

@@ -1,8 +1,8 @@
-use squarecloud::ApiClient;
+use squarecloud::Client;
 
 #[tokio::main]
 async fn main() {
-    let client = ApiClient::new();
+    let client = Client::new();
 
     let object_id = std::env::args()
         .nth(1)

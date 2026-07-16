@@ -3,7 +3,7 @@ use serde_json::{Map, Value};
 use crate::{
     Endpoint,
     http::{
-        ApiClient,
+        Client,
         errors::{ApiError, DatabaseErrorCode},
     },
     types::{DatabaseInfo, DatabaseMetrics, RuntimeStats},
@@ -11,7 +11,7 @@ use crate::{
 
 /// A handle to a specific SquareCloud managed database.
 ///
-/// Obtain a `DatabaseResource` by calling [`ApiClient::database`] with the
+/// Obtain a `DatabaseResource` by calling [`Client::database`] with the
 /// database ID, or via
 /// [`Database::into_resource`](crate::types::Database::into_resource).
 ///
@@ -25,15 +25,15 @@ use crate::{
 pub struct DatabaseResource {
     /// The database's unique identifier.
     pub id: String,
-    pub(crate) client: ApiClient,
+    pub(crate) client: Client,
 }
 
 impl DatabaseResource {
     /// Creates a new `DatabaseResource` bound to the given client and database
     /// ID.
     ///
-    /// Prefer [`ApiClient::database`] over calling this directly.
-    pub fn new(http: ApiClient, id: &str) -> Self {
+    /// Prefer [`Client::database`] over calling this directly.
+    pub fn new(http: Client, id: &str) -> Self {
         Self {
             client: http,
             id: id.to_string(),

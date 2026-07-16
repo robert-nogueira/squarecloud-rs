@@ -1,4 +1,4 @@
-use squarecloud::ApiClient;
+use squarecloud::Client;
 
 #[tokio::main]
 async fn main() {
@@ -8,7 +8,7 @@ async fn main() {
     let zip_path = std::env::args()
         .nth(2)
         .expect("usage: cargo run --example commit -- <app_id> <zip_path>");
-    let client = ApiClient::new();
+    let client = Client::new();
     let bytes = std::fs::read(zip_path).unwrap();
     client.app(&app_id).commit(bytes).await.unwrap();
 }

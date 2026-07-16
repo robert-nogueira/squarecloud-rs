@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use reqwest::{
-    Client, Request,
+    Client as ReqwestClient, Request,
     header::{HeaderMap, HeaderValue},
     multipart::{Form, Part},
 };
@@ -122,14 +122,14 @@ mod tests {
     }
 
     #[test]
-    fn api_client_default_is_same_as_new() {
+    fn client_default_is_same_as_new() {
         unsafe { std::env::set_var("API_TOKEN", "test") };
-        let client = crate::http::ApiClient::default();
+        let client = crate::http::Client::default();
         assert!(!client.base_url.is_empty());
     }
 }
 
-impl Default for ApiClient {
+impl Default for Client {
     fn default() -> Self {
         Self::new()
     }
@@ -137,30 +137,30 @@ impl Default for ApiClient {
 
 /// Authenticated HTTP client for the SquareCloud API.
 ///
-/// `ApiClient` is the root entry point for this library. Construct one with
-/// [`ApiClient::new`], which reads credentials from the environment, then call
+/// `Client` is the root entry point for this library. Construct one with
+/// [`Client::new`], which reads credentials from the environment, then call
 /// methods directly for account-wide operations, or use the resource factory
-/// methods ([`app`](ApiClient::app), [`database`](ApiClient::database),
-/// [`workspace`](ApiClient::workspace)) to obtain handles scoped to a specific
+/// methods ([`app`](Client::app), [`database`](Client::database),
+/// [`workspace`](Client::workspace)) to obtain handles scoped to a specific
 /// entity.
 ///
 /// # Cloning
 ///
-/// `ApiClient` implements [`Clone`]. The underlying HTTP connection pool
+/// `Client` implements [`Clone`]. The underlying HTTP connection pool
 /// (from [`reqwest`]) is shared across clones, so cloning is cheap. The
-/// factory methods [`app`](ApiClient::app), [`database`](ApiClient::database),
-/// and [`workspace`](ApiClient::workspace) clone the client internally:
+/// factory methods [`app`](Client::app), [`database`](Client::database),
+/// and [`workspace`](Client::workspace) clone the client internally:
 ///
 /// ```no_run
-/// # use squarecloud::ApiClient;
+/// # use squarecloud::Client;
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let client = ApiClient::new();
+/// let client = Client::new();
 /// let me = client.me().await?;
 /// let app = client.app("my-app-id");   // client still usable after this
 /// # Ok(()) }
 /// ```
 #[derive(Clone)]
-pub struct ApiClient {
+pub struct Client {
     /// Base URL for all API requests. Defaults to `https://api.squarecloud.app/v2`.
     /// Override this field to point the client at a different endpoint.
     pub base_url: String,
@@ -168,11 +168,11 @@ pub struct ApiClient {
     /// `https://blob.squarecloud.app/v1`. Override to redirect blob calls to a
     /// mock server in tests.
     pub blob_base_url: String,
-    pub(crate) http_client: Client,
+    pub(crate) http_client: ReqwestClient,
 }
 
-impl ApiClient {
-    /// Creates a new `ApiClient` by reading credentials from the environment.
+impl Client {
+    /// Creates a new `Client` by reading credentials from the environment.
     ///
     /// On first call, the `API_TOKEN` environment variable is loaded (a `.env`
     /// file in the current directory is automatically sourced via [`dotenvy`]).
@@ -183,13 +183,13 @@ impl ApiClient {
     ///
     /// Panics if `API_TOKEN` is not set in the environment, or if it contains
     /// non-ASCII characters.
-    pub fn new() -> ApiClient {
+    pub fn new() -> Client {
         let mut headers = HeaderMap::new();
         headers.append(
             "Authorization",
             HeaderValue::from_str(&SETTINGS.api_token).unwrap(),
         );
-        let client: Client = Client::builder()
+        let client: ReqwestClient = ReqwestClient::builder()
             .default_headers(headers)
             .user_agent(concat!(
                 env!("CARGO_PKG_NAME"),
@@ -199,7 +199,7 @@ impl ApiClient {
             .http1_only()
             .build()
             .unwrap();
-        ApiClient {
+        Client {
             base_url: "https://api.squarecloud.app/v2".to_string(),
             blob_base_url: "https://blob.squarecloud.app/v1".to_string(),
             http_client: client,

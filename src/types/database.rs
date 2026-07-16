@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::{http::ApiClient, resources::DatabaseResource};
+use crate::{http::Client, resources::DatabaseResource};
 
 /// A single historical resource-usage sample for a database.
 ///
@@ -36,7 +36,7 @@ pub enum DatabaseType {
 /// Returned by
 /// [`DatabaseResource::info`](crate::resources::DatabaseResource::info).
 /// To obtain a [`DatabaseResource`] handle from an existing value, use
-/// [`ApiClient::database`](crate::ApiClient::database) with the `id` field.
+/// [`Client::database`](crate::Client::database) with the `id` field.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DatabaseInfo {
     /// The database's unique identifier.
@@ -79,7 +79,7 @@ pub struct DatabaseSummary {
 /// Full details for a provisioned database.
 ///
 /// Returned by
-/// [`ApiClient::create_database`](crate::ApiClient::create_database). To
+/// [`Client::create_database`](crate::Client::create_database). To
 /// obtain a [`DatabaseResource`] handle from this value, call
 /// [`into_resource`](Database::into_resource).
 #[derive(Debug, Serialize, Deserialize)]
@@ -132,7 +132,7 @@ pub struct Credential {
 
 impl Database {
     /// Converts this value into a [`DatabaseResource`] handle bound to `api`.
-    pub fn into_resource(&self, api: ApiClient) -> DatabaseResource {
+    pub fn into_resource(&self, api: Client) -> DatabaseResource {
         DatabaseResource::new(api, &self.id)
     }
 }
@@ -140,7 +140,7 @@ impl Database {
 #[cfg(test)]
 mod tests {
     use super::Database;
-    use crate::http::ApiClient;
+    use crate::http::Client;
 
     #[test]
     fn into_resource_binds_correct_id() {
@@ -155,7 +155,7 @@ mod tests {
             certificate: "cert".to_string(),
             connection_url: "postgres://localhost/test".to_string(),
         };
-        let resource = db.into_resource(ApiClient::new());
+        let resource = db.into_resource(Client::new());
         assert_eq!(resource.id, "db-abc");
     }
 }

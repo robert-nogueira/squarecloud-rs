@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Filters the resource type returned by
-/// [`ApiClient::all_snapshots`](crate::ApiClient::all_snapshots).
+/// [`Client::all_snapshots`](crate::Client::all_snapshots).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SnapshotScope {
     /// Return only application snapshots.
@@ -25,7 +25,7 @@ impl SnapshotScope {
 /// Returned in list responses from
 /// [`AppResource::list_snapshots`](crate::resources::AppResource::list_snapshots),
 /// [`DatabaseResource::list_snapshots`](crate::resources::DatabaseResource::list_snapshots),
-/// and [`ApiClient::all_snapshots`](crate::ApiClient::all_snapshots).
+/// and [`Client::all_snapshots`](crate::Client::all_snapshots).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Snapshot {
     /// The snapshot's display name.

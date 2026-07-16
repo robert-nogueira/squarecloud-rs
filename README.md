@@ -26,11 +26,11 @@ API_TOKEN=your_squarecloud_api_token
 ## Quick start
 
 ```rust
-use squarecloud::ApiClient;
+use squarecloud::Client;
 
 #[tokio::main]
 async fn main() {
-    let client = ApiClient::new();
+    let client = Client::new();
 
     let me = client.me().await.unwrap();
     println!("Logged in as {} ({})", me.user.name, me.user.email);
@@ -46,11 +46,11 @@ async fn main() {
 
 ```rust
 use futures_util::StreamExt;
-use squarecloud::{ApiClient, RealtimeEvent};
+use squarecloud::{Client, RealtimeEvent};
 
 #[tokio::main]
 async fn main() {
-    let client = ApiClient::new();
+    let client = Client::new();
     let mut stream = client.app("application_id").realtime();
     while let Some(event) = stream.next().await {
         match event.unwrap() {

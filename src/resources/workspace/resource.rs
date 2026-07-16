@@ -1,7 +1,7 @@
 use crate::{
     Endpoint,
     http::{
-        ApiClient,
+        Client,
         errors::{ApiError, WorkspaceErrorCode},
     },
     types::WorkspaceInfo,
@@ -9,7 +9,7 @@ use crate::{
 
 /// A handle to a specific SquareCloud workspace.
 ///
-/// Obtain a `WorkspaceResource` by calling [`ApiClient::workspace`] with the
+/// Obtain a `WorkspaceResource` by calling [`Client::workspace`] with the
 /// workspace ID, or via
 /// [`WorkspaceInfo::into_resource`](crate::types::WorkspaceInfo::into_resource).
 ///
@@ -23,15 +23,15 @@ use crate::{
 pub struct WorkspaceResource {
     /// The workspace's unique identifier.
     pub id: String,
-    pub(crate) client: ApiClient,
+    pub(crate) client: Client,
 }
 
 impl WorkspaceResource {
     /// Creates a new `WorkspaceResource` bound to the given client and
     /// workspace ID.
     ///
-    /// Prefer [`ApiClient::workspace`] over calling this directly.
-    pub fn new(http: ApiClient, id: &str) -> Self {
+    /// Prefer [`Client::workspace`] over calling this directly.
+    pub fn new(http: Client, id: &str) -> Self {
         Self {
             client: http,
             id: id.to_string(),

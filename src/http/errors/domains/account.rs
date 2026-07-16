@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::http::errors::ErrorCode;
 
 /// Error codes returned by account operations
-/// ([`ApiClient::me`](crate::ApiClient::me)).
+/// ([`Client::me`](crate::Client::me)).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 #[non_exhaustive]

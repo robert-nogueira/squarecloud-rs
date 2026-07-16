@@ -1,9 +1,9 @@
 use chrono::{Duration, Utc};
-use squarecloud::ApiClient;
+use squarecloud::Client;
 
 #[tokio::main]
 async fn main() {
-    let client = ApiClient::new();
+    let client = Client::new();
     let app_id = std::env::args()
         .nth(1)
         .expect("usage: cargo run --example domain_analytics -- <app_id>");

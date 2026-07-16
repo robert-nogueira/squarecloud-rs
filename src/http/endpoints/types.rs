@@ -1,4 +1,4 @@
-use reqwest::{Client, Method, RequestBuilder};
+use reqwest::{Client as ReqwestClient, Method, RequestBuilder};
 use serde_json::Value;
 
 /// A fully-resolved API request descriptor.
@@ -6,12 +6,12 @@ use serde_json::Value;
 /// `Endpoint` holds the HTTP method, the complete URL path (with all
 /// parameters substituted), and an optional JSON body. It is produced by
 /// `EndpointBuilder::build` and consumed by
-/// [`ApiClient::request_endpoint`](crate::ApiClient) or
+/// [`Client::request_endpoint`](crate::Client) or
 /// [`Endpoint::request_builder`].
 ///
 /// This type is a lower-level building block of this crate. End users should
 /// not need to construct `Endpoint` values directly; prefer the methods on
-/// [`ApiClient`](crate::ApiClient) and the resource handles instead.
+/// [`Client`](crate::Client) and the resource handles instead.
 #[derive(Clone)]
 pub struct Endpoint {
     pub path: String,
@@ -170,7 +170,7 @@ impl Endpoint {
     /// `.multipart()`) before calling `.build()` or `.send()`.
     pub fn request_builder(
         &self,
-        http_client: &Client,
+        http_client: &ReqwestClient,
         base_url: &str,
     ) -> RequestBuilder {
         let url = format!(

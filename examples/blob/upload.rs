@@ -1,8 +1,8 @@
-use squarecloud::{ApiClient, types::UploadOptions};
+use squarecloud::{Client, types::UploadOptions};
 
 #[tokio::main]
 async fn main() {
-    let client = ApiClient::new();
+    let client = Client::new();
 
     let bytes = std::fs::read("my-file.png").unwrap();
     let object = client

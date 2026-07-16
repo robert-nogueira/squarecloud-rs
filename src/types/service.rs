@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 /// The operational status of the SquareCloud platform.
 ///
 /// Returned by
-/// [`ApiClient::service_status`](crate::ApiClient::service_status).
+/// [`Client::service_status`](crate::Client::service_status).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ServiceStatus {
     /// A machine-readable status indicator (e.g. `"operational"`).

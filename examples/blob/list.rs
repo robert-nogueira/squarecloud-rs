@@ -1,8 +1,8 @@
-use squarecloud::ApiClient;
+use squarecloud::Client;
 
 #[tokio::main]
 async fn main() {
-    let client = ApiClient::new();
+    let client = Client::new();
 
     let result = client.blob().list(None, None).await.unwrap();
     println!("Objects ({}):", result.objects.len());
