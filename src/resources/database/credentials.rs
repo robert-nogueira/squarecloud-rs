@@ -2,7 +2,10 @@ use serde_json::{Value, json};
 
 use crate::{
     Endpoint,
-    http::{ApiResponse, errors::ApiError},
+    http::{
+        ApiResponse,
+        errors::{ApiError, DatabaseErrorCode},
+    },
     types::CredentialType,
 };
 
@@ -16,9 +19,11 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn certificate(&self) -> Result<String, ApiError> {
+    pub async fn certificate(
+        &self,
+    ) -> Result<String, ApiError<DatabaseErrorCode>> {
         let endpoint = Endpoint::get_database_certificate(&self.id);
         let response: ApiResponse<Value> =
             self.client.request_endpoint(endpoint).await?;
@@ -37,12 +42,12 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn redefine_credential(
         &self,
         credential_type: CredentialType,
-    ) -> Result<String, ApiError> {
+    ) -> Result<String, ApiError<DatabaseErrorCode>> {
         let endpoint = Endpoint::redefine_database_credentials(&self.id);
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)

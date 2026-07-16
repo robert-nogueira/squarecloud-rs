@@ -4,7 +4,10 @@ use reqwest::multipart::{Form, Part};
 
 use crate::{
     Endpoint,
-    http::{ApiClient, errors::ApiError},
+    http::{
+        ApiClient,
+        errors::{ApiError, BlobErrorCode},
+    },
     types::{BlobObject, BlobObjectList, BlobStats, UploadOptions},
 };
 
@@ -35,15 +38,15 @@ impl BlobResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
-    /// on an API-level error (e.g. [`crate::ApiErrorCode::InvalidObject`]).
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
+    /// on an API-level error (e.g. [`BlobErrorCode::InvalidObject`]).
     pub async fn upload(
         &self,
         name: &str,
         mime_type: &str,
         bytes: impl Into<Cow<'static, [u8]>>,
         options: UploadOptions,
-    ) -> Result<BlobObject, ApiError> {
+    ) -> Result<BlobObject, ApiError<BlobErrorCode>> {
         let endpoint = Endpoint::blob_upload(name, &options);
         let form = Form::new().part(
             "file",
@@ -74,13 +77,13 @@ impl BlobResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn list(
         &self,
         prefix: Option<&str>,
         continuation_token: Option<&str>,
-    ) -> Result<BlobObjectList, ApiError> {
+    ) -> Result<BlobObjectList, ApiError<BlobErrorCode>> {
         let endpoint = Endpoint::blob_list(prefix, continuation_token);
         let request = endpoint
             .request_builder(
@@ -97,10 +100,13 @@ impl BlobResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Api`] with [`crate::ApiErrorCode::ObjectNotFound`]
+    /// Returns [`ApiError::Service`] with [`BlobErrorCode::ObjectNotFound`]
     /// if the key does not exist, or [`ApiError::Transport`] on network
     /// failure.
-    pub async fn delete(&self, object: &str) -> Result<bool, ApiError> {
+    pub async fn delete(
+        &self,
+        object: &str,
+    ) -> Result<bool, ApiError<BlobErrorCode>> {
         let endpoint = Endpoint::blob_delete(object);
         let request = endpoint
             .request_builder(
@@ -119,9 +125,9 @@ impl BlobResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn stats(&self) -> Result<BlobStats, ApiError> {
+    pub async fn stats(&self) -> Result<BlobStats, ApiError<BlobErrorCode>> {
         let endpoint = Endpoint::blob_stats();
         let request = endpoint
             .request_builder(

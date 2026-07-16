@@ -1,6 +1,10 @@
 use chrono::{Duration, Utc};
 use futures_util::StreamExt;
-use squarecloud::{ApiClient, ApiError, ApiErrorCode, types::RealtimeEvent};
+use squarecloud::{
+    ApiClient, ApiError,
+    errors::{AppErrorCode, SnapshotErrorCode},
+    types::RealtimeEvent,
+};
 
 #[tokio::test]
 async fn app_info_matches_uploaded() {
@@ -322,8 +326,8 @@ async fn app_snapshot_lifecycle() {
 
     let snap = match app.create_snapshot().await {
         Ok(s) => s,
-        Err(ApiError::Api {
-            code: ApiErrorCode::DailySnapshotsLimitReached,
+        Err(ApiError::Service {
+            code: SnapshotErrorCode::DailySnapshotsLimitReached,
         }) => {
             eprintln!("Skipping app_snapshot_lifecycle: daily limit reached");
             return;
@@ -408,14 +412,14 @@ async fn z_cleanup_shared_app() {
         for attempt in 0..3_u32 {
             match app.delete().await {
                 Ok(_) => return,
-                Err(ApiError::Api {
-                    code: ApiErrorCode::RestoreInProgress,
+                Err(ApiError::Service {
+                    code: AppErrorCode::RestoreInProgress,
                 }) if attempt < 2 => {
                     tokio::time::sleep(std::time::Duration::from_secs(15))
                         .await;
                 }
-                Err(ApiError::Api {
-                    code: ApiErrorCode::Unknown(ref raw),
+                Err(ApiError::Service {
+                    code: AppErrorCode::Unknown(ref raw),
                 }) => {
                     eprintln!(
                         "cleanup: uncatalogued API code on delete: {raw:?}"

@@ -8,7 +8,7 @@ use crate::{
     Endpoint,
     http::{
         ApiClient,
-        errors::{ApiError, CommitError},
+        errors::{ApiError, AppErrorCode, CommitError},
     },
     resources::FileResource,
     types::{AppInfo, AppLogs, AppMetrics, RealtimeEvent, RuntimeStats},
@@ -71,13 +71,13 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Each item is `Result<RealtimeEvent, ApiError>`. A transport failure
+    /// Each item is `Result<RealtimeEvent, ApiError<AppErrorCode>>`. A transport failure
     /// mid-stream yields an `Err` and the stream terminates.
     pub fn realtime(
         &self,
     ) -> futures_util::stream::BoxStream<
         'static,
-        Result<RealtimeEvent, ApiError>,
+        Result<RealtimeEvent, ApiError<AppErrorCode>>,
     > {
         let client = self.client.clone();
         let id = self.id.clone();
@@ -143,9 +143,9 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn start(&self) -> Result<bool, ApiError> {
+    pub async fn start(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<()>(Endpoint::app_start(&self.id))
             .await?
@@ -159,9 +159,9 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn restart(&self) -> Result<bool, ApiError> {
+    pub async fn restart(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<()>(Endpoint::app_restart(&self.id))
             .await?
@@ -174,9 +174,9 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn stop(&self) -> Result<bool, ApiError> {
+    pub async fn stop(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<()>(Endpoint::app_stop(&self.id))
             .await?
@@ -190,9 +190,11 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn status(&self) -> Result<RuntimeStats, ApiError> {
+    pub async fn status(
+        &self,
+    ) -> Result<RuntimeStats, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint(Endpoint::app_status(&self.id))
             .await?
@@ -208,9 +210,9 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn info(&self) -> Result<AppInfo, ApiError> {
+    pub async fn info(&self) -> Result<AppInfo, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint(Endpoint::app_info(&self.id))
             .await?
@@ -225,9 +227,11 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn metrics(&self) -> Result<Vec<AppMetrics>, ApiError> {
+    pub async fn metrics(
+        &self,
+    ) -> Result<Vec<AppMetrics>, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint(Endpoint::app_metrics(&self.id))
             .await?
@@ -239,9 +243,9 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn logs(&self) -> Result<String, ApiError> {
+    pub async fn logs(&self) -> Result<String, ApiError<AppErrorCode>> {
         let r: AppLogs = self
             .client
             .request_endpoint(Endpoint::app_logs(&self.id))
@@ -264,7 +268,7 @@ impl AppResource {
     ///
     /// Returns [`CommitError::Io`] if constructing the multipart request
     /// fails, [`CommitError::Api`] wrapping [`ApiError::Transport`] on network
-    /// failure, or [`CommitError::Api`] wrapping [`ApiError::Api`] if the
+    /// failure, or [`CommitError::Api`] wrapping [`ApiError::Service`] if the
     /// archive is rejected by the API.
     pub async fn commit(
         &self,
@@ -296,9 +300,9 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn delete(&self) -> Result<bool, ApiError> {
+    pub async fn delete(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<()>(Endpoint::app_delete(&self.id))
             .await?

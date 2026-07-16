@@ -2,7 +2,10 @@ use std::collections::HashMap;
 
 use serde_json::json;
 
-use crate::{Endpoint, http::errors::ApiError};
+use crate::{
+    Endpoint,
+    http::errors::{ApiError, EnvErrorCode},
+};
 
 use super::AppResource;
 
@@ -11,11 +14,11 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn list_envs(
         &self,
-    ) -> Result<HashMap<String, String>, ApiError> {
+    ) -> Result<HashMap<String, String>, ApiError<EnvErrorCode>> {
         self.client
             .request_endpoint(Endpoint::list_app_envs(&self.id))
             .await?
@@ -29,14 +32,14 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Api`] with
-    /// [`ApiErrorCode::RegexValidation`](crate::ApiErrorCode::RegexValidation)
+    /// Returns [`ApiError::Service`] with
+    /// [`EnvErrorCode::RegexValidation`]
     /// if a key or value is rejected, or [`ApiError::Transport`] on network
     /// failure.
     pub async fn upsert_envs(
         &self,
         envs: &HashMap<String, String>,
-    ) -> Result<HashMap<String, String>, ApiError> {
+    ) -> Result<HashMap<String, String>, ApiError<EnvErrorCode>> {
         let endpoint = Endpoint::post_app_envs(&self.id);
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)
@@ -52,12 +55,12 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn overwrite_envs(
         &self,
         envs: &HashMap<String, String>,
-    ) -> Result<HashMap<String, String>, ApiError> {
+    ) -> Result<HashMap<String, String>, ApiError<EnvErrorCode>> {
         let endpoint = Endpoint::overwrite_app_envs(&self.id);
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)
@@ -73,12 +76,12 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
     pub async fn delete_envs(
         &self,
         envs: &[String],
-    ) -> Result<HashMap<String, String>, ApiError> {
+    ) -> Result<HashMap<String, String>, ApiError<EnvErrorCode>> {
         let endpoint = Endpoint::delete_app_envs(&self.id);
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)

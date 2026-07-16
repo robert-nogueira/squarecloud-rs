@@ -2,7 +2,10 @@ use serde_json::{Value, json};
 
 use crate::{
     Endpoint,
-    http::{ApiResponse, errors::ApiError},
+    http::{
+        ApiResponse,
+        errors::{ApiError, MemberErrorCode},
+    },
 };
 
 use super::WorkspaceResource;
@@ -15,9 +18,11 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn get_invite_code(&self) -> Result<String, ApiError> {
+    pub async fn get_invite_code(
+        &self,
+    ) -> Result<String, ApiError<MemberErrorCode>> {
         let response: ApiResponse<Value> = self
             .client
             .request_endpoint(Endpoint::get_workspace_invite())
@@ -37,13 +42,13 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// if the code is invalid or has expired.
     pub async fn invite_member(
         &self,
         code: &str,
         group: &str,
-    ) -> Result<bool, ApiError> {
+    ) -> Result<bool, ApiError<MemberErrorCode>> {
         let endpoint = Endpoint::workspace_invite_member();
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)
@@ -64,12 +69,12 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// if the member does not exist in this workspace.
     pub async fn remove_member(
         &self,
         member_id: &str,
-    ) -> Result<bool, ApiError> {
+    ) -> Result<bool, ApiError<MemberErrorCode>> {
         let endpoint = Endpoint::remove_workspace_member();
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)
@@ -91,13 +96,13 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Api`]
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// if the member or group is invalid.
     pub async fn change_member_permissions(
         &self,
         code: &str,
         group: &str,
-    ) -> Result<bool, ApiError> {
+    ) -> Result<bool, ApiError<MemberErrorCode>> {
         let endpoint = Endpoint::workspace_change_member_permissions();
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)

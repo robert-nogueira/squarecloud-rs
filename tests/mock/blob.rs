@@ -1,5 +1,5 @@
 use serde_json::json;
-use squarecloud::{ApiErrorCode, types::UploadOptions};
+use squarecloud::{errors::BlobErrorCode, types::UploadOptions};
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
 
@@ -138,8 +138,8 @@ async fn blob_delete_object_not_found_returns_error() {
     assert!(
         matches!(
             err,
-            squarecloud::ApiError::Api {
-                code: ApiErrorCode::ObjectNotFound
+            squarecloud::ApiError::Service {
+                code: BlobErrorCode::ObjectNotFound
             }
         ),
         "unexpected error: {err:?}"
