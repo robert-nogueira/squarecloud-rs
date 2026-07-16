@@ -22,8 +22,9 @@ use crate::{
     },
     settings::SETTINGS,
     types::{
-        AccountInfo, AppDomain, Database, DatabaseType, RuntimeStatsListItem,
-        ServiceStatus, Snapshot, SnapshotScope, UploadedApp, WorkspaceInfo,
+        AccountInfo, AppDomain, Database, DatabaseType, LoadBalancers,
+        RuntimeStatsListItem, ServiceStatus, Snapshot, SnapshotScope,
+        UploadedApp, WorkspaceInfo,
     },
 };
 
@@ -342,6 +343,28 @@ impl Client {
         &self,
     ) -> Result<Vec<AppDomain>, ApiError<NetworkErrorCode>> {
         self.request_endpoint(Endpoint::app_domains())
+            .await?
+            .into_result_t()
+    }
+
+    /// Returns the account's custom domains grouped by hostname, with the
+    /// applications serving each one.
+    ///
+    /// A group with two or more applications is an active load balancer.
+    /// The returned [`LoadBalancers::limit`] is the plan's cap on
+    /// applications sharing one domain (2 on Standard, 5 on Pro, 10 on
+    /// Enterprise); check it before attaching another application with
+    /// [`set_custom_domain`](crate::resources::AppResource::set_custom_domain).
+    /// Rate limited to 20 requests per 60 seconds per user.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or
+    /// [`ApiError::Service`] on an API-level error.
+    pub async fn load_balancers(
+        &self,
+    ) -> Result<LoadBalancers, ApiError<NetworkErrorCode>> {
+        self.request_endpoint(Endpoint::app_load_balancers())
             .await?
             .into_result_t()
     }

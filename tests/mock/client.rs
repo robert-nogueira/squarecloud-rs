@@ -42,6 +42,46 @@ async fn all_domains_returns_vec() {
 }
 
 #[tokio::test]
+async fn load_balancers_returns_groups() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/load-balancers"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "limit": 2,
+                "balancers": [
+                    {
+                        "hostname": "example.com",
+                        "apps": [
+                            { "id": "abc123def456abc123def456", "name": "web-1", "cluster": "suki-cluster" },
+                            { "id": "def456abc123def456abc123", "name": "web-2", "cluster": "nasa-cluster" }
+                        ]
+                    }
+                ]
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let result = client.load_balancers().await;
+    assert!(
+        result.is_ok(),
+        "load_balancers() failed: {:?}",
+        result.err()
+    );
+    let lb = result.expect("load_balancers() should return groups");
+    assert_eq!(lb.limit, 2);
+    assert_eq!(lb.balancers.len(), 1);
+    assert_eq!(lb.balancers[0].hostname, "example.com");
+    assert_eq!(lb.balancers[0].apps.len(), 2);
+    assert_eq!(
+        lb.balancers[0].apps[0].cluster.as_deref(),
+        Some("suki-cluster")
+    );
+}
+
+#[tokio::test]
 async fn all_database_status_returns_vec() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))
