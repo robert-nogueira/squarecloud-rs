@@ -156,5 +156,5 @@ pub struct AppMetrics {
     /// RAM consumption in megabytes at this point in time.
     pub ram: f32,
     /// Network byte counts as `[bytes_in, bytes_out]`.
-    pub net: [u32; 2],
+    pub net: [u64; 2],
 }
