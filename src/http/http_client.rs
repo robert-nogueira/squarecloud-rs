@@ -12,8 +12,8 @@ use super::{
     Endpoint,
     errors::{
         AccountErrorCode, ApiError, AppErrorCode, DatabaseErrorCode,
-        NetworkErrorCode, ServiceErrorCode, SnapshotErrorCode,
-        UploadErrorCode, WorkspaceErrorCode,
+        NetworkErrorCode, ServiceErrorCode, ServiceStatusErrorCode,
+        SnapshotErrorCode, UploadErrorCode, WorkspaceErrorCode,
     },
 };
 use crate::{
@@ -268,18 +268,32 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] if the HTTP request fails. This
-    /// endpoint does not use the standard response envelope, so the error
-    /// type parameter is [`Infallible`](std::convert::Infallible): the
-    /// compiler knows [`ApiError::Service`] can never be produced here.
+    /// Returns [`ApiError::Transport`] on network failure, or
+    /// [`ApiError::Service`] with
+    /// [`ServiceStatusErrorCode::InternalServerError`] if the platform
+    /// cannot report its own status. Unlike every other endpoint, the
+    /// success payload here is not wrapped in the standard envelope, so
+    /// the two shapes are told apart by the error envelope's `code`
+    /// field.
     pub async fn service_status(
         &self,
-    ) -> Result<ServiceStatus, ApiError<std::convert::Infallible>> {
+    ) -> Result<ServiceStatus, ApiError<ServiceStatusErrorCode>> {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Reply {
+            Error { code: String },
+            Ok(ServiceStatus),
+        }
         let endpoint = Endpoint::service_status();
         let req = self
             .http_client
             .request(endpoint.method, self.url(&endpoint.path));
-        Ok(req.send().await?.json().await?)
+        match req.send().await?.json().await? {
+            Reply::Ok(status) => Ok(status),
+            Reply::Error { code } => Err(ApiError::Service {
+                code: ServiceStatusErrorCode::from_wire(code),
+            }),
+        }
     }
 
     /// Returns the account information associated with the current API token.
