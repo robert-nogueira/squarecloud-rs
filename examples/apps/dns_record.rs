@@ -6,6 +6,13 @@ async fn main() {
     let app_id = std::env::args()
         .nth(1)
         .expect("usage: cargo run --example NAME -- <app_id>");
-    let record = client.app(&app_id).dns_record().await.unwrap();
-    println!("{record:#?}");
+    let records = client.app(&app_id).dns_records().await.unwrap();
+    if records.is_empty() {
+        println!(
+            "no DNS records yet; the custom hostname is not registered on the edge"
+        );
+    }
+    for record in records {
+        println!("{record:#?}");
+    }
 }

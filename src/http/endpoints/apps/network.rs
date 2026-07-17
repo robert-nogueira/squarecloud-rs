@@ -74,7 +74,7 @@ inventory::submit! {
 }
 
 impl Endpoint {
-    pub(crate) fn get_app_dns_record(app_id: &str) -> Endpoint {
+    pub(crate) fn get_app_dns_records(app_id: &str) -> Endpoint {
         Self::builder("/apps/{app_id}/network/dns", Method::GET)
             .param("app_id", app_id)
             .build()

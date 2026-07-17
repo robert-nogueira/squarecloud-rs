@@ -61,18 +61,26 @@ impl AppResource {
             .into_result_t()
     }
 
-    /// Returns the DNS record the application's domain is expected to point
-    /// to.
+    /// Returns the DNS records the caller must configure at their domain
+    /// registrar so the edge provider can validate ownership and issue
+    /// SSL for the attached custom domain.
+    ///
+    /// Typically one or two ownership-validation `txt` records plus the
+    /// routing `cname` record pointing at `cname.squareweb.app`. Returns
+    /// an empty `Vec` when the custom hostname is not registered on the
+    /// edge yet. Each record's `status` reflects the edge provider's
+    /// validation state (e.g. `"pending"`, `"pending_validation"`,
+    /// `"active"`). Cached for 30 seconds per (owner, application).
     ///
     /// # Errors
     ///
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error.
-    pub async fn dns_record(
+    pub async fn dns_records(
         &self,
-    ) -> Result<DnsRecord, ApiError<NetworkErrorCode>> {
+    ) -> Result<Vec<DnsRecord>, ApiError<NetworkErrorCode>> {
         self.client
-            .request_endpoint(Endpoint::get_app_dns_record(&self.id))
+            .request_endpoint(Endpoint::get_app_dns_records(&self.id))
             .await?
             .into_result_t()
     }
@@ -80,8 +88,8 @@ impl AppResource {
     /// Associates a custom domain with the application.
     ///
     /// `custom` must be a fully-qualified domain name that the caller has
-    /// pointed at the address returned by
-    /// [`dns_record`](AppResource::dns_record). Returns `Ok(true)` when the
+    /// pointed at the records returned by
+    /// [`dns_records`](AppResource::dns_records). Returns `Ok(true)` when the
     /// domain is registered.
     ///
     /// # Errors
