@@ -4,6 +4,7 @@ use serde_json::json;
 use squarecloud::{
     ApiError,
     errors::{AppErrorCode, NetworkErrorCode},
+    types::AnalyticsFilters,
     types::RealtimeEvent,
 };
 use wiremock::matchers::{method, path, query_param};
@@ -281,6 +282,50 @@ async fn app_analytics_returns_analytics() {
         .await
         .expect("analytics() should succeed with mocked 200");
     assert_eq!(analytics.countries[0].item_type, "BR");
+}
+
+#[tokio::test]
+async fn app_analytics_filtered_sends_filters_and_parses_new_breakdowns() {
+    let (client, server) = crate::mock_client().await;
+    let item = json!({
+        "type": "404", "visits": 1, "requests": 2,
+        "bytes": 512, "date": "2026-07-16"
+    });
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/network/analytics"))
+        .and(query_param("start", "2026-07-08T00:00:00Z"))
+        .and(query_param("end", "2026-07-09T00:00:00Z"))
+        .and(query_param("country", "BR"))
+        .and(query_param("status", "404"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "visits": [item],
+                "ips": [item],
+                "status_codes": [item],
+                "bots": [item],
+                "content_types": [item]
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let start: DateTime<Utc> = "2026-07-08T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let end: DateTime<Utc> = "2026-07-09T00:00:00Z"
+        .parse()
+        .expect("hardcoded RFC3339 timestamp");
+    let filters = AnalyticsFilters::new().country("BR").status("404");
+    let analytics = client
+        .app("app-123")
+        .analytics_filtered(start, end, filters)
+        .await
+        .expect("analytics_filtered() should succeed with mocked 200");
+    assert_eq!(analytics.ips.len(), 1);
+    assert_eq!(analytics.status_codes[0].item_type, "404");
+    assert_eq!(analytics.bots.len(), 1);
+    assert_eq!(analytics.content_types[0].bytes, 512);
 }
 
 #[tokio::test]

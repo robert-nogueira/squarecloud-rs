@@ -5,8 +5,8 @@ use crate::{
     Endpoint,
     http::errors::{ApiError, NetworkErrorCode},
     types::{
-        Analytics, DnsRecord, NetworkErrors, NetworkLogEntry,
-        NetworkPerformance,
+        Analytics, AnalyticsFilters, DnsRecord, NetworkErrors,
+        NetworkLogEntry, NetworkPerformance,
     },
 };
 
@@ -28,11 +28,34 @@ impl AppResource {
         start: DateTime<Utc>,
         end: DateTime<Utc>,
     ) -> Result<Analytics, ApiError<NetworkErrorCode>> {
+        self.analytics_filtered(start, end, AnalyticsFilters::default())
+            .await
+    }
+
+    /// Returns edge-network analytics restricted by drill-down filters.
+    ///
+    /// Every filter set on [`AnalyticsFilters`] is applied to all
+    /// breakdowns at once (e.g. filtering by country restricts the paths,
+    /// browsers and IPs tables to that country's traffic).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Service`] with
+    /// [`NetworkErrorCode::InvalidFilter`] if a filter value does not
+    /// match its expected format, or [`ApiError::Transport`] on network
+    /// failure.
+    pub async fn analytics_filtered(
+        &self,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
+        filters: AnalyticsFilters,
+    ) -> Result<Analytics, ApiError<NetworkErrorCode>> {
         self.client
             .request_endpoint(Endpoint::get_app_analytics(
                 &self.id,
                 &start.to_rfc3339_opts(SecondsFormat::Secs, true),
                 &end.to_rfc3339_opts(SecondsFormat::Secs, true),
+                &filters,
             ))
             .await?
             .into_result_t()
