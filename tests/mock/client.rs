@@ -233,8 +233,6 @@ async fn upload_app_returns_uploaded_app() {
 
 #[tokio::test]
 async fn create_database_returns_database() {
-    use squarecloud::ApiError;
-    use squarecloud::errors::ServiceStatusErrorCode;
     use squarecloud::types::DatabaseType;
 
     let (client, server) = crate::mock_client().await;

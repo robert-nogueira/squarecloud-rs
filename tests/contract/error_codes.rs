@@ -139,3 +139,25 @@ async fn all_spec_error_codes_are_catalogued() {
         violations.iter().cloned().collect::<Vec<_>>().join("\n  ")
     );
 }
+
+/// `POST`/`DELETE /apps/{appId}/deploy/github-app` are the only two
+/// documented main-API routes the crate does not implement. Both are
+/// gated behind a session token (JWT): the API rejects a plain API key
+/// with `ACCESS_DENIED`, and there is no documented, scriptable way to
+/// obtain a session token outside an interactive dashboard login (the
+/// JS and Go SDK references carry the same warning verbatim, and the Go
+/// SDK exposes it as a separate `rest.WithToken` credential, not
+/// something derived from an API key).
+///
+/// Implementing these methods would add surface area that no consumer
+/// of this crate can ever call successfully with its only supported
+/// auth mode. This test exists purely as a marker: it shows up ignored
+/// in `cargo test -- --list --ignored`, so the omission reads as a
+/// deliberate decision instead of a gap, and its message is the record
+/// of why. It intentionally never runs.
+#[test]
+#[ignore = "github-app deploy link/unlink require a session token (JWT); \
+            plain API keys are rejected with ACCESS_DENIED and there is \
+            no documented way to obtain a session token, so the crate \
+            does not implement these two routes"]
+fn github_app_deploy_routes_are_intentionally_unimplemented() {}
