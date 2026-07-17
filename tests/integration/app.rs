@@ -177,18 +177,21 @@ async fn app_analytics_returns_analytics() {
 
 #[tokio::test]
 #[ignore = "requires a custom domain configured on the test app"]
-async fn app_dns_record_returns_record() {
+async fn app_dns_records_returns_records() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = Client::new();
-    let record = client
+    let records = client
         .app(app_id)
-        .dns_record()
+        .dns_records()
         .await
-        .expect("dns_record() should return DNS record");
-    assert!(!record.name.is_empty());
-    assert!(!record.value.is_empty());
+        .expect("dns_records() should return DNS records");
+    assert!(!records.is_empty());
+    for record in &records {
+        assert!(!record.name.is_empty());
+        assert!(!record.value.is_empty());
+    }
 }
 
 #[tokio::test]

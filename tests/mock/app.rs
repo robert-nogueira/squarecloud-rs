@@ -5,6 +5,7 @@ use squarecloud::{
     ApiError,
     errors::{AppErrorCode, NetworkErrorCode},
     types::AnalyticsFilters,
+    types::DnsRecordType,
     types::RealtimeEvent,
 };
 use wiremock::matchers::{method, path, query_param};
@@ -375,33 +376,69 @@ async fn app_analytics_invalid_time_range() {
 }
 
 #[tokio::test]
-async fn app_dns_record_returns_record() {
+async fn app_dns_records_returns_all_records() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))
         .and(path("/apps/app-123/network/dns"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success",
-            "response": {
-                "type": "a",
-                "name": "example.com",
-                "value": "1.2.3.4",
-                "status": "active"
-            }
+            "response": [
+                {
+                    "type": "txt",
+                    "name": "_cf-custom-hostname.example.com",
+                    "value": "abc123-4567-89ab-cdef-0123456789ab",
+                    "status": "pending"
+                },
+                {
+                    "type": "txt",
+                    "name": "_acme-challenge.example.com",
+                    "value": "AbCdEfGhIjKlMnOpQrStUvWxYz",
+                    "status": "pending_validation"
+                },
+                {
+                    "type": "cname",
+                    "name": "example.com",
+                    "value": "cname.squareweb.app",
+                    "status": "active"
+                }
+            ]
         })))
         .mount(&server)
         .await;
 
-    let record = client
+    let records = client
         .app("app-123")
-        .dns_record()
+        .dns_records()
         .await
-        .expect("dns_record() should succeed with mocked 200");
-    assert!(!record.name.is_empty());
-    assert!(!record.value.is_empty());
+        .expect("dns_records() should succeed with mocked 200");
+    assert_eq!(records.len(), 3);
+    assert_eq!(records[0].record_type, DnsRecordType::Txt);
+    assert_eq!(records[2].record_type, DnsRecordType::Cname);
+    assert_eq!(records[2].value, "cname.squareweb.app");
 }
 
 #[tokio::test]
-async fn app_dns_record_no_custom_domain() {
+async fn app_dns_records_empty_when_hostname_not_registered() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/network/dns"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": []
+        })))
+        .mount(&server)
+        .await;
+
+    let records = client
+        .app("app-123")
+        .dns_records()
+        .await
+        .expect("dns_records() should succeed with mocked 200");
+    assert!(records.is_empty());
+}
+
+#[tokio::test]
+async fn app_dns_records_no_custom_domain() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))
         .and(path("/apps/app-123/network/dns"))
@@ -411,7 +448,7 @@ async fn app_dns_record_no_custom_domain() {
         .mount(&server)
         .await;
 
-    match client.app("app-123").dns_record().await {
+    match client.app("app-123").dns_records().await {
         Err(ApiError::Service {
             code: NetworkErrorCode::NoCustomDomain,
         }) => {}
