@@ -14,6 +14,11 @@ pub enum AccountErrorCode {
     UserNotFound,
     /// Global rate limit of the authentication layer.
     RateLimit,
+    /// The `Authorization` header is missing, malformed, or the
+    /// credentials are not valid.
+    AccessDenied,
+    /// Unexpected internal failure. Try again later.
+    InternalServerError,
     /// A code returned by the API that this client does not recognise.
     /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]
