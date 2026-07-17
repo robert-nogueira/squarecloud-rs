@@ -199,6 +199,36 @@ mod tests {
         assert!(matches!(err, CommitError::Io(_)));
     }
 
+    #[tokio::test]
+    async fn commit_error_from_reqwest_error() {
+        let reqwest_err = reqwest::get("http://0.0.0.0:1").await.unwrap_err();
+        let err = CommitError::from(reqwest_err);
+        assert!(matches!(err, CommitError::Api(ApiError::Transport(_))));
+    }
+
+    #[test]
+    fn code_is_known_distinguishes_catalogued_from_unknown() {
+        assert!(super::code_is_known::<BlobErrorCode>("OBJECT_NOT_FOUND"));
+        assert!(!super::code_is_known::<BlobErrorCode>("SOME_FUTURE_CODE"));
+    }
+
+    /// The blanket `From<ApiError<C>>` must preserve a `Transport` error
+    /// as-is, not just convert `Service` codes: the composition test
+    /// above only ever propagates `Service` errors through `?`, so this
+    /// covers the other arm of that `match` on its own.
+    #[tokio::test]
+    async fn blanket_from_preserves_transport_variant() {
+        let reqwest_err = reqwest::get("http://0.0.0.0:1").await.unwrap_err();
+        fn blob_op(e: reqwest::Error) -> Result<(), ApiError<BlobErrorCode>> {
+            Err(ApiError::Transport(e))
+        }
+        fn composed(e: reqwest::Error) -> Result<(), ApiError> {
+            blob_op(e)?;
+            Ok(())
+        }
+        assert!(matches!(composed(reqwest_err), Err(ApiError::Transport(_))));
+    }
+
     #[test]
     fn question_mark_composes_across_domains() {
         fn blob_op() -> Result<(), ApiError<BlobErrorCode>> {

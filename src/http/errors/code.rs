@@ -98,6 +98,36 @@ mod tests {
     }
 
     #[test]
+    fn as_str_returns_raw_wire_string() {
+        assert_eq!(ErrorCode::from("APP_NOT_FOUND").as_str(), "APP_NOT_FOUND");
+    }
+
+    /// `from_wire` (the internal parsing path) always hands `ServiceErrorCode`
+    /// an owned `String` decoded from JSON, never a `&str`; if `From<String>`
+    /// diverged from `From<&str>` (e.g. one trimmed whitespace and the other
+    /// did not), a code would compare differently depending on which
+    /// constructor happened to run.
+    #[test]
+    fn from_owned_string_matches_from_str_slice() {
+        let owned = ErrorCode::from(String::from("RATE_LIMIT"));
+        let borrowed = ErrorCode::from("RATE_LIMIT");
+        assert_eq!(owned, borrowed);
+    }
+
+    /// Exercises `PartialEq<str>` specifically (not `PartialEq<&str>`):
+    /// comparing against a dereferenced owned `String`, the way code
+    /// holding a `String` it read from elsewhere (not a `&'static str`
+    /// literal) would compare it without an explicit `.as_str()`.
+    #[test]
+    fn compares_against_a_dereferenced_owned_string() {
+        let code = ErrorCode::from("OBJECT_NOT_FOUND");
+        let owned = String::from("OBJECT_NOT_FOUND");
+        assert!(code == *owned);
+        let different = String::from("INVALID_OBJECT");
+        assert!(code != *different);
+    }
+
+    #[test]
     fn serde_is_transparent() {
         let code: ErrorCode =
             serde_json::from_str(r#""SOME_CODE""#).expect("deserializes");

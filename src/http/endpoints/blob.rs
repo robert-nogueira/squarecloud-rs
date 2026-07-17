@@ -48,3 +48,64 @@ impl Endpoint {
         Self::builder("/account/stats", Method::GET).build()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Endpoint;
+    use crate::types::UploadOptions;
+
+    #[test]
+    fn blob_list_with_neither_option_has_no_query_string() {
+        let ep = Endpoint::blob_list(None, None);
+        assert_eq!(ep.path, "/objects");
+    }
+
+    #[test]
+    fn blob_list_with_prefix_only_omits_continuation_token() {
+        let ep = Endpoint::blob_list(Some("images"), None);
+        assert_eq!(ep.path, "/objects?prefix=images");
+    }
+
+    #[test]
+    fn blob_list_with_token_only_omits_prefix() {
+        let ep = Endpoint::blob_list(None, Some("abc123"));
+        assert_eq!(ep.path, "/objects?continuationToken=abc123");
+    }
+
+    #[test]
+    fn blob_list_with_both_options_joins_them() {
+        let ep = Endpoint::blob_list(Some("images"), Some("abc123"));
+        assert_eq!(ep.path, "/objects?prefix=images&continuationToken=abc123");
+    }
+
+    #[test]
+    fn blob_upload_with_no_options_only_sends_name() {
+        let ep = Endpoint::blob_upload("photo", &UploadOptions::default());
+        assert_eq!(ep.path, "/objects?name=photo");
+    }
+
+    #[test]
+    fn blob_upload_with_all_options_sends_every_query_param() {
+        let opts = UploadOptions {
+            prefix: Some("images".to_string()),
+            expire: Some(30),
+            security_hash: Some(true),
+            auto_download: Some(false),
+        };
+        let ep = Endpoint::blob_upload("photo", &opts);
+        assert_eq!(
+            ep.path,
+            "/objects?name=photo&prefix=images&expire=30\
+             &security_hash=true&auto_download=false"
+        );
+    }
+
+    #[test]
+    fn blob_delete_sends_object_name_as_json_body() {
+        let ep = Endpoint::blob_delete("images/photo.png");
+        assert_eq!(
+            ep.json_body,
+            Some(serde_json::json!({ "object": "images/photo.png" }))
+        );
+    }
+}

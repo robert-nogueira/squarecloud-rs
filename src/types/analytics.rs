@@ -192,3 +192,70 @@ impl AnalyticsFilters {
         ]
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::AnalyticsFilters;
+
+    #[test]
+    fn new_has_no_filters_set() {
+        assert!(
+            AnalyticsFilters::new()
+                .entries()
+                .iter()
+                .all(|(_, value)| value.is_none())
+        );
+    }
+
+    /// Each setter must write its own field, not a neighbour's: with 11
+    /// near-identical one-line setters, a copy-paste slip (e.g. `browser`
+    /// assigning into `self.protocol`) would not be caught by a test that
+    /// only ever sets one or two filters, since the mistake would happen
+    /// to still show a `Some` somewhere. Setting all 11 to distinct
+    /// values and checking the exact (name, value) pairing catches that
+    /// class of bug.
+    #[test]
+    fn every_setter_maps_to_its_own_query_param_name() {
+        let filters = AnalyticsFilters::new()
+            .country("country-v")
+            .ip("ip-v")
+            .path("path-v")
+            .status("status-v")
+            .os("os-v")
+            .browser("browser-v")
+            .protocol("protocol-v")
+            .referer("referer-v")
+            .provider("provider-v")
+            .content_type("content_type-v")
+            .bot("bot-v");
+
+        assert_eq!(
+            filters.entries(),
+            [
+                ("country", Some("country-v")),
+                ("ip", Some("ip-v")),
+                ("path", Some("path-v")),
+                ("status", Some("status-v")),
+                ("os", Some("os-v")),
+                ("browser", Some("browser-v")),
+                ("protocol", Some("protocol-v")),
+                ("referer", Some("referer-v")),
+                ("provider", Some("provider-v")),
+                ("content_type", Some("content_type-v")),
+                ("bot", Some("bot-v")),
+            ]
+        );
+    }
+
+    #[test]
+    fn setting_one_filter_leaves_the_others_unset() {
+        let filters = AnalyticsFilters::new().os("Windows");
+        for (name, value) in filters.entries() {
+            if name == "os" {
+                assert_eq!(value, Some("Windows"));
+            } else {
+                assert_eq!(value, None, "{name} should be unset");
+            }
+        }
+    }
+}
