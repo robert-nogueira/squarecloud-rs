@@ -13,7 +13,8 @@ pub use code::ErrorCode;
 pub use domains::{
     AccountErrorCode, AppErrorCode, BlobErrorCode, DatabaseErrorCode,
     DeployErrorCode, EnvErrorCode, FileErrorCode, MemberErrorCode,
-    NetworkErrorCode, SnapshotErrorCode, UploadErrorCode, WorkspaceErrorCode,
+    NetworkErrorCode, ServiceStatusErrorCode, SnapshotErrorCode,
+    UploadErrorCode, WorkspaceErrorCode,
 };
 
 mod sealed {
@@ -69,12 +70,6 @@ pub trait ServiceErrorCode:
 /// that returns it.
 pub fn code_is_known<C: ServiceErrorCode>(code: &str) -> bool {
     !C::from_wire(code.to_owned()).is_unknown()
-}
-
-/// Checker for endpoints that bypass the error envelope and can never
-/// yield a service error code (e.g. `service_status`).
-pub fn no_error_codes(_: &str) -> bool {
-    false
 }
 
 /// An error returned by any API operation.

@@ -6,8 +6,9 @@ inventory::submit! {
     crate::EndpointSpec {
     method: "get",
     path: "/service/status",
-    domain: "Infallible",
-    known_code: crate::errors::no_error_codes,
+    domain: "ServiceStatusErrorCode",
+    known_code:
+        crate::errors::code_is_known::<crate::errors::ServiceStatusErrorCode>,
     }
 }
 

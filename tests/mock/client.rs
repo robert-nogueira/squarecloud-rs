@@ -1,4 +1,5 @@
 use serde_json::json;
+use squarecloud::{ApiError, errors::ServiceStatusErrorCode};
 use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
 
@@ -20,6 +21,30 @@ async fn service_status_returns_status() {
         .expect("service_status() should succeed with mocked 200");
     assert!(!status.status.is_empty());
     assert!(!status.message.is_empty());
+}
+
+#[tokio::test]
+async fn service_status_error_envelope_maps_to_service_code() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/service/status"))
+        .respond_with(ResponseTemplate::new(500).set_body_json(json!({
+            "status": "error",
+            "code": "INTERNAL_SERVER_ERROR"
+        })))
+        .mount(&server)
+        .await;
+
+    let err = client
+        .service_status()
+        .await
+        .expect_err("mocked 500 should surface as an error");
+    assert!(matches!(
+        err,
+        ApiError::Service {
+            code: ServiceStatusErrorCode::InternalServerError
+        }
+    ));
 }
 
 #[tokio::test]
@@ -208,6 +233,8 @@ async fn upload_app_returns_uploaded_app() {
 
 #[tokio::test]
 async fn create_database_returns_database() {
+    use squarecloud::ApiError;
+    use squarecloud::errors::ServiceStatusErrorCode;
     use squarecloud::types::DatabaseType;
 
     let (client, server) = crate::mock_client().await;
