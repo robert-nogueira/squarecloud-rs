@@ -33,6 +33,13 @@ pub enum MemberErrorCode {
     InvalidAccessToken,
     /// Global rate limit of the authentication layer.
     RateLimit,
+    /// The `Authorization` header is missing, malformed, or the
+    /// credentials are not valid.
+    AccessDenied,
+    /// Short-lived rate limit; retry after a few seconds.
+    KeepCalm,
+    /// The request payload exceeds the accepted size.
+    PayloadTooLarge,
     /// A code returned by the API that this client does not recognise.
     /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]

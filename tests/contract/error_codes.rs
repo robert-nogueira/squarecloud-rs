@@ -38,12 +38,28 @@ fn error_code_of(example: &Value) -> Option<String> {
     example["code"].as_str().map(str::to_owned)
 }
 
+/// Resolves a response that is a `$ref` into the shared component it
+/// points to (`#/components/responses/Name`); returns the response
+/// itself when it is inline.
+fn resolve<'a>(spec: &'a Value, response: &'a Value) -> &'a Value {
+    match response["$ref"].as_str() {
+        Some(reference) => {
+            let name =
+                reference.rsplit('/').next().expect("$ref is never empty");
+            &spec["components"]["responses"][name]
+        }
+        None => response,
+    }
+}
+
 /// Walks every path/method/status of the spec and collects the error
-/// codes documented in `example` (single) and `examples` (named) blocks.
-fn documented_error_codes(
-    paths: &HashMap<String, Value>,
-) -> Vec<DocumentedCode> {
+/// codes documented in `example` (single) and `examples` (named) blocks,
+/// resolving shared `$ref` responses to their components.
+fn documented_error_codes(spec: &Value) -> Vec<DocumentedCode> {
     let mut found = Vec::new();
+    let Some(paths) = spec["paths"].as_object() else {
+        return found;
+    };
     for (path, item) in paths {
         for method in HTTP_METHODS {
             let responses = &item[method]["responses"];
@@ -51,6 +67,7 @@ fn documented_error_codes(
                 continue;
             };
             for (status, response) in responses {
+                let response = resolve(spec, response);
                 let json = &response["content"]["application/json"];
                 let single = json.get("example").into_iter();
                 let named = json["examples"]
@@ -74,7 +91,7 @@ fn documented_error_codes(
 
 #[tokio::test]
 async fn all_spec_error_codes_are_catalogued() {
-    let paths = crate::fetch_spec().await;
+    let spec = crate::fetch_full_spec().await;
 
     let implemented: HashMap<(String, String), &'static EndpointSpec> =
         inventory::iter::<EndpointSpec>()
@@ -86,7 +103,7 @@ async fn all_spec_error_codes_are_catalogued() {
     let mut violations = BTreeSet::new();
     let mut unimplemented_routes = BTreeSet::new();
 
-    for entry in documented_error_codes(&paths) {
+    for entry in documented_error_codes(&spec) {
         let route = format!("{} {}", entry.method.to_uppercase(), entry.path);
         match implemented.get(&route_key(&entry.method, &entry.path)) {
             None => {

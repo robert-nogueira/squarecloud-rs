@@ -27,6 +27,16 @@ pub enum EnvErrorCode {
     InvalidAccessToken,
     /// Global rate limit of the authentication layer.
     RateLimit,
+    /// The `Authorization` header is missing, malformed, or the
+    /// credentials are not valid.
+    AccessDenied,
+    /// Unexpected internal failure. Try again later.
+    InternalServerError,
+    /// The request payload exceeds the accepted size.
+    PayloadTooLarge,
+    /// The caller lacks permission for this operation (workspace role
+    /// or restricted resource).
+    PermissionDenied,
     /// A code returned by the API that this client does not recognise.
     /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]

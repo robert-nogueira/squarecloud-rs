@@ -52,6 +52,13 @@ pub enum FileErrorCode {
     InvalidAccessToken,
     /// Global rate limit of the authentication layer.
     RateLimit,
+    /// The `Authorization` header is missing, malformed, or the
+    /// credentials are not valid.
+    AccessDenied,
+    /// Unexpected internal failure. Try again later.
+    InternalServerError,
+    /// The request payload exceeds the accepted size.
+    PayloadTooLarge,
     /// A code returned by the API that this client does not recognise.
     /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]
