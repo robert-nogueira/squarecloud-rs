@@ -198,10 +198,13 @@ impl Endpoint {
             .build()
     }
 
-    pub(crate) fn app_commit(app_id: &str) -> Endpoint {
-        Self::builder("/apps/{app_id}/commit", Method::POST)
-            .param("app_id", app_id)
-            .build()
+    pub(crate) fn app_commit(app_id: &str, path: Option<&str>) -> Endpoint {
+        let mut b = Self::builder("/apps/{app_id}/commit", Method::POST)
+            .param("app_id", app_id);
+        if let Some(path) = path {
+            b = b.query("path", path);
+        }
+        b.build()
     }
 
     pub(crate) fn app_delete(app_id: &str) -> Endpoint {

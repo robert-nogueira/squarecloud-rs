@@ -130,6 +130,36 @@ async fn app_commit_returns_true() {
     );
 }
 
+/// Verifies `commit_to` actually unpacks the archive at `path`, not just
+/// that the API returned success: reads the committed file back from the
+/// destination directory and checks its content matches what was sent.
+#[tokio::test]
+async fn app_commit_to_path_unpacks_at_destination() {
+    crate::setup();
+    crate::throttle().await;
+    let app_id = crate::shared_app_id();
+    let client = Client::new();
+    let app = client.app(app_id);
+
+    assert!(
+        app.commit_to(
+            crate::helpers::dummy_zip(),
+            Some("squarecloud_rs_test_commit_to")
+        )
+        .await
+        .expect("commit_to() should succeed")
+    );
+
+    let content = app
+        .file("/")
+        .read("squarecloud_rs_test_commit_to/index.js")
+        .await
+        .expect(
+            "index.js should exist at the commit_to destination directory",
+        );
+    assert_eq!(content.data, crate::helpers::DUMMY_INDEX_JS);
+}
+
 #[tokio::test]
 async fn app_analytics_returns_analytics() {
     crate::setup();
