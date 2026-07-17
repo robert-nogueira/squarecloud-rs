@@ -1,6 +1,8 @@
 use super::Endpoint;
 use reqwest::Method;
 
+use crate::types::AnalyticsFilters;
+
 #[cfg(feature = "test-utils")]
 inventory::submit! {
     crate::EndpointSpec {
@@ -82,12 +84,19 @@ impl Endpoint {
         app_id: &str,
         start: &str,
         end: &str,
+        filters: &AnalyticsFilters,
     ) -> Endpoint {
-        Self::builder("/apps/{app_id}/network/analytics", Method::GET)
-            .param("app_id", app_id)
-            .query("start", start)
-            .query("end", end)
-            .build()
+        let mut b =
+            Self::builder("/apps/{app_id}/network/analytics", Method::GET)
+                .param("app_id", app_id)
+                .query("start", start)
+                .query("end", end);
+        for (name, value) in filters.entries() {
+            if let Some(value) = value {
+                b = b.query(name, value);
+            }
+        }
+        b.build()
     }
 
     pub(crate) fn set_app_custom_domain(app_id: &str) -> Endpoint {
