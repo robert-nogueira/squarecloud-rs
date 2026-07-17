@@ -256,9 +256,9 @@ impl AppResource {
 
     /// Commits a new version of the application by uploading a ZIP archive.
     ///
-    /// The archive is sent as a `multipart/form-data` request. The `bytes`
-    /// parameter accepts anything that converts to a `Cow<'static, [u8]>`,
-    /// such as a `Vec<u8>`.
+    /// The archive is sent as a `multipart/form-data` request and unpacked
+    /// at the application root. The `bytes` parameter accepts anything that
+    /// converts to a `Cow<'static, [u8]>`, such as a `Vec<u8>`.
     ///
     /// Unlike [`Client::upload_app`](crate::Client::upload_app),
     /// `commit` updates an existing application in place rather than creating
@@ -274,7 +274,31 @@ impl AppResource {
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
     ) -> Result<bool, CommitError> {
-        let endpoint = Endpoint::app_commit(&self.id);
+        self.commit_to(bytes, None).await
+    }
+
+    /// Commits a new version of the application, unpacking the ZIP archive
+    /// into `path` instead of the application root.
+    ///
+    /// `path` is a destination directory inside the application (no
+    /// traversal, no shell metacharacters). Equivalent to `commit` with
+    /// `path` set to `None`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CommitError::Io`] if constructing the multipart request
+    /// fails, [`CommitError::Api`] wrapping [`ApiError::Transport`] on
+    /// network failure, or [`CommitError::Api`] wrapping
+    /// [`ApiError::Service`] with
+    /// [`UploadErrorCode::InvalidPath`](crate::errors::UploadErrorCode) if
+    /// `path` contains traversal or shell metacharacters, or another code
+    /// if the archive is rejected by the API.
+    pub async fn commit_to(
+        &self,
+        bytes: impl Into<Cow<'static, [u8]>>,
+        path: Option<&str>,
+    ) -> Result<bool, CommitError> {
+        let endpoint = Endpoint::app_commit(&self.id, path);
         let form = Form::new().part(
             "file",
             Part::bytes(bytes)

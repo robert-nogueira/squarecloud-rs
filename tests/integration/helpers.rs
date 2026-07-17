@@ -1,5 +1,12 @@
 use std::io::Write;
 
+/// Content of the `index.js` entry written by [`dummy_zip`], exposed so
+/// tests can assert on it after a commit or upload without duplicating
+/// the literal.
+pub const DUMMY_INDEX_JS: &[u8] = b"const http = require('http');\n\
+      http.createServer((_, res) => res.end('ok')).listen(80);\n\
+      setInterval(() => console.log('ping'), 1000);\n";
+
 /// Builds a minimal in-memory ZIP that passes SquareCloud upload validation.
 ///
 /// Contains a `squarecloud.app` config and a no-op `index.js` so the platform
@@ -23,12 +30,8 @@ pub fn dummy_zip() -> Vec<u8> {
 
     zip.start_file("index.js", opts)
         .expect("zip: failed to start index.js entry");
-    zip.write_all(
-        b"const http = require('http');\n\
-          http.createServer((_, res) => res.end('ok')).listen(80);\n\
-          setInterval(() => console.log('ping'), 1000);\n",
-    )
-    .expect("zip: failed to write index.js content");
+    zip.write_all(DUMMY_INDEX_JS)
+        .expect("zip: failed to write index.js content");
 
     zip.start_file("package.json", opts)
         .expect("zip: failed to start package.json entry");

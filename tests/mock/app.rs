@@ -248,6 +248,27 @@ async fn app_commit_returns_true() {
 }
 
 #[tokio::test]
+async fn app_commit_to_sends_path_query_param() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/commit"))
+        .and(query_param("path", "src/routes"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    assert!(
+        client
+            .app("app-123")
+            .commit_to(vec![], Some("src/routes"))
+            .await
+            .expect("commit_to() should succeed with mocked 200")
+    );
+}
+
+#[tokio::test]
 async fn app_analytics_returns_analytics() {
     let (client, server) = crate::mock_client().await;
     let item = json!({
