@@ -162,11 +162,10 @@ mod tests {
     use crate::http::Client;
 
     fn make_file(path: &str) -> FileResource {
-        unsafe { std::env::set_var("API_TOKEN", "test") };
         FileResource {
             path: path.to_string(),
             app_id: "app-123".to_string(),
-            client: Client::new(),
+            client: Client::new("test"),
         }
     }
 

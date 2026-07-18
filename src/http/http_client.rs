@@ -20,7 +20,6 @@ use crate::{
     resources::{
         AppResource, BlobResource, DatabaseResource, WorkspaceResource,
     },
-    settings::SETTINGS,
     types::{
         AccountInfo, AppDomain, Database, DatabaseType, LoadBalancers,
         RuntimeStatsListItem, ServiceStatus, Snapshot, SnapshotScope,
@@ -121,26 +120,13 @@ mod tests {
             })
         ));
     }
-
-    #[test]
-    fn client_default_is_same_as_new() {
-        unsafe { std::env::set_var("API_TOKEN", "test") };
-        let client = crate::http::Client::default();
-        assert!(!client.base_url.is_empty());
-    }
-}
-
-impl Default for Client {
-    fn default() -> Self {
-        Self::new()
-    }
 }
 
 /// Authenticated HTTP client for the SquareCloud API.
 ///
 /// `Client` is the root entry point for this library. Construct one with
-/// [`Client::new`], which reads credentials from the environment, then call
-/// methods directly for account-wide operations, or use the resource factory
+/// [`Client::new`], passing your API token explicitly, then call methods
+/// directly for account-wide operations, or use the resource factory
 /// methods ([`app`](Client::app), [`database`](Client::database),
 /// [`workspace`](Client::workspace)) to obtain handles scoped to a specific
 /// entity.
@@ -155,7 +141,7 @@ impl Default for Client {
 /// ```no_run
 /// # use squarecloud::Client;
 /// # #[tokio::main] async fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// let client = Client::new();
+/// let client = Client::new(std::env::var("API_TOKEN")?);
 /// let me = client.me().await?;
 /// let app = client.app("my-app-id");   // client still usable after this
 /// # Ok(()) }
@@ -173,22 +159,23 @@ pub struct Client {
 }
 
 impl Client {
-    /// Creates a new `Client` by reading credentials from the environment.
+    /// Creates a new `Client` authenticated with the given API token.
     ///
-    /// On first call, the `API_TOKEN` environment variable is loaded (a `.env`
-    /// file in the current directory is automatically sourced via [`dotenvy`]).
-    /// The API token is set as the default `Authorization` header on all
-    /// subsequent requests.
+    /// The token is set as the default `Authorization` header on all
+    /// subsequent requests. Sourcing the token (from an environment
+    /// variable, a `.env` file, a secrets manager, or anywhere else) is the
+    /// caller's responsibility — this crate never reads the environment or
+    /// any file on its own.
     ///
     /// # Panics
     ///
-    /// Panics if `API_TOKEN` is not set in the environment, or if it contains
-    /// non-ASCII characters.
-    pub fn new() -> Client {
+    /// Panics if `token` is not a valid HTTP header value (e.g. it contains
+    /// non-ASCII or control characters).
+    pub fn new(token: impl Into<String>) -> Client {
         let mut headers = HeaderMap::new();
         headers.append(
             "Authorization",
-            HeaderValue::from_str(&SETTINGS.api_token).unwrap(),
+            HeaderValue::from_str(&token.into()).unwrap(),
         );
         let client: ReqwestClient = ReqwestClient::builder()
             .default_headers(headers)

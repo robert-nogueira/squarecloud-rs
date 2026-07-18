@@ -1,7 +1,7 @@
 use chrono::{Duration, Utc};
 use futures_util::StreamExt;
 use squarecloud::{
-    ApiError, Client,
+    ApiError,
     errors::{AppErrorCode, SnapshotErrorCode},
     types::RealtimeEvent,
 };
@@ -11,7 +11,7 @@ async fn app_info_matches_uploaded() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let app = client.app(app_id);
 
     let info = app.info().await.expect("info() should return app info");
@@ -26,7 +26,7 @@ async fn app_status_returns_runtime_stats() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let status = client
         .app(app_id)
         .status()
@@ -44,7 +44,7 @@ async fn app_logs_returns_string() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let result = client.app(app_id).logs().await;
     assert!(result.is_ok(), "logs() failed: {:?}", result.err());
 }
@@ -54,7 +54,7 @@ async fn all_apps_status_includes_shared_app() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let statuses = client
         .all_apps_status()
         .await
@@ -71,7 +71,7 @@ async fn app_envs_crud() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let app = client.app(app_id);
 
     let envs = std::collections::HashMap::from([(
@@ -120,7 +120,7 @@ async fn app_commit_returns_true() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     assert!(
         client
             .app(app_id)
@@ -138,7 +138,7 @@ async fn app_commit_to_path_unpacks_at_destination() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let app = client.app(app_id);
 
     assert!(
@@ -165,7 +165,7 @@ async fn app_analytics_returns_analytics() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let end = Utc::now();
     let start = end - Duration::days(7);
     client
@@ -181,7 +181,7 @@ async fn app_dns_records_returns_records() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let records = client
         .app(app_id)
         .dns_records()
@@ -199,7 +199,7 @@ async fn app_network_errors_returns_result() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let end = Utc::now();
     let start = end - Duration::days(7);
     client
@@ -220,7 +220,7 @@ async fn app_network_logs_returns_vec() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let end = Utc::now();
     let start = end - Duration::days(7);
     client
@@ -236,7 +236,7 @@ async fn app_network_performance_returns_result() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let end = Utc::now();
     let start = end - Duration::days(7);
     client
@@ -251,7 +251,7 @@ async fn app_purge_cache_returns_true() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     assert!(
         client
             .app(app_id)
@@ -266,7 +266,7 @@ async fn app_metrics_returns_vec() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let _ = client
         .app(app_id)
         .metrics()
@@ -279,7 +279,7 @@ async fn app_restart_returns_true() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     assert!(
         client
             .app(app_id)
@@ -294,7 +294,7 @@ async fn app_start_returns_true() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     client
         .app(app_id)
         .stop()
@@ -315,7 +315,7 @@ async fn app_stop_returns_true() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     assert!(
         client
             .app(app_id)
@@ -330,7 +330,7 @@ async fn app_current_deploy_returns_deploy() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let result = client.app(app_id).current_deploy().await;
     assert!(
         result.is_ok(),
@@ -344,7 +344,7 @@ async fn app_list_deploys_returns_vec() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let result = client.app(app_id).list_deploys().await;
     assert!(result.is_ok(), "list_deploys() failed: {:?}", result.err());
 }
@@ -354,7 +354,7 @@ async fn app_snapshot_lifecycle() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let app = client.app(app_id);
 
     let snap = match app.create_snapshot().await {
@@ -394,7 +394,7 @@ async fn app_file_operations() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
     let app = client.app(app_id);
 
     let files = app
@@ -441,7 +441,7 @@ async fn app_file_operations() {
 #[tokio::test]
 async fn z_cleanup_shared_app() {
     if let Some(id) = crate::shared_app_id_if_initialized() {
-        let app = Client::new().app(id);
+        let app = crate::client().app(id);
         for attempt in 0..3_u32 {
             match app.delete().await {
                 Ok(_) => return,
@@ -473,7 +473,7 @@ async fn app_realtime_receives_log_events() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
-    let client = Client::new();
+    let client = crate::client();
 
     // The server emits System events (REALTIME_CONNECTING, cluster ID,
     // REALTIME_CONNECTED) before any log events. Filter directly for Log

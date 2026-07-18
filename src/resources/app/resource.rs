@@ -58,7 +58,7 @@ impl AppResource {
     /// use squarecloud::{Client, RealtimeEvent};
     ///
     /// # #[tokio::main] async fn main() {
-    /// let client = Client::new();
+    /// let client = Client::new(std::env::var("API_TOKEN").expect("set API_TOKEN"));
     /// let mut stream = client.app("your-app-id").realtime();
     /// while let Some(event) = stream.next().await {
     ///     match event.unwrap() {

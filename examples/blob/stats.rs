@@ -2,7 +2,8 @@ use squarecloud::Client;
 
 #[tokio::main]
 async fn main() {
-    let client = Client::new();
+    let client =
+        Client::new(std::env::var("API_TOKEN").expect("set API_TOKEN"));
 
     let stats = client.blob().stats().await.unwrap();
     println!("Objects: {}", stats.usage.objects);
