@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use futures_util::StreamExt;
 use serde_json::json;
 use squarecloud::{
-    ApiError,
+    ApiError, LogStream,
     errors::{AppErrorCode, NetworkErrorCode},
     types::AnalyticsFilters,
     types::DnsRecordType,
@@ -1126,9 +1126,10 @@ async fn realtime_parses_log_event() {
 
     assert_eq!(events.len(), 2);
     assert!(matches!(events[0], Ok(RealtimeEvent::System(_))));
-    assert!(matches!(events[1], Ok(RealtimeEvent::Log(_))));
-    if let Ok(RealtimeEvent::Log(msg)) = &events[1] {
-        assert_eq!(msg, "hello from app");
+    assert!(matches!(events[1], Ok(RealtimeEvent::Log { .. })));
+    if let Ok(RealtimeEvent::Log { stream, line }) = &events[1] {
+        assert_eq!(line, "hello from app");
+        assert_eq!(*stream, LogStream::Stdout);
     }
 }
 
@@ -1151,8 +1152,8 @@ async fn realtime_multiline_data_is_concatenated() {
     let events: Vec<_> = client.app("app-123").realtime().collect().await;
 
     assert_eq!(events.len(), 1);
-    if let Ok(RealtimeEvent::Log(msg)) = &events[0] {
-        assert_eq!(msg, "line one\nline two");
+    if let Ok(RealtimeEvent::Log { line, .. }) = &events[0] {
+        assert_eq!(line, "line one\nline two");
     }
 }
 
@@ -1174,5 +1175,112 @@ async fn realtime_comments_are_ignored() {
     let events: Vec<_> = client.app("app-123").realtime().collect().await;
 
     assert_eq!(events.len(), 1);
-    assert!(matches!(events[0], Ok(RealtimeEvent::Log(_))));
+    assert!(matches!(events[0], Ok(RealtimeEvent::Log { .. })));
+}
+
+#[tokio::test]
+async fn realtime_status_merges_lean_frames_onto_last_full_frame() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_bytes(
+                    // ram is fractional on the wire (e.g. 12.98), not a
+                    // whole number; regression coverage for the u64 vs f64
+                    // bug found probing the real API.
+                    b"event: status\n\
+                      data: {\"cpu\":12.5,\"cpuLimit\":100,\"ram\":[12.98,512],\"status\":\"running\",\"netIO\":{\"i\":2048,\"o\":4096,\"new\":{\"i\":64,\"o\":128}},\"bIO\":{\"i\":0,\"o\":0},\"uptime\":1716000000000}\n\n\
+                      event: status\n\
+                      data: {\"cpu\":13.1,\"ram\":[13.14,512],\"netIO\":{\"i\":2176,\"o\":4288,\"new\":{\"i\":72,\"o\":140}},\"bIO\":{\"i\":0,\"o\":0}}\n\n"
+                        as &[u8],
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+
+    assert_eq!(events.len(), 2);
+    let Ok(RealtimeEvent::Status(first)) = &events[0] else {
+        panic!("expected a Status event, got: {:?}", events[0]);
+    };
+    assert_eq!(first.cpu, 12.5);
+    assert_eq!(first.cpu_limit, Some(100.0));
+    assert_eq!(first.status.as_deref(), Some("running"));
+    assert!(first.uptime.is_some());
+
+    let Ok(RealtimeEvent::Status(second)) = &events[1] else {
+        panic!("expected a Status event, got: {:?}", events[1]);
+    };
+    assert_eq!(second.cpu, 13.1);
+    assert_eq!(second.ram.used_mb, 13.14);
+    // Inherited from the first, complete frame.
+    assert_eq!(second.cpu_limit, Some(100.0));
+    assert_eq!(second.status.as_deref(), Some("running"));
+    assert_eq!(second.uptime, first.uptime);
+}
+
+#[tokio::test]
+async fn realtime_error_event_terminates_the_stream() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_bytes(
+                    b"event: system\ndata: REALTIME_CONNECTED\n\n\
+                      event: error\ndata: CONTAINER_NOT_FOUND\n\n\
+                      event: logs\ndata: should never be seen\n\n"
+                        as &[u8],
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+
+    assert_eq!(events.len(), 2, "the error event must end the stream");
+    assert!(matches!(events[0], Ok(RealtimeEvent::System(_))));
+    assert!(matches!(
+        events[1],
+        Err(ApiError::Service {
+            code: AppErrorCode::ContainerNotFound
+        })
+    ));
+}
+
+#[tokio::test]
+async fn realtime_log_prefix_byte_selects_stream_and_is_stripped() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_bytes(
+                    b"event: logs\ndata: \x01stdout line\n\n\
+                      event: logs\ndata: \x02stderr line\n\n"
+                        as &[u8],
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+
+    assert_eq!(events.len(), 2);
+    let Ok(RealtimeEvent::Log { stream, line }) = &events[0] else {
+        panic!("expected a Log event, got: {:?}", events[0]);
+    };
+    assert_eq!(*stream, LogStream::Stdout);
+    assert_eq!(line, "stdout line");
+
+    let Ok(RealtimeEvent::Log { stream, line }) = &events[1] else {
+        panic!("expected a Log event, got: {:?}", events[1]);
+    };
+    assert_eq!(*stream, LogStream::Stderr);
+    assert_eq!(line, "stderr line");
 }

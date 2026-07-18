@@ -77,7 +77,7 @@ The catalogue is kept in sync with the live OpenAPI spec by a contract test, so 
 
 ## Realtime log streaming
 
-`AppResource::realtime()` returns a live SSE stream of log and system events:
+`AppResource::realtime()` returns a live SSE stream of log, status, and system events:
 
 ```rust
 use futures_util::StreamExt;
@@ -89,8 +89,9 @@ async fn main() {
     let mut stream = client.app("application_id").realtime();
     while let Some(event) = stream.next().await {
         match event.unwrap() {
-            RealtimeEvent::Log(msg) => println!("[log]    {msg}"),
+            RealtimeEvent::Log { stream, line } => println!("[log:{stream:?}] {line}"),
             RealtimeEvent::System(msg) => println!("[system] {msg}"),
+            RealtimeEvent::Status(status) => println!("[status] cpu={}", status.cpu),
         }
     }
 }

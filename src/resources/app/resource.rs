@@ -8,10 +8,13 @@ use crate::{
     Endpoint,
     http::{
         Client,
-        errors::{ApiError, AppErrorCode, CommitError},
+        errors::{ApiError, AppErrorCode, CommitError, ServiceErrorCode},
     },
     resources::FileResource,
-    types::{AppInfo, AppLogs, AppMetrics, RealtimeEvent, RuntimeStats},
+    types::{
+        AppInfo, AppLogs, AppMetrics, LogStream, RealtimeEvent, RuntimeStats,
+        StatusFrame, StatusMerger,
+    },
 };
 
 /// A handle to a specific SquareCloud application.
@@ -46,12 +49,17 @@ impl AppResource {
         }
     }
 
-    /// Opens a live SSE stream of log and system events for this application.
+    /// Opens a live SSE stream of log, status, and system events for this
+    /// application.
     ///
-    /// Yields [`RealtimeEvent::Log`] for application log lines and
-    /// [`RealtimeEvent::System`] for connection lifecycle messages (e.g.
-    /// `REALTIME_CONNECTING`, `REALTIME_CONNECTED`). The stream runs until the
-    /// server closes the connection.
+    /// Yields [`RealtimeEvent::Log`] for application log lines (with the
+    /// stdout/stderr origin already decoded), [`RealtimeEvent::System`] for
+    /// connection lifecycle messages (e.g. `REALTIME_CONNECTING`,
+    /// `REALTIME_CONNECTED`), and [`RealtimeEvent::Status`] for live
+    /// container metrics (updated roughly once a second; prefer this over
+    /// polling [`status`](AppResource::status), which can be up to about a
+    /// minute stale while a realtime stream is open). The stream runs until
+    /// the server closes the connection.
     ///
     /// ```no_run
     /// use futures_util::StreamExt;
@@ -62,8 +70,13 @@ impl AppResource {
     /// let mut stream = client.app("your-app-id").realtime();
     /// while let Some(event) = stream.next().await {
     ///     match event.unwrap() {
-    ///         RealtimeEvent::Log(msg) => println!("[log]    {msg}"),
+    ///         RealtimeEvent::Log { stream, line } => {
+    ///             println!("[log:{stream:?}] {line}")
+    ///         }
     ///         RealtimeEvent::System(msg) => println!("[system] {msg}"),
+    ///         RealtimeEvent::Status(status) => {
+    ///             println!("[status] cpu={} ram={:?}", status.cpu, status.ram)
+    ///         }
     ///     }
     /// }
     /// # }
@@ -71,8 +84,11 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Each item is `Result<RealtimeEvent, ApiError<AppErrorCode>>`. A transport failure
-    /// mid-stream yields an `Err` and the stream terminates.
+    /// Each item is `Result<RealtimeEvent, ApiError<AppErrorCode>>`. A
+    /// transport failure mid-stream yields an `Err` and the stream
+    /// terminates. The server can also send its own terminal error event
+    /// (e.g. [`AppErrorCode::ContainerNotFound`] if the application stops or
+    /// is deleted mid-stream), which surfaces the same way.
     pub fn realtime(
         &self,
     ) -> futures_util::stream::BoxStream<
@@ -95,6 +111,7 @@ impl AppResource {
             let mut buffer = Vec::<u8>::new();
             let mut event_type = String::new();
             let mut data = String::new();
+            let mut status_merger = StatusMerger::default();
 
             while let Some(chunk) = bytes.next().await {
                 let chunk = chunk.map_err(ApiError::Transport)?;
@@ -110,11 +127,42 @@ impl AppResource {
 
                     if line.is_empty() {
                         if !data.is_empty() {
-                            let event = match event_type.as_str() {
-                                "logs" => RealtimeEvent::Log(data.clone()),
-                                _ => RealtimeEvent::System(data.clone()),
-                            };
-                            yield Ok(event);
+                            match event_type.as_str() {
+                                "logs" => {
+                                    let stream = match data.chars().next() {
+                                        Some('\u{2}') => LogStream::Stderr,
+                                        _ => LogStream::Stdout,
+                                    };
+                                    let text = data
+                                        .strip_prefix(['\u{1}', '\u{2}'])
+                                        .unwrap_or(&data)
+                                        .to_string();
+                                    yield Ok(RealtimeEvent::Log {
+                                        stream,
+                                        line: text,
+                                    });
+                                }
+                                "status" => {
+                                    if let Ok(frame) =
+                                        serde_json::from_str::<StatusFrame>(&data)
+                                    {
+                                        yield Ok(RealtimeEvent::Status(
+                                            status_merger.merge(frame),
+                                        ));
+                                    }
+                                }
+                                "error" => {
+                                    yield Err(ApiError::Service {
+                                        code: AppErrorCode::from_wire(
+                                            data.clone(),
+                                        ),
+                                    });
+                                    return;
+                                }
+                                _ => {
+                                    yield Ok(RealtimeEvent::System(data.clone()));
+                                }
+                            }
                         }
                         event_type.clear();
                         data.clear();

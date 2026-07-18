@@ -1,5 +1,5 @@
 use futures_util::StreamExt;
-use squarecloud::{Client, RealtimeEvent};
+use squarecloud::{Client, LogStream, RealtimeEvent};
 
 #[tokio::main]
 async fn main() {
@@ -10,8 +10,14 @@ async fn main() {
         Client::new(std::env::var("API_TOKEN").expect("set API_TOKEN"));
     let stream = client.app(&app_id).realtime().filter_map(|e| async {
         match e.expect("stream error") {
-            RealtimeEvent::Log(msg) => Some(msg),
-            RealtimeEvent::System(_) => None,
+            RealtimeEvent::Log { stream, line } => {
+                let prefix = match stream {
+                    LogStream::Stdout => "",
+                    LogStream::Stderr => "[stderr] ",
+                };
+                Some(format!("{prefix}{line}"))
+            }
+            _ => None,
         }
     });
     tokio::pin!(stream);

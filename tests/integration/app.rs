@@ -469,30 +469,69 @@ async fn z_cleanup_shared_app() {
 }
 
 #[tokio::test]
-async fn app_realtime_receives_log_events() {
+async fn app_realtime_receives_log_and_status_events() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
     let client = crate::client();
 
     // The server emits System events (REALTIME_CONNECTING, cluster ID,
-    // REALTIME_CONNECTED) before any log events. Filter directly for Log
-    // events and wait up to 10s; the app logs every 1s.
+    // REALTIME_CONNECTED) before any log/status events. Consume the raw
+    // stream, unfiltered, so both kinds can be observed.
+    //
+    // Note: an earlier version of this test used a 10s window and never
+    // saw a Status event, which looked like the feature wasn't emitted by
+    // the real API at all. Direct SSE probing (2026-07-18) showed that was
+    // a false negative caused by reconnecting to the same app repeatedly
+    // in quick succession while investigating (the connection would then
+    // die after ~17-18s instead of staying open); a single, patient
+    // connection reliably receives Status frames well within a minute. The
+    // probing also caught a real bug this test now guards against: `ram`
+    // is fractional on the wire (e.g. `12.98`), and RealtimeRam was
+    // originally typed as u64, silently dropping every Status frame.
     let app = client.app(app_id);
-    let stream = app.realtime().filter(|e| {
-        futures_util::future::ready(matches!(e, Ok(RealtimeEvent::Log(_))))
-    });
+    let stream = app.realtime();
     tokio::pin!(stream);
 
-    let first_log = tokio::time::timeout(
-        std::time::Duration::from_secs(10),
-        stream.next(),
-    )
-    .await
-    .expect("timed out waiting for a Log event");
+    let mut seen_log = false;
+    let mut seen_status = None;
+
+    let result =
+        tokio::time::timeout(std::time::Duration::from_secs(45), async {
+            while let Some(event) = stream.next().await {
+                match event.expect("realtime stream returned an error") {
+                    RealtimeEvent::Log { .. } => seen_log = true,
+                    RealtimeEvent::Status(status) => {
+                        seen_status = Some(status)
+                    }
+                    RealtimeEvent::System(_) => {}
+                }
+                if seen_log && seen_status.is_some() {
+                    break;
+                }
+            }
+        })
+        .await;
 
     assert!(
-        matches!(first_log, Some(Ok(RealtimeEvent::Log(_)))),
-        "expected a Log event, got: {first_log:?}"
+        result.is_ok(),
+        "timed out waiting for both a Log and a Status event"
+    );
+    assert!(seen_log, "expected at least one Log event");
+
+    let status = seen_status.expect("expected at least one Status event");
+    assert!(
+        status.cpu >= 0.0,
+        "cpu should be a sane non-negative value: {}",
+        status.cpu
+    );
+    assert!(
+        status.ram.limit_mb > 0.0,
+        "ram.limit_mb should be > 0: {:?}",
+        status.ram
+    );
+    assert!(
+        status.uptime.is_some(),
+        "the first status frame should be complete and include uptime"
     );
 }

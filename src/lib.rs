@@ -58,7 +58,9 @@ pub use http::endpoints::EndpointSpec;
 pub use http::errors;
 pub use http::errors::{ApiError, CommitError, ErrorCode, ServiceErrorCode};
 pub use http::http_client::Client;
-pub use types::{CredentialType, DatabaseType, RealtimeEvent, SnapshotScope};
+pub use types::{
+    CredentialType, DatabaseType, LogStream, RealtimeEvent, SnapshotScope,
+};
 
 #[cfg(test)]
 mod tests {
