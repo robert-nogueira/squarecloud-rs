@@ -11,8 +11,16 @@ async fn main() {
     let mut stream = client.app(&app_id).realtime();
     while let Some(event) = stream.next().await {
         match event.expect("stream error") {
-            RealtimeEvent::Log(msg) => println!("[log]    {msg}"),
+            RealtimeEvent::Log { stream, line } => {
+                println!("[log:{stream:?}] {line}")
+            }
             RealtimeEvent::System(msg) => println!("[system] {msg}"),
+            RealtimeEvent::Status(status) => {
+                println!(
+                    "[status] cpu={:.1}% ram={}/{}MB",
+                    status.cpu, status.ram.used_mb, status.ram.limit_mb
+                )
+            }
         }
     }
 }

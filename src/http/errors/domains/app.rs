@@ -30,6 +30,9 @@ pub enum AppErrorCode {
     /// The application already has 30 concurrent realtime connections open
     /// across all users.
     RealtimeMaxConnectionsApp,
+    /// The realtime stream's container disappeared mid-connection (e.g. the
+    /// application was stopped or deleted while streaming).
+    ContainerNotFound,
     /// The workspace does not exist or the caller is not the owner or a
     /// member.
     WorkspaceNotFound,
