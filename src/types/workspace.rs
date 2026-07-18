@@ -79,7 +79,6 @@ mod tests {
 
     #[test]
     fn into_resource_binds_correct_id() {
-        unsafe { std::env::set_var("API_TOKEN", "test") };
         let ws = WorkspaceInfo {
             id: "ws-abc".to_string(),
             name: "test".to_string(),
@@ -88,7 +87,7 @@ mod tests {
             applications: vec![],
             created_at: Utc::now(),
         };
-        let resource = ws.into_resource(Client::new());
+        let resource = ws.into_resource(Client::new("test"));
         assert_eq!(resource.id, "ws-abc");
     }
 }

@@ -21,6 +21,14 @@ pub fn setup() {
     });
 }
 
+/// Builds a `Client` authenticated with `API_TOKEN` from `.env.test`.
+pub fn client() -> Client {
+    setup();
+    Client::new(std::env::var("API_TOKEN").expect(
+        ".env.test not found or API_TOKEN unset — copy .env.test.example to .env.test",
+    ))
+}
+
 /// Returns the shared dummy app ID, uploading it on first call.
 ///
 /// Stores `Result` so a failed upload is cached: subsequent tests fail
@@ -33,7 +41,7 @@ pub fn shared_app_id() -> &'static str {
                 tokio::runtime::Runtime::new()
                     .expect("failed to create tokio runtime for app upload")
                     .block_on(async {
-                        Client::new()
+                        crate::client()
                             .upload_app(helpers::dummy_zip())
                             .await
                             .map(|a| a.id)
@@ -68,7 +76,7 @@ pub fn shared_database_id() -> Option<&'static str> {
                         "failed to create tokio runtime for database create",
                     )
                     .block_on(async {
-                        Client::new()
+                        crate::client()
                             .create_database(
                                 "squarecloud-rs-test".to_string(),
                                 256,

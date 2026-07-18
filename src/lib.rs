@@ -7,9 +7,10 @@
 //! SquareCloud platform: deploying and managing applications, provisioning
 //! databases, organising workspaces, and inspecting account information.
 //!
-//! The main entry point is [`Client`]. It reads the `API_TOKEN`
-//! environment variable (or a `.env` file) on first use, so no explicit
-//! configuration struct is needed.
+//! The main entry point is [`Client`]. Construct one with [`Client::new`],
+//! passing your SquareCloud API token explicitly — the crate never reads
+//! the environment or any file on its own; sourcing the token from wherever
+//! you like (an env var, a `.env` file, a secrets manager) is up to you.
 //!
 //! # Quick start
 //!
@@ -18,7 +19,8 @@
 //!
 //! #[tokio::main]
 //! async fn main() -> Result<(), Box<dyn std::error::Error>> {
-//!     let client = Client::new();
+//!     let token = std::env::var("API_TOKEN")?;
+//!     let client = Client::new(token);
 //!
 //!     // Fetch your account information.
 //!     let me = client.me().await?;
@@ -43,20 +45,10 @@
 //! | [`types`] | Plain data structs deserialised from API responses. |
 //! | [`ApiError`] / [`errors`] | Errors returned by every API call; one error-code enum per domain. |
 //! | [`CommitError`] | Error type specific to [`resources::AppResource::commit`]. |
-//!
-//! # Environment variables
-//!
-//! | Variable | Description |
-//! |----------|-------------|
-//! | `API_TOKEN` | Your SquareCloud API key. |
-//!
-//! Read at first use via [`dotenvy`](https://docs.rs/dotenvy), so a `.env`
-//! file in the working directory is supported automatically.
 
 mod http;
 /// Resource handles returned by the factory methods on [`Client`].
 pub mod resources;
-mod settings;
 /// Plain data structs deserialised from API responses.
 pub mod types;
 

@@ -10,7 +10,8 @@ async fn main() {
     );
     let dest_path = std::env::args().nth(3);
 
-    let client = Client::new();
+    let client =
+        Client::new(std::env::var("API_TOKEN").expect("set API_TOKEN"));
     let bytes = std::fs::read(zip_path).unwrap();
     let app = client.app(&app_id);
 

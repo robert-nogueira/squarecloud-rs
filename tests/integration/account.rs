@@ -1,9 +1,7 @@
-use squarecloud::Client;
-
 #[tokio::test]
 async fn me_returns_account_info() {
     crate::setup();
-    let client = Client::new();
+    let client = crate::client();
     let me = client.me().await.expect("me() should return account info");
 
     assert!(!me.user.id.is_empty(), "id should not be empty");

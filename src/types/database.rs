@@ -144,7 +144,6 @@ mod tests {
 
     #[test]
     fn into_resource_binds_correct_id() {
-        unsafe { std::env::set_var("API_TOKEN", "test") };
         let db = Database {
             id: "db-abc".to_string(),
             name: "test".to_string(),
@@ -155,7 +154,7 @@ mod tests {
             certificate: "cert".to_string(),
             connection_url: "postgres://localhost/test".to_string(),
         };
-        let resource = db.into_resource(Client::new());
+        let resource = db.into_resource(Client::new("test"));
         assert_eq!(resource.id, "db-abc");
     }
 }

@@ -81,8 +81,7 @@ mod tests {
     use crate::http::Client;
 
     fn client() -> Client {
-        unsafe { std::env::set_var("API_TOKEN", "test") };
-        Client::new()
+        Client::new("test")
     }
 
     #[test]
