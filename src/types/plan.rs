@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Memory quota details for an account plan.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlanMemory {
     /// Total RAM limit granted by the plan, in megabytes.
     pub limit: u64,
@@ -15,7 +15,7 @@ pub struct PlanMemory {
 /// The active subscription plan for an account.
 ///
 /// Included in [`AccountInfo`](crate::types::AccountInfo).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Plan {
     /// The plan's human-readable name (e.g. `"Starter"`, `"Pro"`).
     pub name: String,

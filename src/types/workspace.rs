@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{http::Client, resources::WorkspaceResource};
 
 /// A member of a SquareCloud workspace.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkspaceMember {
     /// The member's account identifier.
     pub id: String,
@@ -19,7 +19,7 @@ pub struct WorkspaceMember {
 }
 
 /// Summary of an application that belongs to a workspace.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkspaceApp {
     /// The application's unique identifier.
     pub id: String,
@@ -44,7 +44,7 @@ pub struct WorkspaceApp {
 /// [`WorkspaceResource::info`](crate::resources::WorkspaceResource::info). To
 /// obtain a [`WorkspaceResource`] handle from this value, call
 /// [`into_resource`](WorkspaceInfo::into_resource).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkspaceInfo {
     /// The workspace's unique identifier.
     pub id: String,

@@ -21,7 +21,7 @@ pub enum DnsRecordType {
 /// [`AppResource::dns_records`](crate::resources::AppResource::dns_records).
 /// One entry among the (typically two or three) records required for
 /// custom-domain verification to succeed.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DnsRecord {
     /// The record type.
     #[serde(rename = "type")]

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::{database::DatabaseSummary, plan::Plan};
 
 /// Condensed application metadata as returned inside the `me` response.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppSummary {
     /// The application's unique identifier.
     pub id: String,
@@ -27,7 +27,7 @@ pub struct AppSummary {
 }
 
 /// The authenticated user's profile fields.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserInfo {
     /// The account's unique identifier.
     pub id: String,
@@ -44,7 +44,7 @@ pub struct UserInfo {
 /// Full account information returned by `me`.
 ///
 /// Returned by [`Client::me`](crate::Client::me).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AccountInfo {
     /// The authenticated user's profile.
     pub user: UserInfo,

@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// How a deployment was triggered.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DeploySource {
     /// Triggered by a Git webhook or GitHub App push.
@@ -12,7 +12,7 @@ pub enum DeploySource {
 }
 
 /// Files changed in a `commit`-state deployment event.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeployFiles {
     /// Files added in this deploy.
     pub added: Vec<String>,
@@ -31,7 +31,7 @@ pub struct DeployFiles {
 ///
 /// All fields except `branch` and `files` may be absent depending on the
 /// endpoint and deployment state.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Deploy {
     /// The deployment's unique identifier.
     pub id: Option<String>,

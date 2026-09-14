@@ -129,7 +129,7 @@ pub struct RealtimeBlockIo {
 ///
 /// `cpu_limit`, `status`, and `uptime` are only present in the first frame
 /// of each connection; later frames omit them. See [`StatusMerger`].
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub(crate) struct StatusFrame {
     cpu: f64,
     #[serde(rename = "cpuLimit")]
@@ -146,7 +146,7 @@ pub(crate) struct StatusFrame {
 
 /// Accumulates the constant fields carried by the first complete `status`
 /// frame of a connection and fills them into every later, lean frame.
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub(crate) struct StatusMerger {
     cpu_limit: Option<f64>,
     status: Option<String>,

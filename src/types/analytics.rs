@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// A single data point within an [`Analytics`] breakdown.
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnalyticsItem {
     /// The dimension label for this item (e.g. a country code, browser name,
     /// or HTTP method).
@@ -21,7 +21,7 @@ pub struct AnalyticsItem {
 /// dimensions.
 ///
 /// Returned by [`AppResource::analytics`](crate::resources::AppResource::analytics).
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Analytics {
     /// Traffic over time.
     #[serde(default)]

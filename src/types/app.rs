@@ -5,7 +5,7 @@ use crate::http::Client;
 use crate::resources::AppResource;
 
 /// Detected runtime language returned by the upload endpoint.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppLanguage {
     /// Runtime identifier (e.g. `"javascript"`, `"python"`, `"rust"`).
     pub name: String,
@@ -18,7 +18,7 @@ pub struct AppLanguage {
 /// This differs from [`AppInfo`] in that `language` is a structured object and
 /// `cpu` is included. To obtain an [`AppResource`] handle from this value, call
 /// [`into_resource`](UploadedApp::into_resource).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UploadedApp {
     /// The application's unique identifier.
     pub id: String,
@@ -48,7 +48,7 @@ impl UploadedApp {
 /// Returned by [`AppResource::info`](crate::resources::AppResource::info).
 /// To obtain an [`AppResource`] handle from this value, call
 /// [`into_resource`](AppInfo::into_resource).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppInfo {
     /// The application's display name.
     pub name: String,

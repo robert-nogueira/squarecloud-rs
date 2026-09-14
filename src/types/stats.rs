@@ -1,6 +1,74 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Deserializer, Serialize};
 
+/// A network throughput counter that the API returns as either a formatted
+/// string or a raw `[bytes_in, bytes_out]` array when called with
+/// `?rawData=true`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum NetworkCounter {
+    /// Human-readable summary (e.g. `"1 MB ↑ 500 KB ↓"`).
+    Formatted(String),
+    /// Raw byte counts as `[bytes_in, bytes_out]`.
+    Raw(Vec<u64>),
+}
+
+/// Network throughput figures for a running resource.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppNetwork {
+    /// Cumulative bytes transferred since the resource started.
+    pub total: NetworkCounter,
+    /// Bytes transferred in the current measurement interval.
+    pub now: NetworkCounter,
+}
+
+/// Condensed runtime status for a single entry in the all-apps or
+/// all-databases list response.
+///
+/// Returned as part of a [`Vec`] by
+/// [`Client::all_apps_status`](crate::Client::all_apps_status) and
+/// [`Client::all_database_status`](crate::Client::all_database_status).
+/// `cpu` and `ram` are only present when `running` is `true`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuntimeStatsListItem {
+    /// The application or database identifier.
+    pub id: String,
+    /// Whether the resource is currently running.
+    pub running: bool,
+    /// CPU usage as a percentage string. Present only when running.
+    pub cpu: Option<String>,
+    /// RAM usage string. Present only when running.
+    pub ram: Option<String>,
+}
+
+/// Full runtime status for a single application or database.
+///
+/// Returned by [`AppResource::status`](crate::resources::AppResource::status)
+/// and [`DatabaseResource::status`](crate::resources::DatabaseResource::status).
+/// The `cpu`, `ram`, and `storage` fields accept both the formatted string
+/// mode (default) and the raw numeric mode (`?rawData=true`).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuntimeStats {
+    /// CPU usage (e.g. `"3.2%"` or `3.2` in raw mode).
+    #[serde(deserialize_with = "deserialize_as_string")]
+    pub cpu: String,
+    /// RAM usage (e.g. `"128/512MB"` or `128` in raw mode).
+    #[serde(deserialize_with = "deserialize_as_string")]
+    pub ram: String,
+    /// Resource lifecycle state (e.g. `"running"`, `"exited"`).
+    pub status: String,
+    /// Whether the application process is currently running.
+    pub running: bool,
+    /// Disk usage (e.g. `"50MB"` or `52428800` in raw mode).
+    #[serde(deserialize_with = "deserialize_as_string")]
+    pub storage: String,
+    /// Network throughput statistics.
+    pub network: AppNetwork,
+    /// The UTC timestamp when the process last started. `null` when not running.
+    #[serde(with = "chrono::serde::ts_milliseconds_option")]
+    pub uptime: Option<DateTime<Utc>>,
+}
+
 /// Deserializes a field that the API returns as either a string or a number.
 ///
 /// Used for `cpu`, `ram`, and `storage` in [`RuntimeStats`], which the API
@@ -121,72 +189,4 @@ mod tests {
         }));
         assert!(result.is_err());
     }
-}
-
-/// A network throughput counter that the API returns as either a formatted
-/// string or a raw `[bytes_in, bytes_out]` array when called with
-/// `?rawData=true`.
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-pub enum NetworkCounter {
-    /// Human-readable summary (e.g. `"1 MB ↑ 500 KB ↓"`).
-    Formatted(String),
-    /// Raw byte counts as `[bytes_in, bytes_out]`.
-    Raw(Vec<u64>),
-}
-
-/// Network throughput figures for a running resource.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AppNetwork {
-    /// Cumulative bytes transferred since the resource started.
-    pub total: NetworkCounter,
-    /// Bytes transferred in the current measurement interval.
-    pub now: NetworkCounter,
-}
-
-/// Condensed runtime status for a single entry in the all-apps or
-/// all-databases list response.
-///
-/// Returned as part of a [`Vec`] by
-/// [`Client::all_apps_status`](crate::Client::all_apps_status) and
-/// [`Client::all_database_status`](crate::Client::all_database_status).
-/// `cpu` and `ram` are only present when `running` is `true`.
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RuntimeStatsListItem {
-    /// The application or database identifier.
-    pub id: String,
-    /// Whether the resource is currently running.
-    pub running: bool,
-    /// CPU usage as a percentage string. Present only when running.
-    pub cpu: Option<String>,
-    /// RAM usage string. Present only when running.
-    pub ram: Option<String>,
-}
-
-/// Full runtime status for a single application or database.
-///
-/// Returned by [`AppResource::status`](crate::resources::AppResource::status)
-/// and [`DatabaseResource::status`](crate::resources::DatabaseResource::status).
-/// The `cpu`, `ram`, and `storage` fields accept both the formatted string
-/// mode (default) and the raw numeric mode (`?rawData=true`).
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RuntimeStats {
-    /// CPU usage (e.g. `"3.2%"` or `3.2` in raw mode).
-    #[serde(deserialize_with = "deserialize_as_string")]
-    pub cpu: String,
-    /// RAM usage (e.g. `"128/512MB"` or `128` in raw mode).
-    #[serde(deserialize_with = "deserialize_as_string")]
-    pub ram: String,
-    /// Resource lifecycle state (e.g. `"running"`, `"exited"`).
-    pub status: String,
-    /// Whether the application process is currently running.
-    pub running: bool,
-    /// Disk usage (e.g. `"50MB"` or `52428800` in raw mode).
-    #[serde(deserialize_with = "deserialize_as_string")]
-    pub storage: String,
-    /// Network throughput statistics.
-    pub network: AppNetwork,
-    /// The UTC timestamp when the process last started. `null` when not running.
-    #[serde(with = "chrono::serde::ts_milliseconds_option")]
-    pub uptime: Option<DateTime<Utc>>,
 }

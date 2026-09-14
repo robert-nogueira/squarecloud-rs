@@ -26,7 +26,7 @@ impl SnapshotScope {
 /// [`AppResource::list_snapshots`](crate::resources::AppResource::list_snapshots),
 /// [`DatabaseResource::list_snapshots`](crate::resources::DatabaseResource::list_snapshots),
 /// and [`Client::all_snapshots`](crate::Client::all_snapshots).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Snapshot {
     /// The snapshot's display name.
     pub name: String,
@@ -60,7 +60,7 @@ impl Snapshot {
 /// [`AppResource::create_snapshot`](crate::resources::AppResource::create_snapshot)
 /// and
 /// [`DatabaseResource::create_snapshot`](crate::resources::DatabaseResource::create_snapshot).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SnapshotReference {
     /// A pre-signed URL from which the snapshot archive can be downloaded.
     pub url: String,

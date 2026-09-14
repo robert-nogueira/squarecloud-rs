@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Options for a blob upload request.
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct UploadOptions {
     /// Optional prefix to group the object. Must match `[a-zA-Z0-9_]`, 3-32 characters.
     pub prefix: Option<String>,
@@ -17,7 +17,7 @@ pub struct UploadOptions {
 }
 
 /// A blob object returned immediately after a successful upload.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlobObject {
     /// Unique object identifier.
     pub id: String,
@@ -30,7 +30,7 @@ pub struct BlobObject {
 }
 
 /// A single entry in the blob object listing.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlobListItem {
     /// Unique object identifier.
     pub id: String,
@@ -43,7 +43,7 @@ pub struct BlobListItem {
 }
 
 /// Paginated list of blob objects.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlobObjectList {
     /// The objects returned for this page.
     pub objects: Vec<BlobListItem>,
@@ -53,7 +53,7 @@ pub struct BlobObjectList {
 }
 
 /// Current usage statistics for the blob plan.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlobUsage {
     /// Number of objects stored.
     pub objects: u64,
@@ -62,14 +62,14 @@ pub struct BlobUsage {
 }
 
 /// Included storage limit from the subscribed plan.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlobPlan {
     /// Bytes of storage included in the plan at no extra cost.
     pub included: u64,
 }
 
 /// Estimated billing breakdown for the current billing period.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BlobBilling {
     /// Extra storage in bytes beyond the included quota.
@@ -83,7 +83,7 @@ pub struct BlobBilling {
 }
 
 /// Full statistics for the blob storage account.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlobStats {
     /// Current usage figures.
     pub usage: BlobUsage,

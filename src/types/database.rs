@@ -7,7 +7,7 @@ use crate::{http::Client, resources::DatabaseResource};
 ///
 /// Returned as part of a [`Vec`] by
 /// [`DatabaseResource::metrics`](crate::resources::DatabaseResource::metrics).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DatabaseMetrics {
     /// The UTC timestamp this sample covers.
     pub date: DateTime<Utc>,
@@ -20,7 +20,7 @@ pub struct DatabaseMetrics {
 }
 
 /// The type of managed database engine to provision.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum DatabaseType {
     /// Redis in-memory data store.
@@ -37,7 +37,7 @@ pub enum DatabaseType {
 /// [`DatabaseResource::info`](crate::resources::DatabaseResource::info).
 /// To obtain a [`DatabaseResource`] handle from an existing value, use
 /// [`Client::database`](crate::Client::database) with the `id` field.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DatabaseInfo {
     /// The database's unique identifier.
     pub id: String,
@@ -59,7 +59,7 @@ pub struct DatabaseInfo {
 }
 
 /// Condensed database metadata as returned inside the `me` response.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DatabaseSummary {
     /// The database's unique identifier.
     pub id: String,
@@ -82,7 +82,7 @@ pub struct DatabaseSummary {
 /// [`Client::create_database`](crate::Client::create_database). To
 /// obtain a [`DatabaseResource`] handle from this value, call
 /// [`into_resource`](Database::into_resource).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Database {
     /// The database's unique identifier.
     pub id: String,

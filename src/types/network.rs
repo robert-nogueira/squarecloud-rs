@@ -7,7 +7,7 @@ use serde_json::Value;
 /// Error counts broken down by HTTP class (4xx / 5xx).
 ///
 /// Part of [`NetworkErrorSummary`].
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkErrorByClass {
     /// Number of 4xx client errors. Present only when `include_4xx` was
     /// set on the request.
@@ -21,7 +21,7 @@ pub struct NetworkErrorByClass {
 /// High-level totals for edge errors in the analysis window.
 ///
 /// Part of [`NetworkErrors`].
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkErrorSummary {
     /// Total error count across all classes.
     pub total: u64,
@@ -33,7 +33,7 @@ pub struct NetworkErrorSummary {
 ///
 /// Used in [`NetworkErrors::by_status`] and
 /// [`NetworkErrorPath::by_status`].
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkErrorByStatus {
     /// The HTTP status code.
     pub status: u16,
@@ -44,7 +44,7 @@ pub struct NetworkErrorByStatus {
 /// Error counts within a single time bucket.
 ///
 /// Part of [`NetworkErrors::timeseries`].
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkErrorTimeseries {
     /// The UTC timestamp that opens this time bucket.
     pub date: DateTime<Utc>,
@@ -58,7 +58,7 @@ pub struct NetworkErrorTimeseries {
 /// Error statistics for a single request path.
 ///
 /// Part of [`NetworkErrors::top_paths`].
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkErrorPath {
     /// The request URI path.
     pub path: String,
@@ -76,7 +76,7 @@ pub struct NetworkErrorPath {
 /// [`AppResource::network_errors`](crate::resources::AppResource::network_errors).
 ///
 /// Requires a Pro or Enterprise plan.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkErrors {
     /// Aggregate totals for the analysis window.
     pub summary: NetworkErrorSummary,
@@ -95,7 +95,7 @@ pub struct NetworkErrors {
 ///
 /// Used in [`NetworkPerformanceSummary`] and
 /// [`NetworkPerformanceTimeseries`].
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LatencyPercentiles {
     /// Median (50th percentile) latency in milliseconds.
     pub p50: u32,
@@ -108,7 +108,7 @@ pub struct LatencyPercentiles {
 /// Aggregate latency summary for the analysis window.
 ///
 /// Part of [`NetworkPerformance`].
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkPerformanceSummary {
     /// Edge (CDN) latency percentiles.
     pub edge: LatencyPercentiles,
@@ -121,7 +121,7 @@ pub struct NetworkPerformanceSummary {
 /// Latency data for a single time bucket.
 ///
 /// Part of [`NetworkPerformance::timeseries`].
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkPerformanceTimeseries {
     /// The UTC timestamp that opens this time bucket.
     pub date: DateTime<Utc>,
@@ -137,7 +137,7 @@ pub struct NetworkPerformanceTimeseries {
 ///
 /// Part of [`NetworkPerformance::countries`]. The `country_code` field
 /// holds the ISO 3166-1 alpha-2 country code (JSON key `"type"`).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkPerformanceCountry {
     /// ISO 3166-1 alpha-2 country code.
     #[serde(rename = "type")]
@@ -154,7 +154,7 @@ pub struct NetworkPerformanceCountry {
 ///
 /// Part of [`NetworkPerformance::colos`]. The `colo_id` field holds the
 /// Cloudflare datacenter identifier (JSON key `"type"`).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkPerformanceColo {
     /// Cloudflare datacenter identifier (e.g. `"GRU"`).
     #[serde(rename = "type")]
@@ -174,7 +174,7 @@ pub struct NetworkPerformanceColo {
 /// Latency statistics for a single high-latency request path.
 ///
 /// Part of [`NetworkPerformance::slowest_paths`].
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkPerformancePath {
     /// The request URI path.
     pub path: String,
@@ -193,7 +193,7 @@ pub struct NetworkPerformancePath {
 ///
 /// Requires a Pro or Enterprise plan. Rate-limited to 10 requests per
 /// 60 seconds per owner for cache misses.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkPerformance {
     /// Aggregate latency summary for the analysis window.
     pub summary: NetworkPerformanceSummary,
@@ -214,7 +214,7 @@ pub struct NetworkPerformance {
 ///
 /// Requires a Pro or Enterprise plan. The API retains logs for a maximum of
 /// 7 days.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NetworkLogEntry {
     /// The UTC timestamp of the request.
     pub timestamp: DateTime<Utc>,
@@ -258,7 +258,7 @@ pub struct NetworkLogEntry {
 /// Part of [`LoadBalancers`]. A group with two or more applications is an
 /// active load balancer: traffic is balanced across them at the edge,
 /// with automatic failover when an application is offline.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoadBalancer {
     /// The custom domain.
     pub hostname: String,
@@ -267,7 +267,7 @@ pub struct LoadBalancer {
 }
 
 /// One application inside a [`LoadBalancer`] group.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoadBalancerApp {
     /// The application's unique identifier.
     pub id: String,
@@ -280,7 +280,7 @@ pub struct LoadBalancerApp {
 /// The account's custom domains grouped by hostname.
 ///
 /// Returned by [`Client::load_balancers`](crate::Client::load_balancers).
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoadBalancers {
     /// Maximum applications allowed on one domain for the account's plan:
     /// 2 on Standard, 5 on Pro, 10 on Enterprise.
