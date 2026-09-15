@@ -17,6 +17,11 @@ use crate::{
     },
 };
 
+pub type RealtimeStream = futures_util::stream::BoxStream<
+    'static,
+    Result<RealtimeEvent, ApiError<AppErrorCode>>,
+>;
+
 /// A handle to a specific SquareCloud application.
 ///
 /// Obtain an `AppResource` by calling [`Client::app`] with the application
@@ -89,12 +94,7 @@ impl AppResource {
     /// terminates. The server can also send its own terminal error event
     /// (e.g. [`AppErrorCode::ContainerNotFound`] if the application stops or
     /// is deleted mid-stream), which surfaces the same way.
-    pub fn realtime(
-        &self,
-    ) -> futures_util::stream::BoxStream<
-        'static,
-        Result<RealtimeEvent, ApiError<AppErrorCode>>,
-    > {
+    pub fn realtime(&self) -> RealtimeStream {
         let client = self.client.clone();
         let id = self.id.clone();
         let endpoint = Endpoint::sse_realtime_app_logs(&id);
