@@ -13,7 +13,11 @@ async fn blob_upload_and_list_and_delete() {
         .await
         .expect("blob upload() should succeed");
     assert!(!object.id.is_empty());
-    assert!(!object.url.is_empty());
+    // A prefix rule on the account can make the upload private, so the
+    // URL is only checked when the API returns one.
+    if let Some(url) = &object.url {
+        assert!(!url.is_empty());
+    }
 
     let listing = client
         .blob()

@@ -56,6 +56,42 @@ async fn workspace_info_returns_info() {
 }
 
 #[tokio::test]
+async fn workspace_info_accepts_member_without_name() {
+    let (client, server) = crate::mock_client().await;
+    let mut workspace = workspace_json();
+    workspace["members"] = json!([
+        {
+            "id": "user-123",
+            "name": "Owner",
+            "group": "owner",
+            "joinedAt": "2024-01-01T00:00:00Z"
+        },
+        {
+            "id": "user-456",
+            "name": null,
+            "group": "view",
+            "joinedAt": "2024-01-01T00:00:00Z"
+        }
+    ]);
+    Mock::given(method("GET"))
+        .and(path("/workspaces/ws-123"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": workspace
+        })))
+        .mount(&server)
+        .await;
+
+    let info = client
+        .workspace("ws-123")
+        .info()
+        .await
+        .expect("info() should accept a member with a null name");
+    assert_eq!(info.members[0].name.as_deref(), Some("Owner"));
+    assert_eq!(info.members[1].name, None);
+}
+
+#[tokio::test]
 async fn workspace_get_invite_code() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))

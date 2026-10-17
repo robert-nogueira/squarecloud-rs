@@ -25,8 +25,8 @@ pub struct BlobObject {
     pub name: String,
     /// Size of the uploaded object in bytes.
     pub size: u64,
-    /// Public (or signed) URL to access the object.
-    pub url: String,
+    /// Public URL of the object, or `None` for a private object.
+    pub url: Option<String>,
 }
 
 /// A single entry in the blob object listing.

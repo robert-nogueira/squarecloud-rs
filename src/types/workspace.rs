@@ -8,10 +8,11 @@ use crate::{http::Client, resources::WorkspaceResource};
 pub struct WorkspaceMember {
     /// The member's account identifier.
     pub id: String,
-    /// The member's display name.
-    pub name: String,
-    /// The permission group assigned to this member (e.g. `"admin"`,
-    /// `"member"`).
+    /// The member's display name, or `None` when the API cannot resolve
+    /// it (for example, a deleted account).
+    pub name: Option<String>,
+    /// The permission group assigned to this member: `"owner"`,
+    /// `"admin"`, `"maintain"`, `"manager"` or `"view"`.
     pub group: String,
     /// The UTC timestamp when this member joined the workspace.
     #[serde(rename = "joinedAt")]

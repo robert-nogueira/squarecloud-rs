@@ -34,7 +34,43 @@ async fn blob_upload_returns_object() {
     assert_eq!(result.id, "obj-abc123");
     assert_eq!(result.name, "avatar.png");
     assert_eq!(result.size, 4096);
-    assert!(!result.url.is_empty());
+    assert_eq!(
+        result.url.as_deref(),
+        Some("https://blob.squarecloud.app/avatar.png")
+    );
+}
+
+#[tokio::test]
+async fn blob_upload_private_object_has_no_url() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/objects"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "id": "prv/123/draft.png",
+                "name": "draft.png",
+                "size": 4096,
+                "url": null
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let result = client
+        .blob()
+        .upload(
+            "draft",
+            "image/png",
+            vec![0u8; 4096],
+            UploadOptions::default(),
+        )
+        .await
+        .expect("upload() should accept a null url");
+
+    assert_eq!(result.id, "prv/123/draft.png");
+    assert_eq!(result.name, "draft.png");
+    assert_eq!(result.url, None);
 }
 
 #[tokio::test]

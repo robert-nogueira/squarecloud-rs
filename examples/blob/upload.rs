@@ -20,5 +20,8 @@ async fn main() {
         .await
         .unwrap();
 
-    println!("Uploaded: {}", object.url);
+    match object.url {
+        Some(url) => println!("Uploaded: {url}"),
+        None => println!("Uploaded private object: {}", object.id),
+    }
 }

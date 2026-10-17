@@ -34,7 +34,8 @@ impl BlobResource {
     /// - `options` controls optional metadata such as prefix, expiry, and
     ///   security settings.
     ///
-    /// Returns the [`BlobObject`] descriptor including the public URL.
+    /// Returns the [`BlobObject`] descriptor. Its `url` is `None` when the
+    /// object is private.
     ///
     /// # Errors
     ///
