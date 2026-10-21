@@ -10,7 +10,7 @@ async fn main() {
         .blob()
         .upload(
             "my_image",
-            "image/png",
+            "my-file.png",
             bytes,
             UploadOptions {
                 prefix: Some("images".to_string()),

@@ -12,8 +12,8 @@ impl Endpoint {
         if let Some(p) = &opts.prefix {
             b = b.query("prefix", p);
         }
-        if let Some(e) = opts.expire {
-            b = b.query("expire", &e.to_string());
+        if let Some(expire) = opts.expire_query() {
+            b = b.query("expire", &expire);
         }
         if let Some(h) = opts.security_hash {
             b = b.query("security_hash", &h.to_string());
@@ -52,7 +52,7 @@ impl Endpoint {
 #[cfg(test)]
 mod tests {
     use super::Endpoint;
-    use crate::types::UploadOptions;
+    use crate::types::{BlobExpiry, UploadOptions};
 
     #[test]
     fn blob_list_with_neither_option_has_no_query_string() {
@@ -88,16 +88,50 @@ mod tests {
     fn blob_upload_with_all_options_sends_every_query_param() {
         let opts = UploadOptions {
             prefix: Some("images".to_string()),
-            expire: Some(30),
+            expiry: Some(BlobExpiry::Hours(6)),
             security_hash: Some(true),
             auto_download: Some(false),
+            ..Default::default()
         };
         let ep = Endpoint::blob_upload("photo", &opts);
         assert_eq!(
             ep.path,
-            "/objects?name=photo&prefix=images&expire=30\
+            "/objects?name=photo&prefix=images&expire=6h\
              &security_hash=true&auto_download=false"
         );
+    }
+
+    #[test]
+    fn blob_upload_sends_expiry_in_days() {
+        let opts = UploadOptions {
+            expiry: Some(BlobExpiry::Days(30)),
+            ..Default::default()
+        };
+        let ep = Endpoint::blob_upload("photo", &opts);
+        assert_eq!(ep.path, "/objects?name=photo&expire=30d");
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn blob_upload_still_sends_deprecated_expire_in_days() {
+        let opts = UploadOptions {
+            expire: Some(30),
+            ..Default::default()
+        };
+        let ep = Endpoint::blob_upload("photo", &opts);
+        assert_eq!(ep.path, "/objects?name=photo&expire=30d");
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn blob_upload_prefers_expiry_over_deprecated_expire() {
+        let opts = UploadOptions {
+            expire: Some(30),
+            expiry: Some(BlobExpiry::Hours(12)),
+            ..Default::default()
+        };
+        let ep = Endpoint::blob_upload("photo", &opts);
+        assert_eq!(ep.path, "/objects?name=photo&expire=12h");
     }
 
     #[test]

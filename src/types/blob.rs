@@ -4,16 +4,58 @@ use serde::{Deserialize, Serialize};
 /// Options for a blob upload request.
 #[derive(Debug, Clone, Default)]
 pub struct UploadOptions {
-    /// Optional prefix to group the object. Must match `[a-zA-Z0-9_]`, 3-32 characters.
+    /// Folder path for the object: up to 8 segments separated by `/` and
+    /// 256 characters in total, each segment following the same pattern as
+    /// the object name (letters, digits, `_`, `.` and `-`).
     pub prefix: Option<String>,
-    /// Number of days until the object expires (1-365).
+    /// Days until the object is deleted, from 1 to 1825. Sent as
+    /// [`BlobExpiry::Days`].
+    #[deprecated(
+        since = "0.5.0",
+        note = "use `expiry`, which also accepts hours; ignored when `expiry` is set"
+    )]
     pub expire: Option<u16>,
-    /// When `true`, the URL includes a signed hash that prevents direct access
-    /// without the signature.
+    /// How long until the object is deleted. When omitted, the account's
+    /// rule for the prefix decides.
+    pub expiry: Option<BlobExpiry>,
+    /// When `true`, a random suffix is added to the name so the URL can't
+    /// be guessed and a new upload never replaces an old one.
     pub security_hash: Option<bool>,
     /// When `true`, browsers receive `Content-Disposition: attachment` and
     /// download the file instead of previewing it.
     pub auto_download: Option<bool>,
+}
+
+impl UploadOptions {
+    #[allow(deprecated)]
+    pub(crate) fn expire_query(&self) -> Option<String> {
+        self.expiry
+            .or(self.expire.map(BlobExpiry::Days))
+            .map(BlobExpiry::to_query)
+    }
+}
+
+/// How long until a blob object is deleted automatically.
+///
+/// The API accepts from 1 hour to 1825 days and answers
+/// [`BlobErrorCode::InvalidObjectExpire`](crate::errors::BlobErrorCode::InvalidObjectExpire)
+/// outside that range; expiries under 7 days need the Enterprise plan.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum BlobExpiry {
+    /// A number of hours.
+    Hours(u32),
+    /// A number of days.
+    Days(u16),
+}
+
+impl BlobExpiry {
+    pub(crate) fn to_query(self) -> String {
+        match self {
+            Self::Hours(hours) => format!("{hours}h"),
+            Self::Days(days) => format!("{days}d"),
+        }
+    }
 }
 
 /// A blob object returned immediately after a successful upload.

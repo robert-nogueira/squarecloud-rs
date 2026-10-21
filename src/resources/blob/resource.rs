@@ -25,11 +25,12 @@ impl BlobResource {
 
     /// Uploads an object to blob storage.
     ///
-    /// - `name` is the logical storage key. Must match `[a-zA-Z0-9_]`, 3-32
-    ///   characters (no dots, dashes, or slashes).
-    /// - `mime_type` is the MIME type of the content (e.g. `"image/png"`).
-    ///   The name cannot carry an extension (dots are not allowed), so this
-    ///   must always be supplied explicitly.
+    /// - `name` is the object name, without extension: 1 to 128 letters,
+    ///   digits, `_`, `.` and `-`, starting with a letter, digit or `_`.
+    /// - `file_name` is the file's real name with its extension (for example
+    ///   `"logo.png"` or `"reads.fastq.gz"`). The API takes the stored
+    ///   extension from it and derives the served `Content-Type` from that
+    ///   extension. A path is reduced to its last component.
     /// - `bytes` is the raw file content.
     /// - `options` controls optional metadata such as prefix, expiry, and
     ///   security settings.
@@ -41,21 +42,19 @@ impl BlobResource {
     ///
     /// Returns [`ApiError::Transport`] if the request fails or the reply does
     /// not decode, or [`ApiError::Service`] on an API-level error (e.g.
-    /// [`BlobErrorCode::InvalidObjectName`]). An unparseable `mime_type` also
-    /// returns [`ApiError::Transport`], before any request is sent.
+    /// [`BlobErrorCode::InvalidObjectName`] or
+    /// [`BlobErrorCode::BlockedFileType`] for executables).
     pub async fn upload(
         &self,
         name: &str,
-        mime_type: &str,
+        file_name: &str,
         bytes: impl Into<Cow<'static, [u8]>>,
         options: UploadOptions,
     ) -> Result<BlobObject, ApiError<BlobErrorCode>> {
         let endpoint = Endpoint::blob_upload(name, &options);
         let form = Form::new().part(
             "file",
-            Part::bytes(bytes)
-                .file_name(name.to_string())
-                .mime_str(mime_type)?,
+            Part::bytes(bytes).file_name(base_name(file_name).to_string()),
         );
         let request = endpoint
             .request_builder(
@@ -138,5 +137,31 @@ impl BlobResource {
             )
             .build()?;
         self.client.execute_request(request).await?.into_result_t()
+    }
+}
+
+/// The last component of `file_name`, so a path such as
+/// `"./images/logo.png"` is sent as `"logo.png"`.
+fn base_name(file_name: &str) -> &str {
+    std::path::Path::new(file_name)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or(file_name)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::base_name;
+
+    #[test]
+    fn base_name_strips_directories() {
+        assert_eq!(base_name("./images/logo.png"), "logo.png");
+        assert_eq!(base_name("logo.png"), "logo.png");
+        assert_eq!(base_name("reads.fastq.gz"), "reads.fastq.gz");
+    }
+
+    #[test]
+    fn base_name_keeps_input_without_a_final_component() {
+        assert_eq!(base_name(".."), "..");
     }
 }

@@ -1,6 +1,6 @@
 use serde_json::json;
 use squarecloud::{errors::BlobErrorCode, types::UploadOptions};
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{body_string_contains, method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
 
 #[tokio::test]
@@ -28,8 +28,8 @@ async fn blob_upload_returns_object() {
     let result = client
         .blob()
         .upload(
-            "avatar_png",
-            "image/png",
+            "avatar",
+            "avatar.png",
             vec![0u8; 4096],
             UploadOptions::default(),
         )
@@ -74,7 +74,7 @@ async fn blob_upload_private_object_has_no_url() {
         .blob()
         .upload(
             "draft",
-            "image/png",
+            "draft.png",
             vec![0u8; 4096],
             UploadOptions::default(),
         )
@@ -255,21 +255,77 @@ async fn blob_stats_returns_stats() {
 }
 
 #[tokio::test]
-async fn blob_upload_with_invalid_mime_type_is_an_error() {
-    let (client, _server) = crate::mock_client().await;
-    let result = client
+async fn blob_upload_sends_the_file_name_with_its_extension() {
+    let (client, server) = crate::mock_client().await;
+    // The API takes the stored extension from the multipart filename.
+    Mock::given(method("POST"))
+        .and(path("/objects"))
+        .and(query_param("name", "reads"))
+        .and(body_string_contains(r#"filename="reads.fastq.gz""#))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "id": "pub/123/reads.fastq.gz",
+                "name": "reads",
+                "size": 512,
+                "private": false,
+                "url": "https://blob.squarecloud.dev/pub/123/reads.fastq.gz",
+                "sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+                "replaced": false
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let object = client
         .blob()
         .upload(
-            "draft",
-            "not a mime",
+            "reads",
+            "reads.fastq.gz",
             vec![0u8; 512],
             UploadOptions::default(),
         )
+        .await
+        .expect("upload() should send the file name");
+    assert_eq!(object.id, "pub/123/reads.fastq.gz");
+}
+
+#[tokio::test]
+async fn blob_upload_sends_expiry_in_the_query() {
+    use squarecloud::types::BlobExpiry;
+
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/objects"))
+        .and(query_param("expire", "6h"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "id": "pub/123/tmp.txt",
+                "name": "tmp",
+                "size": 512,
+                "private": false,
+                "url": "https://blob.squarecloud.dev/pub/123/tmp.txt",
+                "expires_at": "2026-10-21T06:00:00Z",
+                "sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+                "replaced": false
+            }
+        })))
+        .mount(&server)
         .await;
-    match result {
-        Err(squarecloud::ApiError::Transport(e)) => {
-            assert!(e.is_builder(), "{e}")
-        }
-        other => panic!("expected a builder error, got {other:?}"),
-    }
+
+    let object = client
+        .blob()
+        .upload(
+            "tmp",
+            "tmp.txt",
+            vec![0u8; 512],
+            UploadOptions {
+                expiry: Some(BlobExpiry::Hours(6)),
+                ..Default::default()
+            },
+        )
+        .await
+        .expect("upload() should send the expiry");
+    assert!(object.expires_at.is_some());
 }

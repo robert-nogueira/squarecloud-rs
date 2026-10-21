@@ -6,13 +6,13 @@ async fn blob_upload_and_list_and_delete() {
     let client = crate::client();
 
     let bytes: Vec<u8> = vec![b'a'; 1024];
-    // name must be [a-zA-Z0-9_], 3-32 chars (no dots, dashes, or slashes)
     let object = client
         .blob()
-        .upload("hello_txt", "text/plain", bytes, UploadOptions::default())
+        .upload("hello", "hello.txt", bytes, UploadOptions::default())
         .await
         .expect("blob upload() should succeed");
-    assert!(!object.id.is_empty());
+    // The stored extension comes from the multipart filename.
+    assert!(object.id.ends_with(".txt"), "{}", object.id);
     // A prefix rule on the account can make the upload private, so the
     // URL is only checked when the API returns one.
     if let Some(url) = &object.url {
