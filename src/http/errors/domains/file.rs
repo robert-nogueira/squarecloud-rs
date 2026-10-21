@@ -14,9 +14,11 @@ pub enum FileErrorCode {
     BlockedPath,
     /// No file exists at the given path.
     FileNotFound,
-    /// The file exceeds the 100 MB per-file limit.
+    /// The file is larger than the 10 MB the file manager reads. Writes
+    /// over the limit answer `PAYLOAD_TOO_LARGE` instead.
     FileTooLarge,
-    /// `content` is missing or empty.
+    /// `content` is missing or not a string, byte array or `Buffer`
+    /// object.
     InvalidContent,
     /// `encoding` is not `base64`.
     InvalidEncoding,

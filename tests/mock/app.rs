@@ -9,7 +9,7 @@ use squarecloud::{
     types::RealtimeEvent,
     types::RestoreState,
 };
-use wiremock::matchers::{method, path, query_param};
+use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
 
 #[tokio::test]
@@ -1087,21 +1087,29 @@ async fn app_file_operations() {
         .mount(&server)
         .await;
 
+    // Text writes go out as plain UTF-8, without an `encoding` field.
     Mock::given(method("PUT"))
         .and(path("/apps/app-123/files"))
+        .and(body_json(json!({
+            "path": "/squarecloud_rs_test.txt",
+            "content": "hello from squarecloud-rs"
+        })))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success"
         })))
         .mount(&server)
         .await;
 
+    // Without `encoding=base64` the mock does not match and the read
+    // fails, which proves the parameter is sent.
     Mock::given(method("GET"))
         .and(path("/apps/app-123/files/content"))
+        .and(query_param("encoding", "base64"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success",
             "response": {
-                "type": "text/plain",
-                "data": [104, 101, 108, 108, 111]
+                "encoding": "base64",
+                "data": "aGVsbG8="
             }
         })))
         .mount(&server)
@@ -1144,7 +1152,7 @@ async fn app_file_operations() {
         .read("/squarecloud_rs_test.txt")
         .await
         .expect("read() should succeed with mocked 200");
-    assert!(!content.data_type.is_empty());
+    assert_eq!(content.data, b"hello");
 
     assert!(
         handle
@@ -1159,6 +1167,50 @@ async fn app_file_operations() {
             .await
             .expect("delete() should succeed with mocked 200")
     );
+}
+
+#[tokio::test]
+async fn file_write_bytes_sends_base64() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("PUT"))
+        .and(path("/apps/app-123/files"))
+        .and(body_json(json!({
+            "path": "/logo.png",
+            "content": "iVBORw==",
+            "encoding": "base64"
+        })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    let written = client
+        .app("app-123")
+        .file("/logo.png")
+        .write_bytes(&[0x89, b'P', b'N', b'G'])
+        .await
+        .expect("write_bytes() should succeed with mocked 200");
+    assert!(written);
+}
+
+#[tokio::test]
+async fn file_read_with_invalid_base64_is_a_transport_error() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/files/content"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": { "encoding": "base64", "data": "not base64!" }
+        })))
+        .mount(&server)
+        .await;
+
+    let result = client.app("app-123").file("/a").read("/a").await;
+    match result {
+        Err(ApiError::Transport(e)) => assert!(e.is_decode(), "{e}"),
+        other => panic!("expected a decode error, got {other:?}"),
+    }
 }
 
 #[tokio::test]

@@ -11,8 +11,8 @@ use crate::{
 ///
 /// Obtain a `FileResource` by calling [`AppResource::file`] with the desired
 /// path. The path stored in [`FileResource::path`] is the default target for
-/// [`write`](FileResource::write), [`delete`](FileResource::delete), and
-/// [`move_to`](FileResource::move_to). The [`read`](FileResource::read) and
+/// [`write`](FileResource::write), [`write_bytes`](FileResource::write_bytes),
+/// [`delete`](FileResource::delete), and [`move_to`](FileResource::move_to). The [`read`](FileResource::read) and
 /// [`all_files`](FileResource::all_files) methods accept an explicit path
 /// argument so that a single handle can be used for broader operations.
 ///
@@ -60,16 +60,43 @@ impl FileResource {
             .into_bool_result()
     }
 
-    /// Reads the file at `path` within the application's filesystem.
+    /// Writes raw bytes to the file at the path stored in this handle,
+    /// sent base64-encoded. Use it for binary files; an empty slice writes
+    /// an empty file.
     ///
-    /// `path` does not need to match [`FileResource::path`]; any path within
-    /// the same application is valid. Returns a [`FileContent`] containing the
-    /// raw bytes and MIME type.
+    /// If the file does not exist it is created; if it exists it is
+    /// overwritten. Returns `Ok(true)` on success.
     ///
     /// # Errors
     ///
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the file does not exist.
+    /// on an API-level error. Writes are capped at 10 MB and answer
+    /// [`FileErrorCode::PayloadTooLarge`] past it; base64 makes the request
+    /// about a third larger than `content`, so a binary file close to the
+    /// cap can be rejected.
+    pub async fn write_bytes(
+        &self,
+        content: &[u8],
+    ) -> Result<bool, ApiError<FileErrorCode>> {
+        let endpoint =
+            Endpoint::put_app_file_bytes(&self.app_id, &self.path, content);
+        self.client
+            .request_endpoint::<bool>(endpoint)
+            .await?
+            .into_bool_result()
+    }
+
+    /// Reads the file at `path` within the application's filesystem.
+    ///
+    /// `path` does not need to match [`FileResource::path`]; any path within
+    /// the same application is valid. Returns a [`FileContent`] whose `data`
+    /// holds the raw bytes.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
+    /// if the file does not exist, or [`FileErrorCode::FileTooLarge`] if it
+    /// is larger than the 10 MB the file manager reads.
     pub async fn read(
         &self,
         path: &str,

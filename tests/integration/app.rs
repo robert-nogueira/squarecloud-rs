@@ -429,7 +429,22 @@ async fn app_file_operations() {
         .read("/squarecloud_rs_test.txt")
         .await
         .expect("read() should return file content");
-    assert!(!content.data_type.is_empty());
+    assert_eq!(content.data, b"hello from squarecloud-rs");
+
+    let bytes = [0x00, 0xff, 0x10, 0x80];
+    crate::throttle().await;
+    assert!(
+        handle
+            .write_bytes(&bytes)
+            .await
+            .expect("write_bytes() should succeed")
+    );
+    crate::throttle().await;
+    let content = handle
+        .read("/squarecloud_rs_test.txt")
+        .await
+        .expect("read() should return the bytes just written");
+    assert_eq!(content.data, bytes);
 
     crate::throttle().await;
     assert!(

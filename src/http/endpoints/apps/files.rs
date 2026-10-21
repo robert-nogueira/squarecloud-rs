@@ -1,4 +1,5 @@
 use super::Endpoint;
+use base64::{Engine, engine::general_purpose::STANDARD};
 use reqwest::Method;
 use serde_json::json;
 
@@ -57,6 +58,7 @@ impl Endpoint {
         Self::builder("/apps/{app_id}/files/content", Method::GET)
             .param("app_id", app_id)
             .query("path", path)
+            .query("encoding", "base64")
             .build()
     }
 
@@ -72,13 +74,34 @@ impl Endpoint {
         path: &str,
         content: &str,
     ) -> Endpoint {
-        let json_body = json!({
-            "path": path,
-            "content": content,
-        });
+        Self::put_app_file_body(
+            app_id,
+            json!({
+                "path": path,
+                "content": content,
+            }),
+        )
+    }
+
+    pub(crate) fn put_app_file_bytes(
+        app_id: &str,
+        path: &str,
+        content: &[u8],
+    ) -> Endpoint {
+        Self::put_app_file_body(
+            app_id,
+            json!({
+                "path": path,
+                "content": STANDARD.encode(content),
+                "encoding": "base64",
+            }),
+        )
+    }
+
+    fn put_app_file_body(app_id: &str, body: serde_json::Value) -> Endpoint {
         Self::builder("/apps/{app_id}/files", Method::PUT)
             .param("app_id", app_id)
-            .json(serde_json::to_value(json_body).unwrap())
+            .json(body)
             .build()
     }
 

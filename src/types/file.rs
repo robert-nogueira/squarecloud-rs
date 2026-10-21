@@ -7,11 +7,49 @@ use serde::{Deserialize, Deserializer, Serialize};
 /// [`FileResource::read`](crate::resources::FileResource::read).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FileContent {
-    /// The MIME type of the file content (e.g. `"text/plain"`).
-    #[serde(rename = "type")]
+    /// The encoding the API used on the wire (`"base64"`). It was never a
+    /// MIME type.
+    #[deprecated(
+        since = "0.5.0",
+        note = "only names the wire encoding; read the bytes from `data`"
+    )]
+    #[serde(rename = "encoding", alias = "type", default)]
     pub data_type: String,
     /// The raw file bytes.
+    #[serde(with = "base64_bytes")]
     pub data: Vec<u8>,
+}
+
+mod base64_bytes {
+    use base64::{Engine, engine::general_purpose::STANDARD};
+    use serde::{Deserialize, Deserializer, Serializer, de::Error};
+
+    pub fn serialize<S: Serializer>(
+        bytes: &[u8],
+        serializer: S,
+    ) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&STANDARD.encode(bytes))
+    }
+
+    /// Also accepts the deprecated byte array, the shape the API sends
+    /// without `encoding=base64` and that 0.4 serialized.
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum Wire {
+        Base64(String),
+        Bytes(Vec<u8>),
+    }
+
+    pub fn deserialize<'de, D: Deserializer<'de>>(
+        deserializer: D,
+    ) -> Result<Vec<u8>, D::Error> {
+        match Wire::deserialize(deserializer)? {
+            Wire::Base64(encoded) => {
+                STANDARD.decode(encoded).map_err(D::Error::custom)
+            }
+            Wire::Bytes(bytes) => Ok(bytes),
+        }
+    }
 }
 
 /// Distinguishes a regular file from a directory entry.
@@ -98,7 +136,7 @@ where
 mod tests {
     use serde_json::json;
 
-    use super::{FileInfo, FileType};
+    use super::{FileContent, FileInfo, FileType};
 
     #[test]
     fn file_type_deserializes_file_and_directory() {
@@ -161,5 +199,36 @@ mod tests {
             "lastModified": "not-a-timestamp"
         }));
         assert!(result.is_err());
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn content_accepts_the_legacy_buffer_shape() {
+        let content: FileContent =
+            serde_json::from_str(r#"{"type":"Buffer","data":[104,105]}"#)
+                .expect("the 0.4 shape still deserializes");
+        assert_eq!(content.data, b"hi");
+        assert_eq!(content.data_type, "Buffer");
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn content_without_encoding_field_deserializes() {
+        let content: FileContent =
+            serde_json::from_str(r#"{"data":"aGk="}"#).expect("deserializes");
+        assert_eq!(content.data, b"hi");
+        assert!(content.data_type.is_empty());
+    }
+
+    #[test]
+    fn content_roundtrips_through_base64() {
+        let content: FileContent =
+            serde_json::from_str(r#"{"encoding":"base64","data":"AP8QgA=="}"#)
+                .expect("deserializes");
+        assert_eq!(content.data, [0x00, 0xff, 0x10, 0x80]);
+
+        let json = serde_json::to_value(&content).expect("serializes");
+        assert_eq!(json["data"], "AP8QgA==");
+        assert_eq!(json["encoding"], "base64");
     }
 }
