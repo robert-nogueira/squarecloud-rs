@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use crate::http::errors::SnapshotErrorCode;
+
 /// Filters the resource type returned by
 /// [`Client::all_snapshots`](crate::Client::all_snapshots).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -66,4 +68,64 @@ pub struct SnapshotReference {
     pub url: String,
     /// The storage key that identifies this snapshot in future restore calls.
     pub key: String,
+}
+
+/// Where the last snapshot restore of an application or database stands.
+///
+/// Returned by
+/// [`AppResource::restore_status`](crate::resources::AppResource::restore_status)
+/// and
+/// [`DatabaseResource::restore_status`](crate::resources::DatabaseResource::restore_status).
+/// The API keeps a finished restore's outcome for one hour.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RestoreStatus {
+    /// The restore's current state.
+    pub state: RestoreState,
+    /// The step running now, for example `"download"` or `"unzip"`.
+    /// `"interrupted"` means the node restarted mid-restore.
+    #[serde(default)]
+    pub step: Option<String>,
+    /// Why the restore failed, when `state` is [`RestoreState::Error`].
+    #[serde(default)]
+    pub code: Option<SnapshotErrorCode>,
+    /// When the restore started.
+    #[serde(default, with = "chrono::serde::ts_milliseconds_option")]
+    pub started_at: Option<DateTime<Utc>>,
+    /// When the restore ended, once it succeeded or failed.
+    #[serde(default, with = "chrono::serde::ts_milliseconds_option")]
+    pub finished_at: Option<DateTime<Utc>>,
+}
+
+/// The state of a snapshot restore, as reported by
+/// [`RestoreStatus::state`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+#[non_exhaustive]
+pub enum RestoreState {
+    /// No restore ran on this resource in the last hour.
+    None,
+    /// The restore is waiting for the node to pick it up.
+    Queued,
+    /// The restore is running; see [`RestoreStatus::step`].
+    Running,
+    /// The restore finished successfully.
+    Success,
+    /// The restore failed; see [`RestoreStatus::code`].
+    Error,
+    /// A state this client does not recognise yet.
+    #[serde(other)]
+    Unknown,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{RestoreState, RestoreStatus};
+
+    #[test]
+    fn unrecognised_restore_state_falls_back_to_unknown() {
+        let status: RestoreStatus =
+            serde_json::from_str(r#"{"state":"paused"}"#)
+                .expect("an unknown state should not fail the whole status");
+        assert_eq!(status.state, RestoreState::Unknown);
+    }
 }

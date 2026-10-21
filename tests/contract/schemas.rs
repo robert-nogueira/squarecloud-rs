@@ -1,6 +1,6 @@
 use squarecloud::types::{
     Analytics, AppInfo, AppSummary, DatabaseInfo, DatabaseSummary, Deploy,
-    DnsRecord, FileInfo, NetworkErrors, Plan, RuntimeStats,
+    DnsRecord, FileInfo, NetworkErrors, Plan, RestoreStatus, RuntimeStats,
     RuntimeStatsListItem, Snapshot, UserInfo, WorkspaceApp, WorkspaceInfo,
     WorkspaceMember,
 };
@@ -12,9 +12,15 @@ fn check_schema<T: serde::de::DeserializeOwned>(
     spec: &serde_json::Value,
 ) -> Vec<String> {
     let schemas = &spec["components"]["schemas"];
-    let variants =
-        generate_json_variants_from_schema(&schemas[schema_name], schemas);
-    variants
+    check_schema_value::<T>(&schemas[schema_name], schemas)
+}
+
+/// Like [`check_schema`], for a schema that is not a named component.
+fn check_schema_value<T: serde::de::DeserializeOwned>(
+    schema: &serde_json::Value,
+    schemas: &serde_json::Value,
+) -> Vec<String> {
+    generate_json_variants_from_schema(schema, schemas)
         .iter()
         .filter_map(|v| {
             serde_json::from_value::<T>(v.clone())
@@ -140,4 +146,21 @@ async fn runtime_stats_list_item_schema_deserializes_as_runtime_stats_list_item(
  {
     let spec = crate::fetch_full_spec().await;
     assert_schema!(&spec, "RuntimeStatsListItem", RuntimeStatsListItem);
+}
+
+/// The restore state has no component of its own: it is the `response`
+/// field of the `SnapshotRestoreStateResult` envelope.
+#[tokio::test]
+async fn snapshot_restore_state_deserializes_as_restore_status() {
+    let spec = crate::fetch_full_spec().await;
+    let schemas = &spec["components"]["schemas"];
+    let state =
+        &schemas["SnapshotRestoreStateResult"]["properties"]["response"];
+    let failures = check_schema_value::<RestoreStatus>(state, schemas);
+    assert!(
+        failures.is_empty(),
+        "{} failure(s) deserializing the restore state as RestoreStatus:\n  {}",
+        failures.len(),
+        failures.join("\n  ")
+    );
 }

@@ -17,9 +17,28 @@ pub enum SnapshotErrorCode {
     SnapshotNotFound,
     /// The cluster could not dispatch the restore.
     SnapshotRestoreFailed,
+    /// Not a failure: the restore outlived the ~90 s response deadline and
+    /// keeps running in the background. Follow it with `restore_status()`
+    /// instead of restoring again.
+    SnapshotRestoreProcessing,
+    /// A snapshot of this resource is still being generated; retry once it
+    /// finishes.
+    SnapshotInProgress,
+    /// A snapshot restore is already running on this resource; retry once
+    /// it finishes.
+    RestoreInProgress,
+    /// The snapshot archive is damaged and cannot be restored.
+    SnapshotCorrupt,
+    /// The node restarted while the restore was running.
+    RestoreInterrupted,
+    /// The resource's container no longer exists on the cluster.
+    ContainerNotFound,
+    /// The node is under maintenance; retry in a few minutes.
+    ClusterMaintenanceTryLater,
     /// The snapshot's engine does not match this database's `type`.
     SnapshotDatabaseMismatch,
-    /// `snapshotId` is not a valid UUID v4.
+    /// `snapshotId` is missing or malformed; pass the snapshot's `name`
+    /// from the listing.
     InvalidSnapshotId,
     /// `versionId` does not match the expected S3 version-key format.
     InvalidVersionId,

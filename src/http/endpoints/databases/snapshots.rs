@@ -31,6 +31,16 @@ inventory::submit! {
     }
 }
 
+#[cfg(feature = "test-utils")]
+inventory::submit! {
+    crate::EndpointSpec {
+    method: "get",
+    path: "/databases/{database_id}/snapshots/restore",
+    domain: "SnapshotErrorCode",
+    known_code: crate::errors::code_is_known::<crate::errors::SnapshotErrorCode>,
+    }
+}
+
 impl Endpoint {
     pub(crate) fn list_database_snapshots(database_id: &str) -> Endpoint {
         Self::builder("/databases/{database_id}/snapshots", Method::GET)
@@ -48,6 +58,15 @@ impl Endpoint {
         Self::builder(
             "/databases/{database_id}/snapshots/restore",
             Method::POST,
+        )
+        .param("database_id", database_id)
+        .build()
+    }
+
+    pub(crate) fn database_restore_status(database_id: &str) -> Endpoint {
+        Self::builder(
+            "/databases/{database_id}/snapshots/restore",
+            Method::GET,
         )
         .param("database_id", database_id)
         .build()

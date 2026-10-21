@@ -1,6 +1,7 @@
+use chrono::{DateTime, Utc};
 use serde_json::json;
-use squarecloud::errors::{ApiError, DatabaseErrorCode};
-use squarecloud::types::CredentialType;
+use squarecloud::errors::{ApiError, DatabaseErrorCode, SnapshotErrorCode};
+use squarecloud::types::{CredentialType, RestoreState};
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
 
@@ -295,6 +296,63 @@ async fn database_start_returns_true() {
     let result = client.database("db-123").start().await;
     assert!(result.is_ok(), "start() failed: {:?}", result.err());
     assert!(result.expect("database start() should return true"));
+}
+
+#[tokio::test]
+async fn database_restore_status_reports_failure_code() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/databases/db-123/snapshots/restore"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "state": "error",
+                "step": "unzip",
+                "code": "SNAPSHOT_CORRUPT",
+                "started_at": 1760900000000_i64,
+                "finished_at": 1760900060000_i64
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let status = client
+        .database("db-123")
+        .restore_status()
+        .await
+        .expect("restore_status() should succeed with mocked 200");
+    assert_eq!(status.state, RestoreState::Error);
+    assert_eq!(status.code, Some(SnapshotErrorCode::SnapshotCorrupt));
+    assert_eq!(
+        status.started_at,
+        DateTime::<Utc>::from_timestamp_millis(1_760_900_000_000)
+    );
+    assert_eq!(
+        status.finished_at,
+        DateTime::<Utc>::from_timestamp_millis(1_760_900_060_000)
+    );
+}
+
+#[tokio::test]
+async fn database_restore_status_without_recent_restore() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/databases/db-123/snapshots/restore"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": { "state": "none" }
+        })))
+        .mount(&server)
+        .await;
+
+    let status = client
+        .database("db-123")
+        .restore_status()
+        .await
+        .expect("restore_status() should accept a bare state");
+    assert_eq!(status.state, RestoreState::None);
+    assert_eq!(status.step, None);
+    assert_eq!(status.started_at, None);
 }
 
 #[tokio::test]

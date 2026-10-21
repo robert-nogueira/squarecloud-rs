@@ -3,7 +3,7 @@ use serde_json::json;
 use crate::{
     Endpoint,
     http::errors::{ApiError, SnapshotErrorCode},
-    types::{Snapshot, SnapshotReference},
+    types::{RestoreStatus, Snapshot, SnapshotReference},
 };
 
 use super::AppResource;
@@ -48,12 +48,18 @@ impl AppResource {
     /// and [`Snapshot::version_id`](crate::types::Snapshot::version_id) as
     /// `version_id`, both from a value returned by
     /// [`list_snapshots`](AppResource::list_snapshots). Returns `Ok(true)`
-    /// when the restore has been initiated.
+    /// when the restore has finished.
     ///
     /// # Errors
     ///
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// if the snapshot or version is not found.
+    ///
+    /// A large snapshot can outlive the API's ~90 s response deadline. The
+    /// restore then keeps running in the background and this method returns
+    /// [`SnapshotErrorCode::SnapshotRestoreProcessing`], which is not a
+    /// failure: follow it with [`restore_status`](AppResource::restore_status)
+    /// instead of calling this again.
     pub async fn restore_snapshot(
         &self,
         snapshot_id: String,
@@ -68,5 +74,24 @@ impl AppResource {
             .execute_request::<()>(request)
             .await?
             .into_bool_result()
+    }
+
+    /// Returns the state of the last snapshot restore on this resource.
+    ///
+    /// Use it to follow a restore that
+    /// [`restore_snapshot`](AppResource::restore_snapshot) reported as
+    /// [`SnapshotErrorCode::SnapshotRestoreProcessing`].
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
+    /// on an API-level error.
+    pub async fn restore_status(
+        &self,
+    ) -> Result<RestoreStatus, ApiError<SnapshotErrorCode>> {
+        self.client
+            .request_endpoint(Endpoint::app_restore_status(&self.id))
+            .await?
+            .into_result_t()
     }
 }

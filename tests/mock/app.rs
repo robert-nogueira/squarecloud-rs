@@ -3,10 +3,11 @@ use futures_util::StreamExt;
 use serde_json::json;
 use squarecloud::{
     ApiError, LogStream,
-    errors::{AppErrorCode, NetworkErrorCode},
+    errors::{AppErrorCode, NetworkErrorCode, SnapshotErrorCode},
     types::AnalyticsFilters,
     types::DnsRecordType,
     types::RealtimeEvent,
+    types::RestoreState,
 };
 use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
@@ -1009,6 +1010,61 @@ async fn app_snapshot_lifecycle() {
         .await
         .expect("restore_snapshot() should succeed with mocked 200")
     );
+}
+
+#[tokio::test]
+async fn app_restore_in_background_returns_processing_code() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/snapshots/restore"))
+        .respond_with(ResponseTemplate::new(202).set_body_json(json!({
+            "status": "error",
+            "code": "SNAPSHOT_RESTORE_PROCESSING"
+        })))
+        .mount(&server)
+        .await;
+
+    let result = client
+        .app("app-123")
+        .restore_snapshot("app-123".to_owned(), "v1".to_owned())
+        .await;
+    match result {
+        Err(ApiError::Service {
+            code: SnapshotErrorCode::SnapshotRestoreProcessing,
+        }) => {}
+        other => panic!("expected SnapshotRestoreProcessing, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn app_restore_status_reports_running_step() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/snapshots/restore"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "state": "running",
+                "step": "unzip",
+                "started_at": 1760900000000_i64
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let status = client
+        .app("app-123")
+        .restore_status()
+        .await
+        .expect("restore_status() should succeed with mocked 200");
+    assert_eq!(status.state, RestoreState::Running);
+    assert_eq!(status.step.as_deref(), Some("unzip"));
+    assert_eq!(
+        status.started_at,
+        DateTime::<Utc>::from_timestamp_millis(1_760_900_000_000)
+    );
+    assert_eq!(status.finished_at, None);
+    assert_eq!(status.code, None);
 }
 
 #[tokio::test]

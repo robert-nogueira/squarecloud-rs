@@ -3,7 +3,7 @@ use futures_util::StreamExt;
 use squarecloud::{
     ApiError,
     errors::{AppErrorCode, SnapshotErrorCode},
-    types::RealtimeEvent,
+    types::{RealtimeEvent, RestoreState},
 };
 
 #[tokio::test]
@@ -379,14 +379,25 @@ async fn app_snapshot_lifecycle() {
 
     let first = &snapshots[0];
     crate::throttle().await;
-    assert!(
-        app.restore_snapshot(
-            first.name.clone(),
-            first.version_id().to_string(),
-        )
+    // A restore past the API's ~90 s deadline keeps running in the
+    // background; that is not a failure.
+    match app
+        .restore_snapshot(first.name.clone(), first.version_id().to_string())
         .await
-        .expect("restore_snapshot() should succeed")
-    );
+    {
+        Ok(finished) => assert!(finished),
+        Err(ApiError::Service {
+            code: SnapshotErrorCode::SnapshotRestoreProcessing,
+        }) => {}
+        Err(e) => panic!("restore_snapshot() failed: {e:?}"),
+    }
+
+    crate::throttle().await;
+    let status = app
+        .restore_status()
+        .await
+        .expect("restore_status() should succeed after a restore");
+    assert_ne!(status.state, RestoreState::None);
 }
 
 #[tokio::test]

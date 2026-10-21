@@ -149,6 +149,7 @@ mod tests {
             NetworkErrorCode::AnalyticsBusy.erase(),
             EnvErrorCode::EnvBusy.erase(),
             AppErrorCode::RestoreInProgress.erase(),
+            SnapshotErrorCode::SnapshotInProgress.erase(),
             DatabaseErrorCode::ClusterMaintenanceTryLater.erase(),
             BlobErrorCode::TooManyConcurrentUploads.erase(),
             BlobErrorCode::PrivateStorageUnavailable.erase(),
@@ -156,7 +157,6 @@ mod tests {
         ];
         // Not catalogued by any domain enum yet.
         let uncatalogued = [
-            "SNAPSHOT_IN_PROGRESS",
             "CLUSTER_UNAVAILABLE",
             "CLUSTER_TIMEOUT",
             "VALIDATION_TIMEOUT",
