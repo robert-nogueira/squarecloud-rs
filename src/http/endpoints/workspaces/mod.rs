@@ -3,6 +3,7 @@ pub mod members;
 
 use super::Endpoint;
 use reqwest::Method;
+use serde_json::json;
 
 #[cfg(feature = "test-utils")]
 inventory::submit! {
@@ -59,8 +60,10 @@ impl Endpoint {
         Self::builder("/workspaces", Method::POST).build()
     }
 
-    pub(crate) fn delete_workspace() -> Endpoint {
-        Self::builder("/workspaces", Method::DELETE).build()
+    pub(crate) fn delete_workspace(workspace_id: &str) -> Endpoint {
+        Self::builder("/workspaces", Method::DELETE)
+            .json(json!({ "workspaceId": workspace_id }))
+            .build()
     }
 
     pub(crate) fn get_workspace(workspace_id: &str) -> Endpoint {
@@ -69,8 +72,10 @@ impl Endpoint {
             .build()
     }
 
-    pub(crate) fn leave_workspace() -> Endpoint {
-        Self::builder("/workspaces/leave", Method::DELETE).build()
+    pub(crate) fn leave_workspace(workspace_id: &str) -> Endpoint {
+        Self::builder("/workspaces/leave", Method::DELETE)
+            .json(json!({ "workspaceId": workspace_id }))
+            .build()
     }
 
     pub(crate) fn list_workspaces() -> Endpoint {

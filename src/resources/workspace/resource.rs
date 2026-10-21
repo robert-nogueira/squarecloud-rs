@@ -65,7 +65,7 @@ impl WorkspaceResource {
     /// if the account is the owner or is not a member.
     pub async fn leave(&self) -> Result<bool, ApiError<WorkspaceErrorCode>> {
         self.client
-            .request_endpoint::<NoData>(Endpoint::leave_workspace())
+            .request_endpoint::<NoData>(Endpoint::leave_workspace(&self.id))
             .await?
             .into_bool_result()
     }
@@ -82,7 +82,7 @@ impl WorkspaceResource {
     /// if the authenticated account is not the owner.
     pub async fn delete(&self) -> Result<bool, ApiError<WorkspaceErrorCode>> {
         self.client
-            .request_endpoint::<NoData>(Endpoint::delete_workspace())
+            .request_endpoint::<NoData>(Endpoint::delete_workspace(&self.id))
             .await?
             .into_bool_result()
     }

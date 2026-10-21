@@ -1,5 +1,5 @@
 use serde_json::json;
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{body_json, method, path};
 use wiremock::{Mock, ResponseTemplate};
 
 fn workspace_json() -> serde_json::Value {
@@ -230,6 +230,7 @@ async fn workspace_leave() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("DELETE"))
         .and(path("/workspaces/leave"))
+        .and(body_json(json!({ "workspaceId": "ws-123" })))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success"
         })))
@@ -246,6 +247,7 @@ async fn workspace_delete() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("DELETE"))
         .and(path("/workspaces"))
+        .and(body_json(json!({ "workspaceId": "ws-123" })))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success"
         })))
