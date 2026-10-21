@@ -2,7 +2,7 @@ use serde_json::json;
 use squarecloud::{
     ApiError, errors::ServiceStatusErrorCode, types::SnapshotOrigin,
 };
-use wiremock::matchers::{method, path, query_param};
+use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
 
 #[tokio::test]
@@ -334,20 +334,14 @@ async fn create_database_accepts_missing_certificate_and_fractional_cpu() {
 }
 
 #[tokio::test]
-async fn create_workspace_returns_workspace_info() {
+async fn create_workspace_returns_new_workspace() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("POST"))
         .and(path("/workspaces"))
+        .and(body_json(json!({ "name": "my-workspace" })))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success",
-            "response": {
-                "id": "ws-new",
-                "name": "my-workspace",
-                "owner": "user-123",
-                "members": [],
-                "applications": [],
-                "createdAt": "2024-01-01T00:00:00Z"
-            }
+            "response": { "id": "ws-new", "name": "my-workspace" }
         })))
         .mount(&server)
         .await;

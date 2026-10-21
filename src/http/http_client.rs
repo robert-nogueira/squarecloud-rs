@@ -22,8 +22,8 @@ use crate::{
     },
     types::{
         AccountInfo, AppDomain, Database, DatabaseType, LoadBalancers,
-        RuntimeStatsListItem, ServiceStatus, Snapshot, SnapshotScope,
-        UploadedApp, WorkspaceInfo,
+        NewWorkspace, RuntimeStatsListItem, ServiceStatus, Snapshot,
+        SnapshotScope, UploadedApp, WorkspaceInfo,
     },
 };
 
@@ -451,7 +451,8 @@ impl Client {
             .into_result_t()
     }
 
-    /// Creates a new workspace with the given display name.
+    /// Creates a new workspace with the given display name and returns its
+    /// id and name.
     ///
     /// # Errors
     ///
@@ -461,7 +462,7 @@ impl Client {
     pub async fn create_workspace(
         &self,
         name: String,
-    ) -> Result<WorkspaceInfo, ApiError<WorkspaceErrorCode>> {
+    ) -> Result<NewWorkspace, ApiError<WorkspaceErrorCode>> {
         let endpoint = Endpoint::create_workspace();
         let request = endpoint
             .request_builder(&self.http_client, &self.base_url)

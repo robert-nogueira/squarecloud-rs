@@ -1,8 +1,8 @@
 use squarecloud::types::{
     Analytics, AppInfo, AppSummary, Database, DatabaseInfo, DatabaseSummary,
-    Deploy, DnsRecord, FileInfo, NetworkErrors, Plan, RestoreStatus,
-    RuntimeStats, RuntimeStatsListItem, Snapshot, UserInfo, WorkspaceApp,
-    WorkspaceInfo, WorkspaceMember,
+    Deploy, DnsRecord, FileInfo, NetworkErrors, NewWorkspace, Plan,
+    RestoreStatus, RuntimeStats, RuntimeStatsListItem, Snapshot, UserInfo,
+    WorkspaceApp, WorkspaceInfo, WorkspaceMember,
 };
 
 use crate::validation::generate_json_variants_from_schema;
@@ -169,4 +169,18 @@ async fn snapshot_restore_state_deserializes_as_restore_status() {
         failures.len(),
         failures.join("\n  ")
     );
+}
+
+/// The creation reply has no component of its own, and its schema leaves
+/// `id` and `name` optional although the API always sends both, so this
+/// checks the spec's example instead of generated variants.
+#[tokio::test]
+async fn workspace_created_example_deserializes_as_new_workspace() {
+    let spec = crate::fetch_full_spec().await;
+    let example = &spec["paths"]["/v2/workspaces"]["post"]["responses"]["200"]
+        ["content"]["application/json"]["example"]["response"];
+    let created: NewWorkspace = serde_json::from_value(example.clone())
+        .unwrap_or_else(|e| panic!("{e}\n    json: {example}"));
+    assert!(!created.id.is_empty());
+    assert!(!created.name.is_empty());
 }

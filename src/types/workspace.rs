@@ -40,8 +40,7 @@ pub struct WorkspaceApp {
 
 /// Full details for a SquareCloud workspace.
 ///
-/// Returned by [`Client::all_workspaces`](crate::Client::all_workspaces),
-/// [`Client::create_workspace`](crate::Client::create_workspace), and
+/// Returned by [`Client::all_workspaces`](crate::Client::all_workspaces) and
 /// [`WorkspaceResource::info`](crate::resources::WorkspaceResource::info). To
 /// obtain a [`WorkspaceResource`] handle from this value, call
 /// [`into_resource`](WorkspaceInfo::into_resource).
@@ -71,11 +70,33 @@ impl WorkspaceInfo {
     }
 }
 
+/// A workspace as returned right after creation.
+///
+/// Returned by [`Client::create_workspace`](crate::Client::create_workspace).
+/// The API answers with only the id and name; call
+/// [`WorkspaceResource::info`](crate::resources::WorkspaceResource::info)
+/// on [`into_resource`](NewWorkspace::into_resource) for the rest.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewWorkspace {
+    /// The workspace's unique identifier.
+    pub id: String,
+    /// The workspace's display name, as sent; empty if the API omits it.
+    #[serde(default)]
+    pub name: String,
+}
+
+impl NewWorkspace {
+    /// Converts this value into a [`WorkspaceResource`] handle bound to `api`.
+    pub fn into_resource(&self, api: Client) -> WorkspaceResource {
+        WorkspaceResource::new(api, &self.id)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::Utc;
 
-    use super::WorkspaceInfo;
+    use super::{NewWorkspace, WorkspaceInfo};
     use crate::http::Client;
 
     #[test]
@@ -90,5 +111,14 @@ mod tests {
         };
         let resource = ws.into_resource(Client::new("test"));
         assert_eq!(resource.id, "ws-abc");
+    }
+
+    #[test]
+    fn new_workspace_into_resource_binds_correct_id() {
+        let ws = NewWorkspace {
+            id: "ws-new".to_string(),
+            name: "test".to_string(),
+        };
+        assert_eq!(ws.into_resource(Client::new("test")).id, "ws-new");
     }
 }
