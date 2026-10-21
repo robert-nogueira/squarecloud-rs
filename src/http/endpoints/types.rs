@@ -113,6 +113,40 @@ pub struct EndpointSpec {
 #[cfg(feature = "test-utils")]
 inventory::collect!(EndpointSpec);
 
+impl Endpoint {
+    /// Creates an `EndpointBuilder` for the given URL path template and HTTP
+    /// method.
+    ///
+    /// Path parameters are marked with curly-brace placeholders such as
+    /// `"{app_id}"` and are substituted by calling `EndpointBuilder::param`
+    /// before `EndpointBuilder::build`.
+    pub fn builder(path_template: &str, method: Method) -> EndpointBuilder {
+        EndpointBuilder::new(path_template, method)
+    }
+
+    /// Converts this endpoint into a `reqwest` [`RequestBuilder`], attaching
+    /// the stored JSON body if one was set.
+    ///
+    /// The returned builder can be further customised (e.g. with
+    /// `.multipart()`) before calling `.build()` or `.send()`.
+    pub fn request_builder(
+        &self,
+        http_client: &ReqwestClient,
+        base_url: &str,
+    ) -> RequestBuilder {
+        let url = format!(
+            "{}/{}",
+            base_url.trim_end_matches('/'),
+            self.path.trim_start_matches('/')
+        );
+        let mut request = http_client.request(self.method.clone(), url);
+        if let Some(body) = &self.json_body {
+            request = request.json(&body);
+        }
+        request
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use reqwest::Method;
@@ -159,39 +193,5 @@ mod tests {
     fn no_params_no_queries_path_unchanged() {
         let ep = Endpoint::builder("/apps/status", Method::GET).build();
         assert_eq!(ep.path, "/apps/status");
-    }
-}
-
-impl Endpoint {
-    /// Creates an `EndpointBuilder` for the given URL path template and HTTP
-    /// method.
-    ///
-    /// Path parameters are marked with curly-brace placeholders such as
-    /// `"{app_id}"` and are substituted by calling `EndpointBuilder::param`
-    /// before `EndpointBuilder::build`.
-    pub fn builder(path_template: &str, method: Method) -> EndpointBuilder {
-        EndpointBuilder::new(path_template, method)
-    }
-
-    /// Converts this endpoint into a `reqwest` [`RequestBuilder`], attaching
-    /// the stored JSON body if one was set.
-    ///
-    /// The returned builder can be further customised (e.g. with
-    /// `.multipart()`) before calling `.build()` or `.send()`.
-    pub fn request_builder(
-        &self,
-        http_client: &ReqwestClient,
-        base_url: &str,
-    ) -> RequestBuilder {
-        let url = format!(
-            "{}/{}",
-            base_url.trim_end_matches('/'),
-            self.path.trim_start_matches('/')
-        );
-        let mut request = http_client.request(self.method.clone(), url);
-        if let Some(body) = &self.json_body {
-            request = request.json(&body);
-        }
-        request
     }
 }

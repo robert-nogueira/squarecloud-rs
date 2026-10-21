@@ -127,10 +127,7 @@ async fn database_edit_none_returns_false() {
     let (client, _server) = crate::mock_client().await;
 
     let result = client.database("db-123").edit(None, None).await;
-    assert_eq!(
-        result.expect("edit(None, None) should return Ok(false)"),
-        false
-    );
+    assert!(!result.expect("edit(None, None) should return Ok(false)"));
 }
 
 #[tokio::test]

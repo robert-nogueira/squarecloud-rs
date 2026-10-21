@@ -178,7 +178,7 @@ mod tests {
     fn last_modified_float_ms() {
         let fi = parse(json!({
             "name": "f", "type": "file",
-            "lastModified": 1_783_269_964_121.6409_f64
+            "lastModified": 1_783_269_964_121.640_9_f64
         }));
         assert!(fi.last_modified.is_some());
     }

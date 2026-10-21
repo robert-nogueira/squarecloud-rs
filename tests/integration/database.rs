@@ -76,10 +76,7 @@ async fn database_edit_none_returns_false() {
     crate::throttle().await;
     let db_id = require_db!();
     let result = crate::client().database(db_id).edit(None, None).await;
-    assert_eq!(
-        result.expect("edit(None, None) should return Ok(false)"),
-        false
-    );
+    assert!(!result.expect("edit(None, None) should return Ok(false)"));
 }
 
 #[tokio::test]

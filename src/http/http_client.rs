@@ -123,7 +123,7 @@ mod tests {
     fn into_bool_result_success_returns_true() {
         let resp: ApiResponse<super::NoData> =
             ApiResponse::Success { response: None };
-        assert_eq!(resp.into_bool_result::<AppErrorCode>().unwrap(), true);
+        assert!(resp.into_bool_result::<AppErrorCode>().unwrap());
     }
 
     #[test]
