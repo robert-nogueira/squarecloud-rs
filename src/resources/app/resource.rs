@@ -35,7 +35,7 @@ pub type RealtimeStream = futures_util::stream::BoxStream<
 /// | `deploy.rs` | deploy history, webhook integration |
 /// | `env.rs` | environment variable management |
 /// | `network.rs` | analytics, DNS, custom domain, cache purge |
-/// | `snaphots.rs` | snapshot management |
+/// | `snapshots.rs` | snapshot management |
 pub struct AppResource {
     /// The application's unique identifier.
     pub id: String,
