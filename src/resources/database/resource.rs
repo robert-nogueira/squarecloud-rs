@@ -174,8 +174,10 @@ impl DatabaseResource {
     /// on an API-level error.
     pub async fn delete(&self) -> Result<bool, ApiError<DatabaseErrorCode>> {
         self.client
-            .request_endpoint(Endpoint::delete_database(&self.id))
+            .request_endpoint::<serde::de::IgnoredAny>(
+                Endpoint::delete_database(&self.id),
+            )
             .await?
-            .into_result_t()
+            .into_bool_result()
     }
 }

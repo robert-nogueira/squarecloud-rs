@@ -399,8 +399,7 @@ async fn database_delete_returns_true() {
     Mock::given(method("DELETE"))
         .and(path("/databases/db-123"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-            "status": "success",
-            "response": true
+            "status": "success"
         })))
         .mount(&server)
         .await;
