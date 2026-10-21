@@ -1,5 +1,7 @@
 use serde_json::json;
-use squarecloud::{ApiError, errors::ServiceStatusErrorCode};
+use squarecloud::{
+    ApiError, errors::ServiceStatusErrorCode, types::SnapshotOrigin,
+};
 use wiremock::matchers::{method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
 
@@ -140,15 +142,34 @@ async fn all_snapshots_returns_vec() {
                     "name": "my-app",
                     "size": 1024,
                     "modified": "2024-01-01T00:00:00Z",
-                    "key": "abc123"
+                    "key": "abc123",
+                    "version_id": "v1",
+                    "url": "https://snapshots.squarecloud.app/my-app.zip?sig",
+                    "runtime": null,
+                    "origin": null
+                },
+                {
+                    "name": "my-app_python_automatic",
+                    "size": 2048,
+                    "modified": "2026-10-01T00:00:00Z",
+                    "key": "def456",
+                    "version_id": "v2",
+                    "url": "https://snapshots.squarecloud.app/my-app2.zip?sig",
+                    "runtime": "python",
+                    "origin": "scheduled-by-something-new"
                 }
             ]
         })))
         .mount(&server)
         .await;
 
-    let result = client.all_snapshots(None).await;
-    assert!(result.is_ok(), "all_snapshots() failed: {:?}", result.err());
+    let snapshots = client
+        .all_snapshots(None)
+        .await
+        .expect("all_snapshots() should succeed with mocked 200");
+    assert_eq!(snapshots[0].runtime, None);
+    assert_eq!(snapshots[0].origin, None);
+    assert_eq!(snapshots[1].origin, Some(SnapshotOrigin::Unknown));
 }
 
 #[tokio::test]

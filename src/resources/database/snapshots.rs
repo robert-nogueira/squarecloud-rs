@@ -26,7 +26,7 @@ impl DatabaseResource {
 
     /// Takes a new snapshot of the database and returns a reference to it.
     ///
-    /// Returns a [`SnapshotReference`] containing the download URL and storage
+    /// Returns a [`SnapshotReference`] containing the download URL and signed
     /// key for the snapshot archive.
     ///
     /// # Errors
@@ -45,7 +45,7 @@ impl DatabaseResource {
     /// Restores the database to the state captured in the specified snapshot.
     ///
     /// Use [`Snapshot::name`](crate::types::Snapshot::name) as `snapshot_id`
-    /// and [`Snapshot::version_id`](crate::types::Snapshot::version_id) as
+    /// and [`Snapshot::version_id`](field@crate::types::Snapshot::version_id) as
     /// `version_id`, both from a value returned by
     /// [`list_snapshots`](DatabaseResource::list_snapshots). Returns `Ok(true)`
     /// when the restore has finished.
@@ -81,6 +81,10 @@ impl DatabaseResource {
     /// Use it to follow a restore that
     /// [`restore_snapshot`](DatabaseResource::restore_snapshot) reported as
     /// [`SnapshotErrorCode::SnapshotRestoreProcessing`].
+    ///
+    /// A `success` state does not free the resource right away: for about
+    /// two more minutes, actions such as delete keep answering
+    /// `RESTORE_IN_PROGRESS`.
     ///
     /// # Errors
     ///

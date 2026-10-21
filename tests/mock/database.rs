@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 use serde_json::json;
 use squarecloud::errors::{ApiError, DatabaseErrorCode, SnapshotErrorCode};
-use squarecloud::types::{CredentialType, RestoreState};
-use wiremock::matchers::{method, path};
+use squarecloud::types::{CredentialType, RestoreState, SnapshotOrigin};
+use wiremock::matchers::{body_json, method, path};
 use wiremock::{Mock, ResponseTemplate};
 
 #[tokio::test]
@@ -242,7 +242,11 @@ async fn database_snapshot_lifecycle() {
                     "name": "db-123",
                     "size": 2048,
                     "modified": "2024-01-01T00:00:00Z",
-                    "key": "AWSAccessKeyId=FAKE&Expires=9999&Signature=sig&versionId=dead-beef-0000"
+                    "key": "AWSAccessKeyId=FAKE&Expires=9999&Signature=sig",
+                    "version_id": "dead-beef-0000",
+                    "url": "https://snapshots.squarecloud.app/db-123.zip?sig",
+                    "runtime": "postgres",
+                    "origin": "manual"
                 }
             ]
         })))
@@ -250,6 +254,10 @@ async fn database_snapshot_lifecycle() {
         .await;
     Mock::given(method("POST"))
         .and(path("/databases/db-123/snapshots/restore"))
+        .and(body_json(json!({
+            "snapshotId": "db-123",
+            "versionId": "dead-beef-0000"
+        })))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success"
         })))
@@ -272,13 +280,13 @@ async fn database_snapshot_lifecycle() {
     assert_eq!(snapshots.len(), 1);
 
     let first = &snapshots[0];
+    assert_eq!(first.version_id, "dead-beef-0000");
+    assert_eq!(first.runtime.as_deref(), Some("postgres"));
+    assert_eq!(first.origin, Some(SnapshotOrigin::Manual));
     assert!(
-        db.restore_snapshot(
-            first.name.clone(),
-            first.version_id().to_string()
-        )
-        .await
-        .expect("restore_snapshot() should succeed with mocked 200")
+        db.restore_snapshot(first.name.clone(), first.version_id.clone())
+            .await
+            .expect("restore_snapshot() should succeed with mocked 200")
     );
 }
 

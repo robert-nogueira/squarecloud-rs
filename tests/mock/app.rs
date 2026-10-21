@@ -8,6 +8,7 @@ use squarecloud::{
     types::DnsRecordType,
     types::RealtimeEvent,
     types::RestoreState,
+    types::SnapshotOrigin,
 };
 use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, ResponseTemplate};
@@ -971,7 +972,11 @@ async fn app_snapshot_lifecycle() {
                     "name": "snapshot-1",
                     "size": 1024,
                     "modified": "2024-01-01T00:00:00Z",
-                    "key": "AWSAccessKeyId=FAKE&Expires=9999&Signature=sig&versionId=dead-beef-0000"
+                    "key": "AWSAccessKeyId=FAKE&Expires=9999&Signature=sig",
+                    "version_id": "dead-beef-0000",
+                    "url": "https://snapshots.squarecloud.app/app-123.zip?sig",
+                    "runtime": "javascript",
+                    "origin": "manual"
                 }
             ]
         })))
@@ -980,6 +985,10 @@ async fn app_snapshot_lifecycle() {
 
     Mock::given(method("POST"))
         .and(path("/apps/app-123/snapshots/restore"))
+        .and(body_json(json!({
+            "snapshotId": "snapshot-1",
+            "versionId": "dead-beef-0000"
+        })))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success"
         })))
@@ -1002,13 +1011,13 @@ async fn app_snapshot_lifecycle() {
     assert!(!snapshots.is_empty());
 
     let first = &snapshots[0];
+    assert_eq!(first.version_id, "dead-beef-0000");
+    assert_eq!(first.runtime.as_deref(), Some("javascript"));
+    assert_eq!(first.origin, Some(SnapshotOrigin::Manual));
     assert!(
-        app.restore_snapshot(
-            first.name.clone(),
-            first.version_id().to_string()
-        )
-        .await
-        .expect("restore_snapshot() should succeed with mocked 200")
+        app.restore_snapshot(first.name.clone(), first.version_id.clone())
+            .await
+            .expect("restore_snapshot() should succeed with mocked 200")
     );
 }
 

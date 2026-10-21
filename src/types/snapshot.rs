@@ -30,30 +30,53 @@ impl SnapshotScope {
 /// and [`Client::all_snapshots`](crate::Client::all_snapshots).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Snapshot {
-    /// The snapshot's display name.
+    /// The snapshot's identifier: the resource id, optionally suffixed
+    /// with `_<runtime>` and `_<origin>`. Pass it unchanged as
+    /// `snapshot_id` to the restore methods.
     pub name: String,
     /// Size of the snapshot archive in bytes.
     pub size: u64,
     /// The UTC timestamp of the last modification to this snapshot.
     pub modified: DateTime<Utc>,
-    /// The raw AWS pre-signed storage key for this snapshot.
+    /// The signed query string used to compose the download URL.
     pub key: String,
-}
-
-impl Snapshot {
-    /// Extracts the `versionId` UUID from the storage key.
-    ///
-    /// Pass the result as the `version_id` argument to
+    /// The snapshot's storage version. Pass it as `version_id` to
     /// [`AppResource::restore_snapshot`](crate::resources::AppResource::restore_snapshot)
     /// or
     /// [`DatabaseResource::restore_snapshot`](crate::resources::DatabaseResource::restore_snapshot).
+    pub version_id: String,
+    /// Signed download URL, valid for 30 days.
+    pub url: String,
+    /// What the archive holds: the application's language or the
+    /// database engine. `None` on snapshots taken before 2026-09-17.
+    #[serde(default)]
+    pub runtime: Option<String>,
+    /// Whether the snapshot was scheduled or requested. `None` on
+    /// snapshots taken before 2026-09-17.
+    #[serde(default)]
+    pub origin: Option<SnapshotOrigin>,
+}
+
+impl Snapshot {
+    /// Returns the snapshot's storage version.
+    #[deprecated(since = "0.5.0", note = "read the `version_id` field")]
     pub fn version_id(&self) -> &str {
-        self.key
-            .split('&')
-            .find(|s| s.starts_with("versionId="))
-            .and_then(|s| s.strip_prefix("versionId="))
-            .unwrap_or(&self.key)
+        &self.version_id
     }
+}
+
+/// How a snapshot came to exist, as reported by [`Snapshot::origin`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+#[non_exhaustive]
+pub enum SnapshotOrigin {
+    /// Taken by the daily schedule.
+    Automatic,
+    /// Requested through the API, the dashboard, the CLI or the AI agent.
+    Manual,
+    /// An origin this client does not recognise yet.
+    #[serde(other)]
+    Unknown,
 }
 
 /// A reference to a newly created snapshot, including its download location.
@@ -66,7 +89,9 @@ impl Snapshot {
 pub struct SnapshotReference {
     /// A pre-signed URL from which the snapshot archive can be downloaded.
     pub url: String,
-    /// The storage key that identifies this snapshot in future restore calls.
+    /// The signed query string of the download URL. It is not the
+    /// `version_id` the restore methods take; read that from
+    /// [`Snapshot::version_id`](field@Snapshot::version_id) in the listing.
     pub key: String,
 }
 
@@ -119,7 +144,7 @@ pub enum RestoreState {
 
 #[cfg(test)]
 mod tests {
-    use super::{RestoreState, RestoreStatus};
+    use super::{RestoreState, RestoreStatus, Snapshot};
 
     #[test]
     fn unrecognised_restore_state_falls_back_to_unknown() {
@@ -127,5 +152,21 @@ mod tests {
             serde_json::from_str(r#"{"state":"paused"}"#)
                 .expect("an unknown state should not fail the whole status");
         assert_eq!(status.state, RestoreState::Unknown);
+    }
+
+    #[test]
+    #[allow(deprecated)]
+    fn deprecated_version_id_method_returns_the_field() {
+        // The key carries no versionId, so only the field can supply it.
+        let snapshot: Snapshot = serde_json::from_value(serde_json::json!({
+            "name": "app-123",
+            "size": 1,
+            "modified": "2026-10-01T00:00:00Z",
+            "key": "Expires=9999&Signature=sig",
+            "version_id": "3HL4kqtJlcpX",
+            "url": "https://snapshots.squarecloud.app/app-123.zip"
+        }))
+        .expect("deserializes");
+        assert_eq!(snapshot.version_id(), "3HL4kqtJlcpX");
     }
 }

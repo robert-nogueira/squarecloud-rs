@@ -19,14 +19,27 @@ pub struct UploadOptions {
 /// A blob object returned immediately after a successful upload.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlobObject {
-    /// Unique object identifier.
+    /// Unique object identifier, starting with `pub/` or `prv/`. Treat it
+    /// as opaque: it changes when the object changes visibility or expiry.
     pub id: String,
-    /// The key / path under which the object is stored.
+    /// The name sent in the request.
     pub name: String,
+    /// The prefix, when one was sent.
+    #[serde(default)]
+    pub prefix: Option<String>,
     /// Size of the uploaded object in bytes.
     pub size: u64,
+    /// Whether the object is private.
+    pub private: bool,
     /// Public URL of the object, or `None` for a private object.
     pub url: Option<String>,
+    /// When the object will be deleted, if it expires.
+    #[serde(default)]
+    pub expires_at: Option<DateTime<Utc>>,
+    /// SHA-256 of the stored object, in hex.
+    pub sha256: String,
+    /// `true` when the upload replaced an object with the same name.
+    pub replaced: bool,
 }
 
 /// A single entry in the blob object listing.
@@ -40,6 +53,13 @@ pub struct BlobListItem {
     pub created_at: DateTime<Utc>,
     /// Timestamp when the object will expire, if applicable.
     pub expires_at: Option<DateTime<Utc>>,
+    /// Whether the object is private.
+    pub private: bool,
+    /// Public URL of the object, or `None` for a private object.
+    #[serde(default)]
+    pub url: Option<String>,
+    /// The object's ETag; it changes when the content changes.
+    pub etag: String,
 }
 
 /// Paginated list of blob objects.
@@ -47,8 +67,9 @@ pub struct BlobListItem {
 pub struct BlobObjectList {
     /// The objects returned for this page.
     pub objects: Vec<BlobListItem>,
-    /// Opaque token to pass as `continuation_token` to retrieve the next page.
-    #[serde(default)]
+    /// Opaque token to pass as `continuation_token` to retrieve the next
+    /// page; `None` on the last page.
+    #[serde(default, rename = "continuationToken")]
     pub continuation_token: Option<String>,
 }
 
@@ -82,6 +103,15 @@ pub struct BlobBilling {
     pub total_estimate: f64,
 }
 
+/// Storage usage averaged over the current month.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlobMonth {
+    /// Days of the current month (UTC) that have a usage sample.
+    pub days: u32,
+    /// Average of those daily samples, in bytes.
+    pub average_storage: f64,
+}
+
 /// Full statistics for the blob storage account.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BlobStats {
@@ -91,4 +121,7 @@ pub struct BlobStats {
     pub plan: BlobPlan,
     /// Billing estimates for the current period.
     pub billing: BlobBilling,
+    /// This month's average usage; `None` until the month has a sample.
+    #[serde(default)]
+    pub month: Option<BlobMonth>,
 }

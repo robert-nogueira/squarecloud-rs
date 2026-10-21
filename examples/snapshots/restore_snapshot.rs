@@ -14,10 +14,7 @@ async fn main() {
     let snapshot = snapshots.first().unwrap();
 
     match app
-        .restore_snapshot(
-            snapshot.name.clone(),
-            snapshot.version_id().to_string(),
-        )
+        .restore_snapshot(snapshot.name.clone(), snapshot.version_id.clone())
         .await
     {
         Ok(_) => println!("Restore finished"),

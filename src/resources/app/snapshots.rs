@@ -26,7 +26,7 @@ impl AppResource {
 
     /// Triggers a new snapshot of the application's current state.
     ///
-    /// Returns a [`SnapshotReference`] containing the download URL and storage
+    /// Returns a [`SnapshotReference`] containing the download URL and signed
     /// key for the snapshot archive.
     ///
     /// # Errors
@@ -45,7 +45,7 @@ impl AppResource {
     /// Restores the application to a previously saved snapshot.
     ///
     /// Use [`Snapshot::name`](crate::types::Snapshot::name) as `snapshot_id`
-    /// and [`Snapshot::version_id`](crate::types::Snapshot::version_id) as
+    /// and [`Snapshot::version_id`](field@crate::types::Snapshot::version_id) as
     /// `version_id`, both from a value returned by
     /// [`list_snapshots`](AppResource::list_snapshots). Returns `Ok(true)`
     /// when the restore has finished.
@@ -81,6 +81,10 @@ impl AppResource {
     /// Use it to follow a restore that
     /// [`restore_snapshot`](AppResource::restore_snapshot) reported as
     /// [`SnapshotErrorCode::SnapshotRestoreProcessing`].
+    ///
+    /// A `success` state does not free the resource right away: for about
+    /// two more minutes, actions such as delete keep answering
+    /// `RESTORE_IN_PROGRESS`.
     ///
     /// # Errors
     ///

@@ -382,7 +382,7 @@ async fn app_snapshot_lifecycle() {
     // A restore past the API's ~90 s deadline keeps running in the
     // background; that is not a failure.
     match app
-        .restore_snapshot(first.name.clone(), first.version_id().to_string())
+        .restore_snapshot(first.name.clone(), first.version_id.clone())
         .await
     {
         Ok(finished) => assert!(finished),

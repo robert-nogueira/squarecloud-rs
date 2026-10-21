@@ -11,10 +11,15 @@ async fn blob_upload_returns_object() {
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "status": "success",
             "response": {
-                "id": "obj-abc123",
+                "id": "pub/123/avatar.png",
                 "name": "avatar.png",
+                "prefix": "images",
                 "size": 4096,
-                "url": "https://blob.squarecloud.app/avatar.png"
+                "private": false,
+                "url": "https://blob.squarecloud.app/avatar.png",
+                "expires_at": "2026-12-01T00:00:00Z",
+                "sha256": "5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef",
+                "replaced": true
             }
         })))
         .mount(&server)
@@ -31,9 +36,14 @@ async fn blob_upload_returns_object() {
         .await
         .expect("upload() should succeed with mocked 200");
 
-    assert_eq!(result.id, "obj-abc123");
+    assert_eq!(result.id, "pub/123/avatar.png");
     assert_eq!(result.name, "avatar.png");
+    assert_eq!(result.prefix.as_deref(), Some("images"));
     assert_eq!(result.size, 4096);
+    assert!(!result.private);
+    assert!(result.expires_at.is_some());
+    assert_eq!(result.sha256.len(), 64);
+    assert!(result.replaced);
     assert_eq!(
         result.url.as_deref(),
         Some("https://blob.squarecloud.app/avatar.png")
@@ -51,7 +61,10 @@ async fn blob_upload_private_object_has_no_url() {
                 "id": "prv/123/draft.png",
                 "name": "draft.png",
                 "size": 4096,
-                "url": null
+                "private": true,
+                "url": null,
+                "sha256": "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
+                "replaced": false
             }
         })))
         .mount(&server)
@@ -70,7 +83,10 @@ async fn blob_upload_private_object_has_no_url() {
 
     assert_eq!(result.id, "prv/123/draft.png");
     assert_eq!(result.name, "draft.png");
+    assert!(result.private);
     assert_eq!(result.url, None);
+    assert_eq!(result.prefix, None);
+    assert_eq!(result.expires_at, None);
 }
 
 #[tokio::test]
@@ -83,10 +99,21 @@ async fn blob_list_returns_objects() {
             "response": {
                 "objects": [
                     {
-                        "id": "obj-abc123",
+                        "id": "pub/123/images/a.png",
                         "size": 4096,
                         "created_at": "2026-07-08T00:00:00Z",
-                        "expires_at": null
+                        "private": false,
+                        "url": "https://blob.squarecloud.dev/pub/123/images/a.png",
+                        "etag": "\"9bb58f26192e4ba00f01e2e7b136bbd8\""
+                    },
+                    {
+                        "id": "prv/123/images/b.png",
+                        "size": 512,
+                        "created_at": "2026-07-08T00:00:00Z",
+                        "expires_at": "2026-08-08T00:00:00Z",
+                        "private": true,
+                        "url": null,
+                        "etag": "\"4a2f0b1c9d8e7f6a5b4c3d2e1f0a9b8c\""
                     }
                 ]
             }
@@ -100,8 +127,16 @@ async fn blob_list_returns_objects() {
         .await
         .expect("list() should succeed with mocked 200");
 
-    assert_eq!(result.objects.len(), 1);
-    assert_eq!(result.objects[0].id, "obj-abc123");
+    assert_eq!(result.objects.len(), 2);
+    let (public, private) = (&result.objects[0], &result.objects[1]);
+    assert_eq!(public.id, "pub/123/images/a.png");
+    assert!(!public.private);
+    assert!(public.url.is_some());
+    assert_eq!(public.expires_at, None);
+    assert!(private.private);
+    assert_eq!(private.url, None);
+    assert!(private.expires_at.is_some());
+    assert!(!private.etag.is_empty());
     assert!(result.continuation_token.is_none());
 }
 
@@ -114,7 +149,7 @@ async fn blob_list_with_continuation_token() {
             "status": "success",
             "response": {
                 "objects": [],
-                "continuation_token": "next-page-token"
+                "continuationToken": "next-page-token"
             }
         })))
         .mount(&server)
@@ -197,7 +232,8 @@ async fn blob_stats_returns_stats() {
                     "storagePrice": 0.0,
                     "objectsPrice": 0.0,
                     "totalEstimate": 0.0
-                }
+                },
+                "month": { "days": 24, "average_storage": 3006477107u64 }
             }
         })))
         .mount(&server)
@@ -213,4 +249,7 @@ async fn blob_stats_returns_stats() {
     assert_eq!(stats.usage.storage, 1048576);
     assert_eq!(stats.plan.included, 10737418240);
     assert_eq!(stats.billing.total_estimate, 0.0);
+    let month = stats.month.expect("month is present in the fixture");
+    assert_eq!(month.days, 24);
+    assert_eq!(month.average_storage, 3006477107.0);
 }
