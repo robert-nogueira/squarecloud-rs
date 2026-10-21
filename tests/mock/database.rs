@@ -1,4 +1,5 @@
 use serde_json::json;
+use squarecloud::errors::{ApiError, DatabaseErrorCode};
 use squarecloud::types::CredentialType;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, ResponseTemplate};
@@ -294,6 +295,28 @@ async fn database_start_returns_true() {
     let result = client.database("db-123").start().await;
     assert!(result.is_ok(), "start() failed: {:?}", result.err());
     assert!(result.expect("database start() should return true"));
+}
+
+#[tokio::test]
+async fn database_start_already_started_returns_service_error() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/databases/db-123/start"))
+        .respond_with(ResponseTemplate::new(409).set_body_json(json!({
+            "status": "error",
+            "code": "CONTAINER_ALREADY_STARTED"
+        })))
+        .mount(&server)
+        .await;
+
+    match client.database("db-123").start().await {
+        Err(ApiError::Service {
+            code: DatabaseErrorCode::ContainerAlreadyStarted,
+        }) => {}
+        other => {
+            panic!("expected ContainerAlreadyStarted, got {other:?}")
+        }
+    }
 }
 
 #[tokio::test]

@@ -39,6 +39,20 @@ pub enum DatabaseErrorCode {
     /// A snapshot restore is currently running for this database;
     /// wait for it to finish.
     RestoreInProgress,
+    /// The cluster rejected start or stop without a more specific reason.
+    ActionFailed,
+    /// The action was rejected because the container is already running.
+    ContainerAlreadyStarted,
+    /// The action was rejected because the container is already stopped.
+    ContainerAlreadyStopped,
+    /// The container is temporarily suspended by the platform.
+    ContainerTemporarilySuspended,
+    /// The database container no longer exists on the cluster.
+    ContainerNotFound,
+    /// The node hosting the container has no disk space left.
+    ContainerInsufficientDiskSpace,
+    /// The container could not start because of a port conflict.
+    ContainerNetworkConflict,
     /// No cluster was available to host the database.
     ClusterSelectionFailed,
     /// Provisioning is temporarily unavailable due to maintenance.
@@ -49,8 +63,17 @@ pub enum DatabaseErrorCode {
     UpgradeRequired,
     /// The API token in the `Authorization` header is invalid or revoked.
     InvalidAccessToken,
-    /// Global rate limit of the authentication layer.
-    RateLimit,
+    /// The account or API key request limit was reached, or the IP is
+    /// temporarily blocked after repeated invalid keys.
+    RateLimited,
+    /// The API key lacks the scope this route requires.
+    MissingScope,
+    /// The API key is restricted to resources that do not cover this
+    /// request.
+    ResourceNotAllowed,
+    /// SquareCloud's own backing service is briefly unavailable (not a
+    /// user database); retry in a few seconds.
+    DatabaseUnavailable,
     /// The `Authorization` header is missing, malformed, or the
     /// credentials are not valid.
     AccessDenied,

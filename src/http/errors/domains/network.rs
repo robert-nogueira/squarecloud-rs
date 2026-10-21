@@ -31,10 +31,11 @@ pub enum NetworkErrorCode {
     UnableToFetchErrors,
     /// Failed to fetch performance data from the edge provider.
     UnableToFetchPerformance,
-    /// 429 em `GET .../network/analytics`, `.../network/errors`,
-    /// `.../network/logs`, `.../network/performance`, `GET
-    /// /v2/users/snapshots`
-    RateLimitExceeded,
+    /// Edge analytics are busy and no cached data covers the window;
+    /// retry shortly.
+    AnalyticsBusy,
+    /// The cache purge failed at the edge provider.
+    PurgeCacheFailed,
     /// Short-lived rate limit; retry after a few seconds.
     KeepCalm,
     /// The endpoint requires a higher plan than the account currently has.
@@ -43,8 +44,17 @@ pub enum NetworkErrorCode {
     AppNotFound,
     /// The API token in the `Authorization` header is invalid or revoked.
     InvalidAccessToken,
-    /// Global rate limit of the authentication layer.
-    RateLimit,
+    /// The account or API key request limit was reached, or the IP is
+    /// temporarily blocked after repeated invalid keys.
+    RateLimited,
+    /// The API key lacks the scope this route requires.
+    MissingScope,
+    /// The API key is restricted to resources that do not cover this
+    /// request.
+    ResourceNotAllowed,
+    /// SquareCloud's own backing service is briefly unavailable (not a
+    /// user database); retry in a few seconds.
+    DatabaseUnavailable,
     /// The `Authorization` header is missing, malformed, or the
     /// credentials are not valid.
     AccessDenied,

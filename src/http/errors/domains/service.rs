@@ -10,6 +10,9 @@ use crate::http::errors::ErrorCode;
 pub enum ServiceStatusErrorCode {
     /// Unexpected internal failure. Try again later.
     InternalServerError,
+    /// SquareCloud's own backing service is briefly unavailable (not a
+    /// user database); retry in a few seconds.
+    DatabaseUnavailable,
     /// A code returned by the API that this client does not recognise.
     /// The inner [`ErrorCode`] preserves the raw wire string.
     #[serde(untagged)]

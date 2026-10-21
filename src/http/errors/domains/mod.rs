@@ -55,9 +55,70 @@ pub use workspace::WorkspaceErrorCode;
 #[cfg(test)]
 mod tests {
     use crate::http::errors::{
-        BlobErrorCode, EnvErrorCode, ErrorCode, ServiceErrorCode,
-        SnapshotErrorCode,
+        AccountErrorCode, AppErrorCode, BlobErrorCode, DatabaseErrorCode,
+        DeployErrorCode, EnvErrorCode, ErrorCode, FileErrorCode,
+        MemberErrorCode, NetworkErrorCode, ServiceErrorCode,
+        SnapshotErrorCode, UploadErrorCode, WorkspaceErrorCode,
     };
+
+    fn rate_limited<C: ServiceErrorCode>() -> C {
+        C::from_wire("RATE_LIMITED".to_owned())
+    }
+
+    #[test]
+    fn rate_limited_is_catalogued_in_every_domain() {
+        assert_eq!(
+            rate_limited::<AccountErrorCode>(),
+            AccountErrorCode::RateLimited
+        );
+        assert_eq!(rate_limited::<AppErrorCode>(), AppErrorCode::RateLimited);
+        assert_eq!(
+            rate_limited::<BlobErrorCode>(),
+            BlobErrorCode::RateLimited
+        );
+        assert_eq!(
+            rate_limited::<DatabaseErrorCode>(),
+            DatabaseErrorCode::RateLimited
+        );
+        assert_eq!(
+            rate_limited::<DeployErrorCode>(),
+            DeployErrorCode::RateLimited
+        );
+        assert_eq!(rate_limited::<EnvErrorCode>(), EnvErrorCode::RateLimited);
+        assert_eq!(
+            rate_limited::<FileErrorCode>(),
+            FileErrorCode::RateLimited
+        );
+        assert_eq!(
+            rate_limited::<MemberErrorCode>(),
+            MemberErrorCode::RateLimited
+        );
+        assert_eq!(
+            rate_limited::<NetworkErrorCode>(),
+            NetworkErrorCode::RateLimited
+        );
+        assert_eq!(
+            rate_limited::<SnapshotErrorCode>(),
+            SnapshotErrorCode::RateLimited
+        );
+        assert_eq!(
+            rate_limited::<UploadErrorCode>(),
+            UploadErrorCode::RateLimited
+        );
+        assert_eq!(
+            rate_limited::<WorkspaceErrorCode>(),
+            WorkspaceErrorCode::RateLimited
+        );
+    }
+
+    #[test]
+    fn retired_rate_limit_codes_fall_back_to_unknown() {
+        for code in ["RATE_LIMIT", "RATE_LIMIT_EXCEEDED"] {
+            assert!(AppErrorCode::from_wire(code.to_owned()).is_unknown());
+            assert!(NetworkErrorCode::from_wire(code.to_owned()).is_unknown());
+            assert!(BlobErrorCode::from_wire(code.to_owned()).is_unknown());
+        }
+    }
 
     #[test]
     fn from_wire_parses_known_code() {

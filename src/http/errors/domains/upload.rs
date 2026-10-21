@@ -25,6 +25,8 @@ pub enum UploadErrorCode {
     UploadFailed,
     /// The client disconnected before the upload finished.
     UploadAborted,
+    /// Too many uploads are being processed right now; retry in a moment.
+    UploadBusy,
     /// The file failed to upload to storage; retry later.
     StorageUploadFailed,
     /// The commit could not be applied.
@@ -42,8 +44,17 @@ pub enum UploadErrorCode {
     AppNotFound,
     /// The API token in the `Authorization` header is invalid or revoked.
     InvalidAccessToken,
-    /// Global rate limit of the authentication layer.
-    RateLimit,
+    /// The account or API key request limit was reached, or the IP is
+    /// temporarily blocked after repeated invalid keys.
+    RateLimited,
+    /// The API key lacks the scope this route requires.
+    MissingScope,
+    /// The API key is restricted to resources that do not cover this
+    /// request.
+    ResourceNotAllowed,
+    /// SquareCloud's own backing service is briefly unavailable (not a
+    /// user database); retry in a few seconds.
+    DatabaseUnavailable,
     /// The `Authorization` header is missing, malformed, or the
     /// credentials are not valid.
     AccessDenied,

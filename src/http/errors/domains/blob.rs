@@ -11,14 +11,12 @@ pub enum BlobErrorCode {
     /// The provided object key is invalid: it must start with your own account
     /// ID prefix and contain no path traversal.
     InvalidObject,
-    /// The provided object name is invalid. Must adhere to the a to z, A to Z,
-    /// 0 to 9, and _ pattern.
+    /// `name` does not match the allowed pattern (1 to 128 characters:
+    /// letters, digits, `_`, `.` and `-`).
     InvalidObjectName,
-    /// The provided object prefix is invalid. Must adhere to the a to z, A to
-    /// Z, 0 to 9, and _ pattern.
+    /// `prefix` does not match the allowed pattern.
     InvalidObjectPrefix,
-    /// The expiration value is invalid; it must be a number of days
-    /// from 1 to 365.
+    /// `expire` is not a valid duration (1 hour to 1825 days).
     InvalidObjectExpire,
     /// The `security_hash` parameter is not a boolean.
     InvalidObjectSecurityHash,
@@ -31,13 +29,18 @@ pub enum BlobErrorCode {
     InvalidContinuationToken,
     /// The provided file is missing or malformed.
     InvalidFile,
-    /// The provided file type is invalid.
+    /// The file extension is malformed or too long.
     InvalidFileType,
+    /// Executables and installers are not accepted.
+    BlockedFileType,
+    /// A prefix rule does not allow this file extension.
+    FileTypeNotAllowed,
     /// The request body has an unsupported content type.
     InvalidContentType,
-    /// The file size is too small (< 1kb).
+    /// The file is smaller than 512 bytes.
     FileTooSmall,
-    /// The file exceeds the 100 MB per-file limit.
+    /// The file is over 100 MB, or over the size a prefix rule or the plan
+    /// allows.
     FileTooLarge,
     /// The specified object does not exist.
     ObjectNotFound,
@@ -53,15 +56,27 @@ pub enum BlobErrorCode {
     /// Too many simultaneous uploads (max 4 in progress at a time per
     /// account).
     TooManyConcurrentUploads,
-    /// The caller lacks permission for this resource (restricted file or plan
-    /// gate).
+    /// Private storage is temporarily unavailable; retry.
+    PrivateStorageUnavailable,
+    /// Public storage is temporarily unavailable; retry.
+    PublicStorageUnavailable,
+    /// The account has no active plan, which this action needs.
     PermissionDenied,
     /// The API key is missing or invalid.
     AccessDenied,
-    /// Per-route rate limit of the Blob API was exceeded.
+    /// The API key lacks the scope this route requires (`blob:read` or
+    /// `blob:write`).
+    MissingScope,
+    /// The API key is restricted to specific applications and cannot
+    /// reach Blob Storage.
+    ResourceNotAllowed,
+    /// The account is blocked from storing files.
+    AccountBlocked,
+    /// The requested option is not part of the plan.
+    UpgradeRequired,
+    /// The account request limit was reached, or the IP is temporarily
+    /// blocked after repeated invalid credentials.
     RateLimited,
-    /// Global rate limit of the authentication layer.
-    RateLimit,
     /// The requested route does not exist.
     NotFound,
     /// Unexpected internal failure. Try again later.

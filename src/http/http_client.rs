@@ -111,12 +111,12 @@ mod tests {
     #[test]
     fn into_bool_result_error_returns_service_error() {
         let resp: ApiResponse<()> = ApiResponse::Error {
-            code: "RATE_LIMIT".to_owned(),
+            code: "RATE_LIMITED".to_owned(),
         };
         assert!(matches!(
             resp.into_bool_result::<AppErrorCode>(),
             Err(ApiError::Service {
-                code: AppErrorCode::RateLimit
+                code: AppErrorCode::RateLimited
             })
         ));
     }

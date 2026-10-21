@@ -32,10 +32,6 @@ pub enum SnapshotErrorCode {
     DailySnapshotsLimitReached,
     /// Short-lived rate limit; retry after a few seconds.
     KeepCalm,
-    /// 429 em `GET .../network/analytics`, `.../network/errors`,
-    /// `.../network/logs`, `.../network/performance`, `GET
-    /// /v2/users/snapshots`
-    RateLimitExceeded,
     /// The endpoint requires a higher plan than the account currently has.
     UpgradeRequired,
     /// The resource owner could not be resolved.
@@ -46,8 +42,17 @@ pub enum SnapshotErrorCode {
     DatabaseNotFound,
     /// The API token in the `Authorization` header is invalid or revoked.
     InvalidAccessToken,
-    /// Global rate limit of the authentication layer.
-    RateLimit,
+    /// The account or API key request limit was reached, or the IP is
+    /// temporarily blocked after repeated invalid keys.
+    RateLimited,
+    /// The API key lacks the scope this route requires.
+    MissingScope,
+    /// The API key is restricted to resources that do not cover this
+    /// request.
+    ResourceNotAllowed,
+    /// SquareCloud's own backing service is briefly unavailable (not a
+    /// user database); retry in a few seconds.
+    DatabaseUnavailable,
     /// The `Authorization` header is missing, malformed, or the
     /// credentials are not valid.
     AccessDenied,

@@ -172,7 +172,7 @@ mod tests {
     #[test]
     fn api_error_display_service() {
         let err: ApiError = ApiError::Service {
-            code: ErrorCode::from("RATE_LIMIT"),
+            code: ErrorCode::from("RATE_LIMITED"),
         };
         assert!(err.to_string().starts_with("service error:"));
     }
