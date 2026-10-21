@@ -96,7 +96,10 @@ pub fn code_is_known<C: ServiceErrorCode>(code: &str) -> bool {
 /// `ApiError` via `?` (see the `From` conversion).
 #[derive(Debug)]
 pub enum ApiError<C = ErrorCode> {
-    /// The HTTP request failed before the server could respond.
+    /// The request did not produce a usable API response: it could not be
+    /// built, the network failed, or the reply did not decode into the
+    /// expected shape. Inspect the inner error (`is_connect`, `is_decode`,
+    /// `is_builder`) to tell these apart.
     Transport(reqwest::Error),
     /// The server responded with a structured API error code.
     Service {

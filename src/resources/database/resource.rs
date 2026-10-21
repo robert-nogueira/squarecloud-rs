@@ -3,7 +3,7 @@ use serde_json::{Map, Value};
 use crate::{
     Endpoint,
     http::{
-        Client,
+        Client, NoData,
         errors::{ApiError, DatabaseErrorCode},
     },
     types::{DatabaseInfo, DatabaseMetrics, RuntimeStats},
@@ -70,7 +70,7 @@ impl DatabaseResource {
     /// on an API-level error.
     pub async fn start(&self) -> Result<bool, ApiError<DatabaseErrorCode>> {
         self.client
-            .request_endpoint::<()>(Endpoint::start_database(&self.id))
+            .request_endpoint::<NoData>(Endpoint::start_database(&self.id))
             .await?
             .into_bool_result()
     }
@@ -85,7 +85,7 @@ impl DatabaseResource {
     /// on an API-level error.
     pub async fn stop(&self) -> Result<bool, ApiError<DatabaseErrorCode>> {
         self.client
-            .request_endpoint::<()>(Endpoint::stop_database(&self.id))
+            .request_endpoint::<NoData>(Endpoint::stop_database(&self.id))
             .await?
             .into_bool_result()
     }
@@ -159,7 +159,7 @@ impl DatabaseResource {
             .json(&payload)
             .build()?;
         self.client
-            .execute_request::<()>(request)
+            .execute_request::<NoData>(request)
             .await?
             .into_bool_result()
     }
@@ -174,9 +174,7 @@ impl DatabaseResource {
     /// on an API-level error.
     pub async fn delete(&self) -> Result<bool, ApiError<DatabaseErrorCode>> {
         self.client
-            .request_endpoint::<serde::de::IgnoredAny>(
-                Endpoint::delete_database(&self.id),
-            )
+            .request_endpoint::<NoData>(Endpoint::delete_database(&self.id))
             .await?
             .into_bool_result()
     }

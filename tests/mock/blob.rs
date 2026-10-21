@@ -253,3 +253,23 @@ async fn blob_stats_returns_stats() {
     assert_eq!(month.days, 24);
     assert_eq!(month.average_storage, 3006477107.0);
 }
+
+#[tokio::test]
+async fn blob_upload_with_invalid_mime_type_is_an_error() {
+    let (client, _server) = crate::mock_client().await;
+    let result = client
+        .blob()
+        .upload(
+            "draft",
+            "not a mime",
+            vec![0u8; 512],
+            UploadOptions::default(),
+        )
+        .await;
+    match result {
+        Err(squarecloud::ApiError::Transport(e)) => {
+            assert!(e.is_builder(), "{e}")
+        }
+        other => panic!("expected a builder error, got {other:?}"),
+    }
+}

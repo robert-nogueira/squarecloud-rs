@@ -1,9 +1,10 @@
-use serde_json::{Value, json};
+use serde::Deserialize;
+use serde_json::json;
 
 use crate::{
     Endpoint,
     http::{
-        ApiResponse,
+        ApiResponse, NoData,
         errors::{ApiError, DatabaseErrorCode},
     },
     types::CredentialType,
@@ -12,10 +13,9 @@ use crate::{
 use super::DatabaseResource;
 
 impl DatabaseResource {
-    /// Returns the PEM-encoded TLS client certificate for the database.
-    ///
-    /// Use this certificate when establishing a TLS-authenticated connection
-    /// to the database server.
+    /// Returns the database's TLS file for client connections,
+    /// base64-encoded: decoding it gives a PEM holding the private key
+    /// followed by the certificate.
     ///
     /// # Errors
     ///
@@ -25,20 +25,26 @@ impl DatabaseResource {
         &self,
     ) -> Result<String, ApiError<DatabaseErrorCode>> {
         let endpoint = Endpoint::get_database_certificate(&self.id);
-        let response: ApiResponse<Value> =
+        #[derive(Deserialize)]
+        struct Certificate {
+            certificate: String,
+        }
+        let response: ApiResponse<Certificate> =
             self.client.request_endpoint(endpoint).await?;
-        let value = response.into_result_t()?;
-        let certificate =
-            value.get("certificate").and_then(Value::as_str).unwrap();
-        Ok(certificate.to_string())
+        Ok(response.into_result_t()?.certificate)
     }
 
     /// Rotates the specified credential and returns the new value.
     ///
     /// Pass [`CredentialType::Password`] to generate a new password, or
     /// [`CredentialType::Certificate`] to regenerate the TLS client
-    /// certificate. The returned string is the new password or PEM
-    /// certificate, respectively.
+    /// certificate. The returned string is the new password, or the new TLS
+    /// file in the same format as [`certificate`](DatabaseResource::certificate).
+    ///
+    /// The API does not return a regenerated certificate, so this method
+    /// fetches it with [`certificate`](DatabaseResource::certificate) after
+    /// the reset. If that second request fails, the reset already happened:
+    /// call `certificate` instead of resetting again.
     ///
     /// # Errors
     ///
@@ -53,14 +59,23 @@ impl DatabaseResource {
             .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({"reset": credential_type.as_str()}))
             .build()?;
-        let response: ApiResponse<Value> =
-            self.client.execute_request(request).await?;
-        let value = response.into_result_t()?;
-        if let Some(password) = value.get("password").and_then(Value::as_str) {
-            return Ok(password.to_string());
+        match credential_type {
+            CredentialType::Password => {
+                #[derive(Deserialize)]
+                struct NewPassword {
+                    password: String,
+                }
+                let response: ApiResponse<NewPassword> =
+                    self.client.execute_request(request).await?;
+                Ok(response.into_result_t()?.password)
+            }
+            CredentialType::Certificate => {
+                self.client
+                    .execute_request::<NoData>(request)
+                    .await?
+                    .into_bool_result()?;
+                self.certificate().await
+            }
         }
-        let certificate =
-            value.get("certificate").and_then(Value::as_str).unwrap();
-        Ok(certificate.to_string())
     }
 }

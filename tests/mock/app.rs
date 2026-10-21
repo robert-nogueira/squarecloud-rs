@@ -792,6 +792,44 @@ async fn app_restart_returns_true() {
 }
 
 #[tokio::test]
+async fn success_without_response_is_a_decode_error_not_a_panic() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    match client.app("app-123").info().await {
+        Err(ApiError::Transport(e)) => assert!(e.is_decode(), "{e}"),
+        other => panic!("expected a decode error, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn action_accepts_success_with_any_response() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/start"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": { "started": true }
+        })))
+        .mount(&server)
+        .await;
+
+    assert!(
+        client
+            .app("app-123")
+            .start()
+            .await
+            .expect("start() should ignore the response payload")
+    );
+}
+
+#[tokio::test]
 async fn app_start_returns_true() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("POST"))
@@ -945,6 +983,68 @@ async fn app_set_webhook_integration_returns_url() {
         .await
         .expect("set_webhook_integration() should succeed with mocked 200");
     assert!(url.starts_with("https://"));
+}
+
+#[tokio::test]
+async fn app_remove_webhook_integration_sends_at_sign() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/deploy/webhook"))
+        .and(body_json(json!({ "access_token": "@" })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    assert!(
+        client
+            .app("app-123")
+            .remove_webhook_integration()
+            .await
+            .expect("remove_webhook_integration() should succeed")
+    );
+}
+
+#[tokio::test]
+async fn app_set_webhook_without_url_in_reply_is_an_error() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/deploy/webhook"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    match client
+        .app("app-123")
+        .set_webhook_integration("ghp_token".to_string())
+        .await
+    {
+        Err(ApiError::Transport(e)) => assert!(e.is_decode(), "{e}"),
+        other => panic!("expected a decode error, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn app_remove_webhook_integration_returns_empty_url() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/apps/app-123/deploy/webhook"))
+        .and(body_json(json!({ "access_token": "@" })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    let url = client
+        .app("app-123")
+        .set_webhook_integration("@".to_string())
+        .await
+        .expect("removing the webhook should succeed");
+    assert!(url.is_empty());
 }
 
 #[tokio::test]

@@ -2,7 +2,10 @@ use serde_json::json;
 
 use crate::{
     Endpoint,
-    http::errors::{ApiError, WorkspaceErrorCode},
+    http::{
+        NoData,
+        errors::{ApiError, WorkspaceErrorCode},
+    },
 };
 
 use super::WorkspaceResource;
@@ -28,7 +31,7 @@ impl WorkspaceResource {
 		"appId": app_id}))
             .build()?;
         self.client
-            .execute_request::<()>(request)
+            .execute_request::<NoData>(request)
             .await?
             .into_bool_result()
     }
@@ -53,7 +56,7 @@ impl WorkspaceResource {
 		"appId": app_id}))
             .build()?;
         self.client
-            .execute_request::<()>(request)
+            .execute_request::<NoData>(request)
             .await?
             .into_bool_result()
     }

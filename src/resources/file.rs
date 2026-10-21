@@ -1,7 +1,7 @@
 use crate::{
     Endpoint,
     http::{
-        Client,
+        Client, NoData,
         errors::{ApiError, FileErrorCode},
     },
     types::{FileContent, FileInfo},
@@ -55,7 +55,7 @@ impl FileResource {
         let endpoint =
             Endpoint::put_app_file(&self.app_id, &self.path, content);
         self.client
-            .request_endpoint::<bool>(endpoint)
+            .request_endpoint::<NoData>(endpoint)
             .await?
             .into_bool_result()
     }
@@ -81,7 +81,7 @@ impl FileResource {
         let endpoint =
             Endpoint::put_app_file_bytes(&self.app_id, &self.path, content);
         self.client
-            .request_endpoint::<bool>(endpoint)
+            .request_endpoint::<NoData>(endpoint)
             .await?
             .into_bool_result()
     }
@@ -118,7 +118,7 @@ impl FileResource {
     pub async fn delete(&self) -> Result<bool, ApiError<FileErrorCode>> {
         let endpoint = Endpoint::delete_app_file(&self.app_id, &self.path);
         self.client
-            .request_endpoint::<bool>(endpoint)
+            .request_endpoint::<NoData>(endpoint)
             .await?
             .into_bool_result()
     }
@@ -143,7 +143,7 @@ impl FileResource {
         );
 
         self.client
-            .request_endpoint::<bool>(endpoint)
+            .request_endpoint::<NoData>(endpoint)
             .await?
             .into_bool_result()
     }

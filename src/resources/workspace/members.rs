@@ -1,9 +1,10 @@
-use serde_json::{Value, json};
+use serde::Deserialize;
+use serde_json::json;
 
 use crate::{
     Endpoint,
     http::{
-        ApiResponse,
+        ApiResponse, NoData,
         errors::{ApiError, MemberErrorCode},
     },
 };
@@ -23,13 +24,15 @@ impl WorkspaceResource {
     pub async fn get_invite_code(
         &self,
     ) -> Result<String, ApiError<MemberErrorCode>> {
-        let response: ApiResponse<Value> = self
+        #[derive(Deserialize)]
+        struct InviteCode {
+            code: String,
+        }
+        let response: ApiResponse<InviteCode> = self
             .client
             .request_endpoint(Endpoint::get_workspace_invite())
             .await?;
-        let value = response.into_result_t()?;
-        let code = value.get("code").and_then(Value::as_str).unwrap();
-        Ok(code.to_string())
+        Ok(response.into_result_t()?.code)
     }
 
     /// Accepts an invitation and joins this workspace under the given
@@ -58,7 +61,7 @@ impl WorkspaceResource {
 		"group": group}))
             .build()?;
         self.client
-            .execute_request::<()>(request)
+            .execute_request::<NoData>(request)
             .await?
             .into_bool_result()
     }
@@ -83,7 +86,7 @@ impl WorkspaceResource {
 		"memberId": member_id}))
             .build()?;
         self.client
-            .execute_request::<()>(request)
+            .execute_request::<NoData>(request)
             .await?
             .into_bool_result()
     }
@@ -112,7 +115,7 @@ impl WorkspaceResource {
 		"group": group}))
             .build()?;
         self.client
-            .execute_request::<()>(request)
+            .execute_request::<NoData>(request)
             .await?
             .into_bool_result()
     }

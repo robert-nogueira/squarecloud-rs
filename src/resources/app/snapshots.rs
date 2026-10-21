@@ -2,7 +2,10 @@ use serde_json::json;
 
 use crate::{
     Endpoint,
-    http::errors::{ApiError, SnapshotErrorCode},
+    http::{
+        NoData,
+        errors::{ApiError, SnapshotErrorCode},
+    },
     types::{RestoreStatus, Snapshot, SnapshotReference},
 };
 
@@ -71,7 +74,7 @@ impl AppResource {
             .json(&json!({"snapshotId": snapshot_id, "versionId": version_id}))
             .build()?;
         self.client
-            .execute_request::<()>(request)
+            .execute_request::<NoData>(request)
             .await?
             .into_bool_result()
     }

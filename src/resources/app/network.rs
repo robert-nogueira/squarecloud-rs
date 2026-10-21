@@ -3,7 +3,10 @@ use serde_json::json;
 
 use crate::{
     Endpoint,
-    http::errors::{ApiError, NetworkErrorCode},
+    http::{
+        NoData,
+        errors::{ApiError, NetworkErrorCode},
+    },
     types::{
         Analytics, AnalyticsFilters, DnsRecord, NetworkErrors,
         NetworkLogEntry, NetworkPerformance,
@@ -108,7 +111,7 @@ impl AppResource {
             .json(&json!({"custom": custom}))
             .build()?;
         self.client
-            .execute_request::<()>(request)
+            .execute_request::<NoData>(request)
             .await?
             .into_bool_result()
     }
@@ -208,7 +211,7 @@ impl AppResource {
         &self,
     ) -> Result<bool, ApiError<NetworkErrorCode>> {
         self.client
-            .request_endpoint::<()>(Endpoint::purge_edge_cache(&self.id))
+            .request_endpoint::<NoData>(Endpoint::purge_edge_cache(&self.id))
             .await?
             .into_bool_result()
     }

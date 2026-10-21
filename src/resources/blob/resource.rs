@@ -5,7 +5,7 @@ use reqwest::multipart::{Form, Part};
 use crate::{
     Endpoint,
     http::{
-        Client,
+        Client, NoData,
         errors::{ApiError, BlobErrorCode},
     },
     types::{BlobObject, BlobObjectList, BlobStats, UploadOptions},
@@ -41,6 +41,8 @@ impl BlobResource {
     ///
     /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
     /// on an API-level error (e.g. [`BlobErrorCode::InvalidObjectName`]).
+    /// An unparseable `mime_type` also returns [`ApiError::Transport`],
+    /// before any request is sent.
     pub async fn upload(
         &self,
         name: &str,
@@ -53,8 +55,7 @@ impl BlobResource {
             "file",
             Part::bytes(bytes)
                 .file_name(name.to_string())
-                .mime_str(mime_type)
-                .unwrap(),
+                .mime_str(mime_type)?,
         );
         let request = endpoint
             .request_builder(
@@ -116,7 +117,7 @@ impl BlobResource {
             )
             .build()?;
         self.client
-            .execute_request::<()>(request)
+            .execute_request::<NoData>(request)
             .await?
             .into_bool_result()
     }

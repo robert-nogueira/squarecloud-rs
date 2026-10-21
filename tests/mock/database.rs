@@ -188,35 +188,68 @@ async fn database_redefine_credential_password() {
 }
 
 #[tokio::test]
-async fn database_redefine_credential_certificate() {
+async fn database_redefine_certificate_reports_failed_fetch_after_reset() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("POST"))
         .and(path("/databases/db-123/credentials/reset"))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
-            "status": "success",
-            "response": {
-                "certificate": "-----BEGIN CERTIFICATE-----\nMIIB...\n-----END CERTIFICATE-----"
-            }
+            "status": "success"
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/databases/db-123/credentials/certificate"))
+        .respond_with(ResponseTemplate::new(400).set_body_json(json!({
+            "status": "error",
+            "code": "DATABASE_NOT_RUNNING"
         })))
         .mount(&server)
         .await;
 
-    let result = client
+    match client
         .database("db-123")
         .redefine_credential(CredentialType::Certificate)
+        .await
+    {
+        Err(ApiError::Service {
+            code: DatabaseErrorCode::DatabaseNotRunning,
+        }) => {}
+        other => panic!("expected DatabaseNotRunning, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn database_redefine_credential_certificate() {
+    let (client, server) = crate::mock_client().await;
+    // The reset answers without the certificate, which is then fetched.
+    Mock::given(method("POST"))
+        .and(path("/databases/db-123/credentials/reset"))
+        .and(body_json(json!({ "reset": "certificate" })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .expect(1)
+        .mount(&server)
         .await;
-    assert!(
-        result.is_ok(),
-        "redefine_credential(Certificate) failed: {:?}",
-        result.err()
-    );
-    assert!(
-        !result
-            .expect(
-                "redefine_credential(Certificate) should return certificate"
-            )
-            .is_empty()
-    );
+    Mock::given(method("GET"))
+        .and(path("/databases/db-123/credentials/certificate"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "certificate": "-----BEGIN CERTIFICATE-----\nNEW\n-----END CERTIFICATE-----"
+            }
+        })))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let certificate = client
+        .database("db-123")
+        .redefine_credential(CredentialType::Certificate)
+        .await
+        .expect("redefine_credential(Certificate) should succeed");
+    assert!(certificate.contains("NEW"));
 }
 
 #[tokio::test]

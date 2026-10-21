@@ -92,6 +92,26 @@ async fn workspace_info_accepts_member_without_name() {
 }
 
 #[tokio::test]
+async fn workspace_invite_code_missing_field_is_a_decode_error() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/workspaces/members/code"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {}
+        })))
+        .mount(&server)
+        .await;
+
+    match client.workspace("ws-123").get_invite_code().await {
+        Err(squarecloud::ApiError::Transport(e)) => {
+            assert!(e.is_decode(), "{e}")
+        }
+        other => panic!("expected a decode error, got {other:?}"),
+    }
+}
+
+#[tokio::test]
 async fn workspace_get_invite_code() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))

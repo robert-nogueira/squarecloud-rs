@@ -7,7 +7,7 @@ use reqwest::multipart::{Form, Part};
 use crate::{
     Endpoint,
     http::{
-        Client,
+        Client, NoData,
         errors::{ApiError, AppErrorCode, CommitError, ServiceErrorCode},
     },
     resources::FileResource,
@@ -195,7 +195,7 @@ impl AppResource {
     /// on an API-level error.
     pub async fn start(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
-            .request_endpoint::<()>(Endpoint::app_start(&self.id))
+            .request_endpoint::<NoData>(Endpoint::app_start(&self.id))
             .await?
             .into_bool_result()
     }
@@ -211,7 +211,7 @@ impl AppResource {
     /// on an API-level error.
     pub async fn restart(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
-            .request_endpoint::<()>(Endpoint::app_restart(&self.id))
+            .request_endpoint::<NoData>(Endpoint::app_restart(&self.id))
             .await?
             .into_bool_result()
     }
@@ -226,7 +226,7 @@ impl AppResource {
     /// on an API-level error.
     pub async fn stop(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
-            .request_endpoint::<()>(Endpoint::app_stop(&self.id))
+            .request_endpoint::<NoData>(Endpoint::app_stop(&self.id))
             .await?
             .into_bool_result()
     }
@@ -360,7 +360,7 @@ impl AppResource {
             .multipart(form)
             .build()?;
         self.client
-            .execute_request::<()>(request)
+            .execute_request::<NoData>(request)
             .await?
             .into_bool_result()
             .map_err(CommitError::Api)
@@ -376,7 +376,7 @@ impl AppResource {
     /// on an API-level error.
     pub async fn delete(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
-            .request_endpoint::<()>(Endpoint::app_delete(&self.id))
+            .request_endpoint::<NoData>(Endpoint::app_delete(&self.id))
             .await?
             .into_bool_result()
     }

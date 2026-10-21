@@ -5,7 +5,7 @@ use reqwest::{
     header::{HeaderMap, HeaderValue},
     multipart::{Form, Part},
 };
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{Deserialize, de::DeserializeOwned};
 use serde_json::json;
 
 use super::{
@@ -34,37 +34,39 @@ use crate::{
 /// [`ApiResponse::into_result_t`] or [`ApiResponse::into_bool_result`],
 /// which parse the raw error code string into the domain-scoped error
 /// code enum `C` chosen by the caller's return type.
-#[derive(Serialize, Deserialize)]
+///
+/// `response` is required unless `T` is an `Option`, so a success envelope
+/// missing the data a method expects fails to decode instead of reaching
+/// the caller. Actions that return no data use [`NoData`].
+#[derive(Deserialize)]
 #[serde(tag = "status", rename_all = "lowercase")]
 pub enum ApiResponse<T> {
-    Success {
-        #[serde(skip_serializing_if = "Option::is_none")]
-        response: Option<T>,
-    },
-    Error {
-        code: String,
-    },
+    Success { response: T },
+    Error { code: String },
 }
 
+/// Response type for actions whose success carries no data, or data the
+/// crate ignores.
+pub(crate) type NoData = Option<serde::de::IgnoredAny>;
+
 impl<T> ApiResponse<T> {
-    /// Unwraps the `response` field on success, or maps the error code to
+    /// Returns the `response` field on success, or maps the error code to
     /// [`ApiError::Service`].
-    ///
-    /// # Panics
-    ///
-    /// Panics if the API returns a success envelope without a `response` body.
     pub fn into_result_t<C: ServiceErrorCode>(self) -> Result<T, ApiError<C>> {
         match self {
             ApiResponse::Error { code } => Err(ApiError::Service {
                 code: C::from_wire(code),
             }),
-            ApiResponse::Success { response } => {
-                response.ok_or_else(|| panic!("Expected response data"))
-            }
+            ApiResponse::Success { response } => Ok(response),
         }
     }
+}
 
+impl ApiResponse<NoData> {
     /// Returns `Ok(true)` on success, or propagates the API error code.
+    ///
+    /// Only defined for [`NoData`], so an action cannot require a
+    /// `response` field the API does not send.
     pub fn into_bool_result<C: ServiceErrorCode>(
         self,
     ) -> Result<bool, ApiError<C>> {
@@ -84,8 +86,7 @@ mod tests {
 
     #[test]
     fn into_result_t_success_returns_inner_value() {
-        let resp: ApiResponse<u32> =
-            ApiResponse::Success { response: Some(42) };
+        let resp: ApiResponse<u32> = ApiResponse::Success { response: 42 };
         assert_eq!(resp.into_result_t::<AppErrorCode>().unwrap(), 42);
     }
 
@@ -103,14 +104,31 @@ mod tests {
     }
 
     #[test]
+    fn no_data_accepts_missing_null_and_any_response() {
+        for body in [
+            r#"{"status":"success"}"#,
+            r#"{"status":"success","response":null}"#,
+            r#"{"status":"success","response":{"ok":true}}"#,
+        ] {
+            let resp: ApiResponse<super::NoData> =
+                serde_json::from_str(body).expect(body);
+            assert!(
+                resp.into_bool_result::<AppErrorCode>().unwrap(),
+                "{body}"
+            );
+        }
+    }
+
+    #[test]
     fn into_bool_result_success_returns_true() {
-        let resp: ApiResponse<()> = ApiResponse::Success { response: None };
+        let resp: ApiResponse<super::NoData> =
+            ApiResponse::Success { response: None };
         assert_eq!(resp.into_bool_result::<AppErrorCode>().unwrap(), true);
     }
 
     #[test]
     fn into_bool_result_error_returns_service_error() {
-        let resp: ApiResponse<()> = ApiResponse::Error {
+        let resp: ApiResponse<super::NoData> = ApiResponse::Error {
             code: "RATE_LIMITED".to_owned(),
         };
         assert!(matches!(

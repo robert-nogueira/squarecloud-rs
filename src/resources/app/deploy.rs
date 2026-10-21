@@ -1,9 +1,10 @@
-use serde_json::{Value, json};
+use serde::Deserialize;
+use serde_json::json;
 
 use crate::{
     Endpoint,
     http::{
-        ApiResponse,
+        ApiResponse, NoData,
         errors::{ApiError, DeployErrorCode},
     },
     types::Deploy,
@@ -49,6 +50,10 @@ impl AppResource {
     /// provider (e.g. GitHub deployments). On success, returns the canonical
     /// webhook URL that SquareCloud will call on each deploy.
     ///
+    /// Passing `"@"` removes the integration instead and returns an empty
+    /// string; prefer
+    /// [`remove_webhook_integration`](AppResource::remove_webhook_integration).
+    ///
     /// # Errors
     ///
     /// Returns [`ApiError::Service`] with
@@ -58,15 +63,40 @@ impl AppResource {
         &self,
         access_token: String,
     ) -> Result<String, ApiError<DeployErrorCode>> {
+        let removing = access_token == "@";
         let endpoint = Endpoint::set_webhook_integration(&self.id);
         let request = endpoint
             .request_builder(&self.client.http_client, &self.client.base_url)
             .json(&json!({"access_token": access_token}))
             .build()?;
-        let response: ApiResponse<Value> =
+        #[derive(Deserialize)]
+        struct Webhook {
+            webhook: String,
+        }
+        if removing {
+            self.client
+                .execute_request::<NoData>(request)
+                .await?
+                .into_bool_result()?;
+            return Ok(String::new());
+        }
+        let response: ApiResponse<Webhook> =
             self.client.execute_request(request).await?;
-        let value = response.into_result_t()?;
-        let webhook = value.get("webhook").and_then(Value::as_str).unwrap();
-        Ok(webhook.to_string())
+        Ok(response.into_result_t()?.webhook)
+    }
+
+    /// Removes the application's webhook integration. Returns `Ok(true)` on
+    /// success.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
+    /// on an API-level error.
+    pub async fn remove_webhook_integration(
+        &self,
+    ) -> Result<bool, ApiError<DeployErrorCode>> {
+        self.set_webhook_integration("@".to_owned())
+            .await
+            .map(|_| true)
     }
 }
