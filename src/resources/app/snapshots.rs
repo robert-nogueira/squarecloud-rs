@@ -16,8 +16,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn list_snapshots(
         &self,
     ) -> Result<Vec<Snapshot>, ApiError<SnapshotErrorCode>> {
@@ -34,8 +34,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn create_snapshot(
         &self,
     ) -> Result<SnapshotReference, ApiError<SnapshotErrorCode>> {
@@ -55,8 +55,9 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the snapshot or version is not found.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if the snapshot or version is not
+    /// found.
     ///
     /// A large snapshot can outlive the API's ~90 s response deadline. The
     /// restore then keeps running in the background and this method returns
@@ -91,8 +92,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn restore_status(
         &self,
     ) -> Result<RestoreStatus, ApiError<SnapshotErrorCode>> {

@@ -21,7 +21,7 @@ async fn main() {
 
     match client.app(&app_id).start().await {
         Ok(_) => println!("app started"),
-        Err(ApiError::Transport(e)) => eprintln!("network problem: {e}"),
+        Err(ApiError::Transport(e)) => eprintln!("request failed: {e}"),
         Err(ApiError::Service { code }) => match code {
             AppErrorCode::AppNotFound => eprintln!("no such app: {app_id}"),
             AppErrorCode::ContainerAlreadyStarted => {

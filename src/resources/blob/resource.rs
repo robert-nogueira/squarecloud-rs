@@ -39,10 +39,10 @@ impl BlobResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error (e.g. [`BlobErrorCode::InvalidObjectName`]).
-    /// An unparseable `mime_type` also returns [`ApiError::Transport`],
-    /// before any request is sent.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error (e.g.
+    /// [`BlobErrorCode::InvalidObjectName`]). An unparseable `mime_type` also
+    /// returns [`ApiError::Transport`], before any request is sent.
     pub async fn upload(
         &self,
         name: &str,
@@ -79,8 +79,8 @@ impl BlobResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn list(
         &self,
         prefix: Option<&str>,
@@ -102,9 +102,9 @@ impl BlobResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Service`] with [`BlobErrorCode::ObjectNotFound`]
-    /// if the key does not exist, or [`ApiError::Transport`] on network
-    /// failure.
+    /// Returns [`ApiError::Service`] with [`BlobErrorCode::ObjectNotFound`] if
+    /// the key does not exist, or [`ApiError::Transport`] if the request fails
+    /// or the reply does not decode.
     pub async fn delete(
         &self,
         object: &str,
@@ -127,8 +127,8 @@ impl BlobResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn stats(&self) -> Result<BlobStats, ApiError<BlobErrorCode>> {
         let endpoint = Endpoint::blob_stats();
         let request = endpoint

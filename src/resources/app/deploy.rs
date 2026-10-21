@@ -17,8 +17,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or
-    /// [`ApiError::Service`] on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn current_deploy(
         &self,
     ) -> Result<Deploy, ApiError<DeployErrorCode>> {
@@ -33,8 +33,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or
-    /// [`ApiError::Service`] on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn list_deploys(
         &self,
     ) -> Result<Vec<Deploy>, ApiError<DeployErrorCode>> {
@@ -58,7 +58,8 @@ impl AppResource {
     ///
     /// Returns [`ApiError::Service`] with
     /// [`DeployErrorCode::InvalidAccessToken`] if the token is rejected, or
-    /// [`ApiError::Transport`] on network failure.
+    /// [`ApiError::Transport`] if the request fails or the reply does not
+    /// decode.
     pub async fn set_webhook_integration(
         &self,
         access_token: String,
@@ -90,8 +91,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn remove_webhook_integration(
         &self,
     ) -> Result<bool, ApiError<DeployErrorCode>> {

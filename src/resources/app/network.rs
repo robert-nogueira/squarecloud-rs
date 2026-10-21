@@ -24,8 +24,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn analytics(
         &self,
         start: DateTime<Utc>,
@@ -43,10 +43,10 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Service`] with
-    /// [`NetworkErrorCode::InvalidFilter`] if a filter value does not
-    /// match its expected format, or [`ApiError::Transport`] on network
-    /// failure.
+    /// Returns [`ApiError::Service`] with [`NetworkErrorCode::InvalidFilter`]
+    /// if a filter value does not match its expected format, or
+    /// [`ApiError::Transport`] if the request fails or the reply does not
+    /// decode.
     pub async fn analytics_filtered(
         &self,
         start: DateTime<Utc>,
@@ -77,8 +77,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn dns_records(
         &self,
     ) -> Result<Vec<DnsRecord>, ApiError<NetworkErrorCode>> {
@@ -97,10 +97,10 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Service`] with
-    /// [`NetworkErrorCode::InvalidDomain`]
+    /// Returns [`ApiError::Service`] with [`NetworkErrorCode::InvalidDomain`]
     /// if the domain is malformed or already in use, or
-    /// [`ApiError::Transport`] on network failure.
+    /// [`ApiError::Transport`] if the request fails or the reply does not
+    /// decode.
     pub async fn set_custom_domain(
         &self,
         custom: &str,
@@ -127,8 +127,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn network_errors(
         &self,
         include_4xx: bool,
@@ -155,8 +155,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn network_logs(
         &self,
         start: DateTime<Utc>,
@@ -182,8 +182,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn network_performance(
         &self,
         start: DateTime<Utc>,
@@ -205,8 +205,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn purge_cache(
         &self,
     ) -> Result<bool, ApiError<NetworkErrorCode>> {

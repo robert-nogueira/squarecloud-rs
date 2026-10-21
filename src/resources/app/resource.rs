@@ -191,8 +191,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn start(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::app_start(&self.id))
@@ -207,8 +207,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn restart(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::app_restart(&self.id))
@@ -222,8 +222,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn stop(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::app_stop(&self.id))
@@ -238,8 +238,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn status(
         &self,
     ) -> Result<RuntimeStats, ApiError<AppErrorCode>> {
@@ -258,8 +258,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn info(&self) -> Result<AppInfo, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint(Endpoint::app_info(&self.id))
@@ -275,8 +275,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn metrics(
         &self,
     ) -> Result<Vec<AppMetrics>, ApiError<AppErrorCode>> {
@@ -291,8 +291,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn logs(&self) -> Result<String, ApiError<AppErrorCode>> {
         let r: AppLogs = self
             .client
@@ -314,10 +314,10 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`CommitError::Io`] if constructing the multipart request
-    /// fails, [`CommitError::Api`] wrapping [`ApiError::Transport`] on network
-    /// failure, or [`CommitError::Api`] wrapping [`ApiError::Service`] if the
-    /// archive is rejected by the API.
+    /// Returns [`CommitError::Api`] wrapping [`ApiError::Transport`] if the
+    /// request cannot be built, fails or the reply does not decode, or
+    /// [`CommitError::Api`] wrapping [`ApiError::Service`] if the archive is
+    /// rejected by the API.
     pub async fn commit(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
@@ -334,13 +334,12 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`CommitError::Io`] if constructing the multipart request
-    /// fails, [`CommitError::Api`] wrapping [`ApiError::Transport`] on
-    /// network failure, or [`CommitError::Api`] wrapping
-    /// [`ApiError::Service`] with
+    /// Returns [`CommitError::Api`] wrapping [`ApiError::Transport`] if the
+    /// request cannot be built, fails or the reply does not decode, or
+    /// [`CommitError::Api`] wrapping [`ApiError::Service`] with
     /// [`UploadErrorCode::InvalidPath`](crate::errors::UploadErrorCode) if
-    /// `path` contains traversal or shell metacharacters, or another code
-    /// if the archive is rejected by the API.
+    /// `path` contains traversal or shell metacharacters, or another code if
+    /// the archive is rejected by the API.
     pub async fn commit_to(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
@@ -372,8 +371,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn delete(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::app_delete(&self.id))

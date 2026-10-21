@@ -49,8 +49,8 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn info(
         &self,
     ) -> Result<DatabaseInfo, ApiError<DatabaseErrorCode>> {
@@ -66,8 +66,8 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn start(&self) -> Result<bool, ApiError<DatabaseErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::start_database(&self.id))
@@ -81,8 +81,8 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn stop(&self) -> Result<bool, ApiError<DatabaseErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::stop_database(&self.id))
@@ -95,8 +95,8 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn status(
         &self,
     ) -> Result<RuntimeStats, ApiError<DatabaseErrorCode>> {
@@ -113,8 +113,8 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn metrics(
         &self,
     ) -> Result<Vec<DatabaseMetrics>, ApiError<DatabaseErrorCode>> {
@@ -132,11 +132,10 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Service`] with
-    /// [`DatabaseErrorCode::InvalidMemory`] or
-    /// [`DatabaseErrorCode::InsufficientMemory`] if the new
-    /// memory value is not permitted, or [`ApiError::Transport`] on network
-    /// failure.
+    /// Returns [`ApiError::Service`] with [`DatabaseErrorCode::InvalidMemory`]
+    /// or [`DatabaseErrorCode::InsufficientMemory`] if the new memory value is
+    /// not permitted, or [`ApiError::Transport`] if the request fails or the
+    /// reply does not decode.
     pub async fn edit(
         &self,
         name: Option<&str>,
@@ -170,8 +169,8 @@ impl DatabaseResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn delete(&self) -> Result<bool, ApiError<DatabaseErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::delete_database(&self.id))

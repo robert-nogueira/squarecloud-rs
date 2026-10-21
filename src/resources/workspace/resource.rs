@@ -43,8 +43,8 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn info(
         &self,
     ) -> Result<WorkspaceInfo, ApiError<WorkspaceErrorCode>> {
@@ -61,8 +61,9 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the account is the owner or is not a member.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if the account is the owner or is
+    /// not a member.
     pub async fn leave(&self) -> Result<bool, ApiError<WorkspaceErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::leave_workspace(&self.id))
@@ -78,8 +79,9 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the authenticated account is not the owner.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if the authenticated account is
+    /// not the owner.
     pub async fn delete(&self) -> Result<bool, ApiError<WorkspaceErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::delete_workspace(&self.id))

@@ -46,8 +46,8 @@ impl FileResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn write(
         &self,
         content: &str,
@@ -69,11 +69,13 @@ impl FileResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error. Writes are capped at 10 MB and answer
-    /// [`FileErrorCode::PayloadTooLarge`] past it; base64 makes the request
-    /// about a third larger than `content`, so a binary file close to the
-    /// cap can be rejected.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error. Writes are
+    /// capped at 10 MB and answer [`FileErrorCode::PayloadTooLarge`] past it;
+    /// base64 makes the request about a third larger than `content`, so a
+    /// binary file close to the cap can be rejected. A rejection from a
+    /// proxy in front of the API carries no API envelope and arrives as
+    /// [`ApiError::Transport`].
     pub async fn write_bytes(
         &self,
         content: &[u8],
@@ -94,9 +96,11 @@ impl FileResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the file does not exist, or [`FileErrorCode::FileTooLarge`] if it
-    /// is larger than the 10 MB the file manager reads.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] with
+    /// [`FileErrorCode::FileNotFound`] if the file does not exist or
+    /// [`FileErrorCode::FileTooLarge`] if it is larger than the 10 MB the file
+    /// manager reads.
     pub async fn read(
         &self,
         path: &str,
@@ -113,8 +117,8 @@ impl FileResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the file does not exist.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if the file does not exist.
     pub async fn delete(&self) -> Result<bool, ApiError<FileErrorCode>> {
         let endpoint = Endpoint::delete_app_file(&self.app_id, &self.path);
         self.client
@@ -130,8 +134,9 @@ impl FileResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the source does not exist or the destination is invalid.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if the source does not exist or
+    /// the destination is invalid.
     pub async fn move_to(
         &self,
         destination_path: &str,
@@ -169,8 +174,9 @@ impl FileResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if `path` is not a directory or does not exist.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if `path` is not a directory or
+    /// does not exist.
     pub async fn all_files(
         &self,
         path: &str,

@@ -19,8 +19,8 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn get_invite_code(
         &self,
     ) -> Result<String, ApiError<MemberErrorCode>> {
@@ -45,8 +45,9 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the code is invalid or has expired.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if the code is invalid or has
+    /// expired.
     pub async fn invite_member(
         &self,
         code: &str,
@@ -72,8 +73,9 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the member does not exist in this workspace.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if the member does not exist in
+    /// this workspace.
     pub async fn remove_member(
         &self,
         member_id: &str,
@@ -99,8 +101,8 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the member or group is invalid.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if the member or group is invalid.
     pub async fn change_member_permissions(
         &self,
         code: &str,

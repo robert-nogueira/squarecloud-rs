@@ -14,8 +14,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn list_envs(
         &self,
     ) -> Result<HashMap<String, String>, ApiError<EnvErrorCode>> {
@@ -32,10 +32,9 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Service`] with
-    /// [`EnvErrorCode::InvalidEnvContent`]
-    /// if a key or value is rejected, or [`ApiError::Transport`] on network
-    /// failure.
+    /// Returns [`ApiError::Service`] with [`EnvErrorCode::InvalidEnvContent`]
+    /// if a key or value is rejected, or [`ApiError::Transport`] if the
+    /// request fails or the reply does not decode.
     pub async fn upsert_envs(
         &self,
         envs: &HashMap<String, String>,
@@ -55,8 +54,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn overwrite_envs(
         &self,
         envs: &HashMap<String, String>,
@@ -76,8 +75,8 @@ impl AppResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn delete_envs(
         &self,
         envs: &[String],

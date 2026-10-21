@@ -51,7 +51,7 @@ use squarecloud::{ApiError, Client, errors::AppErrorCode};
 
 match client.app("application_id").start().await {
     Ok(_) => println!("app started"),
-    Err(ApiError::Transport(e)) => eprintln!("network problem: {e}"),
+    Err(ApiError::Transport(e)) => eprintln!("request failed: {e}"),
     Err(ApiError::Service { code }) => match code {
         AppErrorCode::AppNotFound => eprintln!("no such app"),
         AppErrorCode::Unknown(raw) => eprintln!("uncatalogued code: {raw}"),
@@ -59,6 +59,8 @@ match client.app("application_id").start().await {
     },
 }
 ```
+
+`Transport` covers every request that got no usable API reply: a network failure, a reply that does not decode into the expected type, or a request that could not be built. `ApiError::is_retryable()` tells whether sending the same request again can help.
 
 Functions that compose calls across domains can return the type-erased default `ApiError` and propagate everything with `?`; the erased code still compares against typed variants and strings:
 

@@ -273,13 +273,12 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure, or
-    /// [`ApiError::Service`] with
-    /// [`ServiceStatusErrorCode::InternalServerError`] if the platform
-    /// cannot report its own status. Unlike every other endpoint, the
-    /// success payload here is not wrapped in the standard envelope, so
-    /// the two shapes are told apart by the error envelope's `code`
-    /// field.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] with
+    /// [`ServiceStatusErrorCode::InternalServerError`] if the platform cannot
+    /// report its own status. Unlike every other endpoint, the success payload
+    /// here is not wrapped in the standard envelope, so the two shapes are
+    /// told apart by the error envelope's `code` field.
     pub async fn service_status(
         &self,
     ) -> Result<ServiceStatus, ApiError<ServiceStatusErrorCode>> {
@@ -305,8 +304,9 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the token is invalid ([`AccountErrorCode::InvalidAccessToken`]).
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if the token is invalid
+    /// ([`AccountErrorCode::InvalidAccessToken`]).
     pub async fn me(&self) -> Result<AccountInfo, ApiError<AccountErrorCode>> {
         self.request_endpoint::<AccountInfo>(Endpoint::me())
             .await?
@@ -326,7 +326,9 @@ impl Client {
     /// or [`UploadErrorCode::InvalidContentType`] if the archive is
     /// malformed, [`UploadErrorCode::InsufficientMemory`] if the account's
     /// memory quota does not cover the app, or
-    /// [`UploadErrorCode::FileTooLarge`] past the 100 MB limit.
+    /// [`UploadErrorCode::FileTooLarge`] past the 100 MB limit. Returns
+    /// [`ApiError::Transport`] if the request fails or the reply does not
+    /// decode.
     pub async fn upload_app(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
@@ -356,8 +358,8 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn all_domains(
         &self,
     ) -> Result<Vec<AppDomain>, ApiError<NetworkErrorCode>> {
@@ -378,8 +380,8 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or
-    /// [`ApiError::Service`] on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn load_balancers(
         &self,
     ) -> Result<LoadBalancers, ApiError<NetworkErrorCode>> {
@@ -392,8 +394,8 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn all_apps_status(
         &self,
     ) -> Result<Vec<RuntimeStatsListItem>, ApiError<AppErrorCode>> {
@@ -414,9 +416,9 @@ impl Client {
     /// # Errors
     ///
     /// Returns [`ApiError::Service`] with [`DatabaseErrorCode::InvalidMemory`]
-    /// or [`DatabaseErrorCode::InsufficientMemory`] if the memory allocation is not
-    /// permitted,
-    /// or [`ApiError::Transport`] on network failure.
+    /// or [`DatabaseErrorCode::InsufficientMemory`] if the memory allocation
+    /// is not permitted, or [`ApiError::Transport`] if the request fails or
+    /// the reply does not decode.
     pub async fn create_database(
         &self,
         name: String,
@@ -441,8 +443,8 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn all_database_status(
         &self,
     ) -> Result<Vec<RuntimeStatsListItem>, ApiError<DatabaseErrorCode>> {
@@ -457,8 +459,8 @@ impl Client {
     /// # Errors
     ///
     /// Returns [`ApiError::Service`] if the name is invalid or the account has
-    /// reached its workspace quota, or [`ApiError::Transport`] on network
-    /// failure.
+    /// reached its workspace quota, or [`ApiError::Transport`] if the request
+    /// fails or the reply does not decode.
     pub async fn create_workspace(
         &self,
         name: String,
@@ -480,8 +482,8 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn all_snapshots(
         &self,
         scope: Option<SnapshotScope>,
@@ -495,8 +497,8 @@ impl Client {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// on an API-level error.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] on an API-level error.
     pub async fn all_workspaces(
         &self,
     ) -> Result<Vec<WorkspaceInfo>, ApiError<WorkspaceErrorCode>> {

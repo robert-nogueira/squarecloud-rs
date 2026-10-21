@@ -17,8 +17,9 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the application is already in a workspace or does not exist.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if the application is already in a
+    /// workspace or does not exist.
     pub async fn add_app(
         &self,
         app_id: &str,
@@ -42,8 +43,9 @@ impl WorkspaceResource {
     ///
     /// # Errors
     ///
-    /// Returns [`ApiError::Transport`] on network failure or [`ApiError::Service`]
-    /// if the application is not a member of this workspace.
+    /// Returns [`ApiError::Transport`] if the request fails or the reply does
+    /// not decode, or [`ApiError::Service`] if the application is not a member
+    /// of this workspace.
     pub async fn remove_app(
         &self,
         app_id: &str,
