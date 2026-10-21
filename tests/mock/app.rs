@@ -1323,6 +1323,269 @@ async fn file_read_with_invalid_base64_is_a_transport_error() {
 }
 
 #[tokio::test]
+async fn realtime_refused_connection_yields_typed_error() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(ResponseTemplate::new(429).set_body_json(json!({
+            "status": "error",
+            "code": "REALTIME_MAX_CONNECTIONS"
+        })))
+        .mount(&server)
+        .await;
+
+    let stream: squarecloud::resources::RealtimeStream =
+        client.app("app-123").realtime();
+    let events: Vec<_> = stream.collect().await;
+    assert_eq!(events.len(), 1, "{events:?}");
+    match &events[0] {
+        Err(ApiError::Service {
+            code: AppErrorCode::RealtimeMaxConnections,
+        }) => {}
+        other => panic!("expected RealtimeMaxConnections, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn realtime_refusal_without_envelope_keeps_the_http_status() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(502)
+                .set_body_string("<html>Bad Gateway</html>"),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+    assert_eq!(events.len(), 1, "{events:?}");
+    match &events[0] {
+        Err(ApiError::Transport(e)) => {
+            assert_eq!(e.status().map(|s| s.as_u16()), Some(502))
+        }
+        other => panic!("expected a status error, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn realtime_refusal_with_success_envelope_keeps_the_http_status() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(ResponseTemplate::new(500).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+    assert_eq!(events.len(), 1, "{events:?}");
+    match &events[0] {
+        Err(ApiError::Transport(e)) => {
+            assert_eq!(e.status().map(|s| s.as_u16()), Some(500))
+        }
+        other => panic!("expected a status error, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn realtime_json_error_with_ok_status_is_not_parsed_as_sse() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "error",
+            "code": "CONTAINER_NOT_FOUND"
+        })))
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+    assert_eq!(events.len(), 1, "{events:?}");
+    match &events[0] {
+        Err(ApiError::Service {
+            code: AppErrorCode::ContainerNotFound,
+        }) => {}
+        other => panic!("expected ContainerNotFound, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn realtime_json_success_with_ok_status_ends_without_events() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success"
+        })))
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+    assert!(events.is_empty(), "{events:?}");
+}
+
+#[tokio::test]
+async fn realtime_unknown_event_is_passed_through() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_bytes(
+                    b"event: metrics\ndata: {\"x\":1}\n\n\
+                      event: system\ndata: REALTIME_CONNECTED\n\n"
+                        as &[u8],
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+    assert_eq!(events.len(), 2, "{events:?}");
+    match &events[0] {
+        Ok(RealtimeEvent::Unrecognized { event, data }) => {
+            assert_eq!(event, "metrics");
+            assert_eq!(data, r#"{"x":1}"#);
+        }
+        other => panic!("expected Unrecognized, got {other:?}"),
+    }
+    assert!(
+        matches!(&events[1], Ok(RealtimeEvent::System(m)) if m == "REALTIME_CONNECTED")
+    );
+}
+
+#[tokio::test]
+async fn realtime_undecodable_status_frame_is_passed_through() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_bytes(
+                    b"event: status\ndata: {\"cpu\":\"not a number\"}\n\n\
+                      event: logs\ndata: still streaming\n\n"
+                        as &[u8],
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+    assert_eq!(events.len(), 2, "{events:?}");
+    match &events[0] {
+        Ok(RealtimeEvent::Unrecognized { event, data }) => {
+            assert_eq!(event, "status");
+            assert!(data.contains("not a number"));
+        }
+        other => panic!("expected Unrecognized, got {other:?}"),
+    }
+    assert!(matches!(events[1], Ok(RealtimeEvent::Log { .. })));
+}
+
+#[tokio::test]
+async fn realtime_log_keeps_indentation_and_trailing_spaces() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_bytes(
+                    b"event: logs\ndata:     at foo (bar.js:1)  \n\n"
+                        as &[u8],
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+    match &events[..] {
+        [Ok(RealtimeEvent::Log { line, .. })] => {
+            assert_eq!(line, "    at foo (bar.js:1)  ")
+        }
+        other => panic!("expected one log line, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn realtime_error_event_with_empty_data_ends_the_stream() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_bytes(
+                    b"event: error\ndata:\n\nevent: logs\ndata: never seen\n\n"
+                        as &[u8],
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+    assert_eq!(events.len(), 1, "{events:?}");
+    match &events[0] {
+        Err(ApiError::Service {
+            code: AppErrorCode::Unknown(raw),
+        }) => assert_eq!(raw.as_str(), ""),
+        other => panic!("expected an error, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn realtime_event_without_final_blank_line_is_flushed() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .insert_header("content-type", "text/event-stream")
+                .set_body_bytes(
+                    b"event: error\ndata: CONTAINER_NOT_FOUND" as &[u8],
+                ),
+        )
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+    assert_eq!(events.len(), 1, "{events:?}");
+    match &events[0] {
+        Err(ApiError::Service {
+            code: AppErrorCode::ContainerNotFound,
+        }) => {}
+        other => panic!("expected ContainerNotFound, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn realtime_problem_json_refusal_is_recognised() {
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("GET"))
+        .and(path("/apps/app-123/realtime"))
+        .respond_with(ResponseTemplate::new(200).set_body_raw(
+            r#"{"status":"error","code":"CONTAINER_NOT_FOUND"}"#,
+            "Application/Problem+JSON; charset=utf-8",
+        ))
+        .mount(&server)
+        .await;
+
+    let events: Vec<_> = client.app("app-123").realtime().collect().await;
+    match &events[..] {
+        [
+            Err(ApiError::Service {
+                code: AppErrorCode::ContainerNotFound,
+            }),
+        ] => {}
+        other => panic!("expected ContainerNotFound, got {other:?}"),
+    }
+}
+
+#[tokio::test]
 async fn realtime_parses_log_event() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("GET"))

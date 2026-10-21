@@ -516,6 +516,9 @@ async fn app_realtime_receives_log_and_status_events() {
                         seen_status = Some(status)
                     }
                     RealtimeEvent::System(_) => {}
+                    // A frame the client cannot decode means the API changed
+                    // its shape; fail instead of skipping it.
+                    other => panic!("undecoded realtime frame: {other:?}"),
                 }
                 if seen_log && seen_status.is_some() {
                     break;

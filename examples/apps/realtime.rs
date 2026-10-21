@@ -21,6 +21,7 @@ async fn main() {
                     status.cpu, status.ram.used_mb, status.ram.limit_mb
                 )
             }
+            other => println!("[other] {other:?}"),
         }
     }
 }

@@ -6,6 +6,7 @@ use serde::{Deserialize, Deserializer};
 /// Returned by
 /// [`AppResource::realtime`](crate::resources::AppResource::realtime).
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub enum RealtimeEvent {
     /// A log line emitted by the application.
     Log {
@@ -21,6 +22,15 @@ pub enum RealtimeEvent {
     /// Live container metrics, merged from the server's complete and lean
     /// frames. See [`RealtimeStatus`] for how the merge works.
     Status(RealtimeStatus),
+    /// An event this client does not know, or a status frame it could not
+    /// decode, passed through raw so the stream keeps running. Seeing it
+    /// usually means the API changed the stream.
+    Unrecognized {
+        /// The SSE event name (for example `"status"`).
+        event: String,
+        /// The frame's raw `data` payload.
+        data: String,
+    },
 }
 
 /// Which output stream a [`RealtimeEvent::Log`] line came from.

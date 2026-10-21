@@ -7,7 +7,7 @@ use reqwest::multipart::{Form, Part};
 use crate::{
     Endpoint,
     http::{
-        Client, NoData,
+        ApiResponse, Client, NoData,
         errors::{ApiError, AppErrorCode, CommitError, ServiceErrorCode},
     },
     resources::FileResource,
@@ -17,6 +17,7 @@ use crate::{
     },
 };
 
+/// The stream returned by [`AppResource::realtime`].
 pub type RealtimeStream = futures_util::stream::BoxStream<
     'static,
     Result<RealtimeEvent, ApiError<AppErrorCode>>,
@@ -82,6 +83,7 @@ impl AppResource {
     ///         RealtimeEvent::Status(status) => {
     ///             println!("[status] cpu={} ram={:?}", status.cpu, status.ram)
     ///         }
+    ///         other => println!("[other] {other:?}"),
     ///     }
     /// }
     /// # }
@@ -94,28 +96,84 @@ impl AppResource {
     /// terminates. The server can also send its own terminal error event
     /// (e.g. [`AppErrorCode::ContainerNotFound`] if the application stops or
     /// is deleted mid-stream), which surfaces the same way.
+    ///
+    /// If the API refuses the connection, the stream yields a single
+    /// [`ApiError::Service`] (for example
+    /// [`AppErrorCode::RealtimeMaxConnections`] or
+    /// [`AppErrorCode::RealtimeMaxConnectionsApp`] when too many streams are
+    /// open) and ends; a refusal without an API envelope yields
+    /// [`ApiError::Transport`] carrying the HTTP status. An event the client
+    /// does not know, or a status frame that does not decode, arrives as
+    /// [`RealtimeEvent::Unrecognized`] and the stream keeps running.
     pub fn realtime(&self) -> RealtimeStream {
         let client = self.client.clone();
         let id = self.id.clone();
         let endpoint = Endpoint::sse_realtime_app_logs(&id);
 
         Box::pin(stream! {
-            let mut bytes = client
+            let response = client
                 .http_client
                 .request(endpoint.method, client.url(&endpoint.path))
                 .send()
                 .await
-                .map_err(ApiError::Transport)?
-                .bytes_stream();
+                .map_err(ApiError::Transport)?;
+
+            // A refused connection answers with a JSON error envelope, not
+            // an event stream, sometimes even with a 2xx status.
+            let is_json = response
+                .headers()
+                .get(reqwest::header::CONTENT_TYPE)
+                .and_then(|value| value.to_str().ok())
+                .is_some_and(|value| {
+                    let value = value.to_ascii_lowercase();
+                    value.starts_with("application/")
+                        && value.split(';').next().is_some_and(|mime| {
+                            mime.trim_end().ends_with("json")
+                        })
+                });
+            if !response.status().is_success() || is_json {
+                // Keeps the HTTP status for a refusal without an envelope.
+                let status_error = response.error_for_status_ref().err();
+                match response.json::<ApiResponse<NoData>>().await {
+                    Ok(envelope) => {
+                        if let Err(e) = envelope.into_result_t() {
+                            yield Err(e);
+                        } else if let Some(e) = status_error {
+                            yield Err(ApiError::Transport(e));
+                        }
+                    }
+                    Err(decode) => {
+                        yield Err(ApiError::Transport(
+                            status_error.unwrap_or(decode),
+                        ));
+                    }
+                }
+                return;
+            }
+
+            let mut bytes = response.bytes_stream();
 
             let mut buffer = Vec::<u8>::new();
             let mut event_type = String::new();
             let mut data = String::new();
+            let mut has_data = false;
             let mut status_merger = StatusMerger::default();
+            let mut ended = false;
 
-            while let Some(chunk) = bytes.next().await {
-                let chunk = chunk.map_err(ApiError::Transport)?;
-                buffer.extend_from_slice(&chunk);
+            while !ended {
+                match bytes.next().await {
+                    Some(chunk) => {
+                        buffer.extend_from_slice(
+                            &chunk.map_err(ApiError::Transport)?,
+                        );
+                    }
+                    // Flush an event the server closed without its blank
+                    // line.
+                    None => {
+                        buffer.extend_from_slice(b"\n\n");
+                        ended = true;
+                    }
+                }
 
                 while let Some(pos) =
                     buffer.iter().position(|&b| b == b'\n')
@@ -126,53 +184,65 @@ impl AppResource {
                     let line = line.trim_end_matches('\r');
 
                     if line.is_empty() {
-                        if !data.is_empty() {
-                            match event_type.as_str() {
-                                "logs" => {
-                                    let stream = match data.chars().next() {
-                                        Some('\u{2}') => LogStream::Stderr,
-                                        _ => LogStream::Stdout,
-                                    };
-                                    let text = data
-                                        .strip_prefix(['\u{1}', '\u{2}'])
-                                        .unwrap_or(&data)
-                                        .to_string();
-                                    yield Ok(RealtimeEvent::Log {
-                                        stream,
-                                        line: text,
-                                    });
-                                }
-                                "status" => {
-                                    if let Ok(frame) =
-                                        serde_json::from_str::<StatusFrame>(&data)
-                                    {
+                        if !has_data {
+                            event_type.clear();
+                            continue;
+                        }
+                        has_data = false;
+                        let event = std::mem::take(&mut event_type);
+                        let payload = std::mem::take(&mut data);
+                        match event.as_str() {
+                            "logs" => {
+                                let stream = match payload.chars().next() {
+                                    Some('\u{2}') => LogStream::Stderr,
+                                    _ => LogStream::Stdout,
+                                };
+                                let line = payload
+                                    .strip_prefix(['\u{1}', '\u{2}'])
+                                    .unwrap_or(&payload)
+                                    .to_string();
+                                yield Ok(RealtimeEvent::Log { stream, line });
+                            }
+                            "status" => {
+                                match serde_json::from_str::<StatusFrame>(&payload) {
+                                    Ok(frame) => {
                                         yield Ok(RealtimeEvent::Status(
                                             status_merger.merge(frame),
                                         ));
                                     }
-                                }
-                                "error" => {
-                                    yield Err(ApiError::Service {
-                                        code: AppErrorCode::from_wire(
-                                            data.clone(),
-                                        ),
-                                    });
-                                    return;
-                                }
-                                _ => {
-                                    yield Ok(RealtimeEvent::System(data.clone()));
+                                    Err(_) => {
+                                        yield Ok(RealtimeEvent::Unrecognized {
+                                            event,
+                                            data: payload,
+                                        });
+                                    }
                                 }
                             }
+                            "error" => {
+                                yield Err(ApiError::Service {
+                                    code: AppErrorCode::from_wire(payload),
+                                });
+                                return;
+                            }
+                            "" | "system" => {
+                                yield Ok(RealtimeEvent::System(payload));
+                            }
+                            _ => {
+                                yield Ok(RealtimeEvent::Unrecognized {
+                                    event,
+                                    data: payload,
+                                });
+                            }
                         }
-                        event_type.clear();
-                        data.clear();
                     } else if let Some(val) = line.strip_prefix("event:") {
                         event_type = val.trim().to_string();
                     } else if let Some(val) = line.strip_prefix("data:") {
-                        if !data.is_empty() {
+                        // SSE strips only the one space after the colon.
+                        if has_data {
                             data.push('\n');
                         }
-                        data.push_str(val.trim());
+                        data.push_str(val.strip_prefix(' ').unwrap_or(val));
+                        has_data = true;
                     }
                 }
             }

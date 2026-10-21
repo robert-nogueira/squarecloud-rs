@@ -94,6 +94,7 @@ async fn main() {
             RealtimeEvent::Log { stream, line } => println!("[log:{stream:?}] {line}"),
             RealtimeEvent::System(msg) => println!("[system] {msg}"),
             RealtimeEvent::Status(status) => println!("[status] cpu={}", status.cpu),
+            other => println!("[other] {other:?}"),
         }
     }
 }
