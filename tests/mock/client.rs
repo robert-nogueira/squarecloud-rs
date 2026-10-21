@@ -297,6 +297,43 @@ async fn create_database_returns_database() {
 }
 
 #[tokio::test]
+async fn create_database_accepts_missing_certificate_and_fractional_cpu() {
+    use squarecloud::types::DatabaseType;
+
+    let (client, server) = crate::mock_client().await;
+    Mock::given(method("POST"))
+        .and(path("/databases"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "status": "success",
+            "response": {
+                "id": "db-new",
+                "name": "my-db",
+                "memory": 1024,
+                "cpu": 0.5,
+                "type": "postgres",
+                "password": "secret",
+                "certificate": null,
+                "connection_url": "postgres://localhost/mydb",
+                "cluster": "orion-cluster"
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let db = client
+        .create_database(
+            "my-db".to_string(),
+            1024,
+            DatabaseType::Postgres,
+            "17".to_string(),
+        )
+        .await
+        .expect("create_database() should accept a null certificate");
+    assert_eq!(db.certificate, None);
+    assert_eq!(db.cpu, 0.5);
+}
+
+#[tokio::test]
 async fn create_workspace_returns_workspace_info() {
     let (client, server) = crate::mock_client().await;
     Mock::given(method("POST"))

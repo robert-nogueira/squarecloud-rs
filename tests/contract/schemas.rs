@@ -1,8 +1,8 @@
 use squarecloud::types::{
-    Analytics, AppInfo, AppSummary, DatabaseInfo, DatabaseSummary, Deploy,
-    DnsRecord, FileInfo, NetworkErrors, Plan, RestoreStatus, RuntimeStats,
-    RuntimeStatsListItem, Snapshot, UserInfo, WorkspaceApp, WorkspaceInfo,
-    WorkspaceMember,
+    Analytics, AppInfo, AppSummary, Database, DatabaseInfo, DatabaseSummary,
+    Deploy, DnsRecord, FileInfo, NetworkErrors, Plan, RestoreStatus,
+    RuntimeStats, RuntimeStatsListItem, Snapshot, UserInfo, WorkspaceApp,
+    WorkspaceInfo, WorkspaceMember,
 };
 
 use crate::validation::generate_json_variants_from_schema;
@@ -85,6 +85,12 @@ async fn file_entry_schema_deserializes_as_file_info() {
 async fn deploy_event_schema_deserializes_as_deploy() {
     let spec = crate::fetch_full_spec().await;
     assert_schema!(&spec, "DeployEvent", Deploy);
+}
+
+#[tokio::test]
+async fn database_created_schema_deserializes_as_database() {
+    let spec = crate::fetch_full_spec().await;
+    assert_schema!(&spec, "DatabaseCreated", Database);
 }
 
 #[tokio::test]

@@ -91,14 +91,17 @@ pub struct Database {
     /// RAM allocation in megabytes.
     pub memory: u32,
     /// CPU allocation in abstract units.
-    pub cpu: u8,
+    pub cpu: f32,
     /// The database engine type (e.g. `"redis"`, `"postgres"`).
     #[serde(rename = "type")]
     pub db_type: String,
     /// The current database password.
     pub password: String,
-    /// The PEM-encoded TLS client certificate.
-    pub certificate: String,
+    /// The TLS file for client connections, base64-encoded: a PEM holding
+    /// the private key followed by the certificate. `None` when the API
+    /// could not produce it at creation; fetch it later with
+    /// [`DatabaseResource::certificate`](crate::resources::DatabaseResource::certificate).
+    pub certificate: Option<String>,
     /// The full connection URL including credentials.
     pub connection_url: String,
 }
@@ -148,10 +151,10 @@ mod tests {
             id: "db-abc".to_string(),
             name: "test".to_string(),
             memory: 512,
-            cpu: 1,
+            cpu: 1.0,
             db_type: "postgres".to_string(),
             password: "pass".to_string(),
-            certificate: "cert".to_string(),
+            certificate: Some("cert".to_string()),
             connection_url: "postgres://localhost/test".to_string(),
         };
         let resource = db.into_resource(Client::new("test"));
