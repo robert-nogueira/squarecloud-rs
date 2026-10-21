@@ -112,6 +112,21 @@ mod tests {
     }
 
     #[test]
+    fn domain_enums_classify_through_the_trait() {
+        assert!(DatabaseErrorCode::RateLimited.is_rate_limited());
+        assert!(UploadErrorCode::UploadBusy.is_retryable());
+        assert!(!UploadErrorCode::UploadBusy.is_rate_limited());
+        assert!(!AppErrorCode::AppNotFound.is_retryable());
+    }
+
+    #[test]
+    fn unknown_variant_is_classified_by_its_wire_string() {
+        let code = EnvErrorCode::Unknown("KEEP_CALM".into());
+        assert!(code.is_rate_limited());
+        assert!(code.is_retryable());
+    }
+
+    #[test]
     fn retired_rate_limit_codes_fall_back_to_unknown() {
         for code in ["RATE_LIMIT", "RATE_LIMIT_EXCEEDED"] {
             assert!(AppErrorCode::from_wire(code.to_owned()).is_unknown());

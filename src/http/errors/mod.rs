@@ -60,6 +60,16 @@ pub trait ServiceErrorCode:
     /// Returns `true` when this value is the enum's `Unknown` fallback,
     /// i.e. the API sent a code this catalogue does not recognise.
     fn is_unknown(&self) -> bool;
+
+    /// See [`ErrorCode::is_rate_limited`].
+    fn is_rate_limited(&self) -> bool {
+        self.erase().is_rate_limited()
+    }
+
+    /// See [`ErrorCode::is_retryable`].
+    fn is_retryable(&self) -> bool {
+        self.erase().is_retryable()
+    }
 }
 
 /// Returns `true` when `code` parses into a catalogued (non-`Unknown`)
@@ -125,6 +135,33 @@ impl<C: std::fmt::Debug> std::error::Error for ApiError<C> {
     }
 }
 
+impl<C: ServiceErrorCode> ApiError<C> {
+    /// Returns `true` when the request can be sent again unchanged: a
+    /// [`Service`](ApiError::Service) code that
+    /// [`ErrorCode::is_retryable`] accepts, or a transport failure to
+    /// connect, where the request never reached the server.
+    ///
+    /// Timeouts are not included: the server may have already acted on
+    /// the request.
+    pub fn is_retryable(&self) -> bool {
+        match self {
+            ApiError::Transport(e) => e.is_connect(),
+            ApiError::Service { code } => code.is_retryable(),
+        }
+    }
+}
+
+impl ApiError<ErrorCode> {
+    /// Same as the domain-scoped `is_retryable`, for the type-erased
+    /// error.
+    pub fn is_retryable(&self) -> bool {
+        match self {
+            ApiError::Transport(e) => e.is_connect(),
+            ApiError::Service { code } => code.is_retryable(),
+        }
+    }
+}
+
 impl<C> From<reqwest::Error> for ApiError<C> {
     fn from(err: reqwest::Error) -> Self {
         ApiError::Transport(err)
@@ -159,7 +196,8 @@ mod tests {
     use std::error::Error;
 
     use super::{
-        ApiError, BlobErrorCode, CommitError, EnvErrorCode, ErrorCode,
+        ApiError, AppErrorCode, BlobErrorCode, CommitError, EnvErrorCode,
+        ErrorCode, UploadErrorCode,
     };
 
     #[tokio::test]
@@ -182,6 +220,36 @@ mod tests {
         let reqwest_err = reqwest::get("http://0.0.0.0:1").await.unwrap_err();
         let err: ApiError = ApiError::Transport(reqwest_err);
         assert!(err.source().is_some());
+    }
+
+    #[tokio::test]
+    async fn connect_failure_is_retryable() {
+        let reqwest_err = reqwest::get("http://0.0.0.0:1").await.unwrap_err();
+        assert!(reqwest_err.is_connect());
+        let err: ApiError<AppErrorCode> = ApiError::Transport(reqwest_err);
+        assert!(err.is_retryable());
+        assert!(ApiError::<ErrorCode>::from(err).is_retryable());
+    }
+
+    #[tokio::test]
+    async fn other_transport_failures_are_not_retryable() {
+        let reqwest_err = reqwest::get("not a url").await.unwrap_err();
+        assert!(!reqwest_err.is_connect());
+        let err: ApiError<AppErrorCode> = ApiError::Transport(reqwest_err);
+        assert!(!err.is_retryable());
+        assert!(!ApiError::<ErrorCode>::from(err).is_retryable());
+    }
+
+    #[test]
+    fn service_error_is_retryable_by_its_code() {
+        let busy: ApiError<UploadErrorCode> = ApiError::Service {
+            code: UploadErrorCode::UploadBusy,
+        };
+        let missing: ApiError = ApiError::Service {
+            code: ErrorCode::from("APP_NOT_FOUND"),
+        };
+        assert!(busy.is_retryable());
+        assert!(!missing.is_retryable());
     }
 
     #[test]

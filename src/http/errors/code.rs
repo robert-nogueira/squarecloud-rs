@@ -34,6 +34,44 @@ impl ErrorCode {
     pub fn as_str(&self) -> &str {
         &self.0
     }
+
+    /// Returns `true` for the short-term rate-limit codes, `RATE_LIMITED`
+    /// and `KEEP_CALM`. Wait before sending the request again.
+    ///
+    /// Quota codes such as `DAILY_SNAPSHOTS_LIMIT_REACHED` are not
+    /// included: they only clear when the quota resets.
+    pub fn is_rate_limited(&self) -> bool {
+        matches!(self.as_str(), "RATE_LIMITED" | "KEEP_CALM")
+    }
+
+    /// Returns `true` when the same request can succeed if sent again
+    /// later, unchanged: short-term rate limits, and the codes the API
+    /// uses for a temporarily busy or unavailable service.
+    ///
+    /// Generic failures such as `INTERNAL_SERVER_ERROR` or the `*_FAILED`
+    /// codes are not included, since a retry may repeat a side effect.
+    ///
+    /// `RATE_LIMITED` is also what an IP gets after repeated invalid API
+    /// keys; retrying with the same key keeps it blocked.
+    pub fn is_retryable(&self) -> bool {
+        self.is_rate_limited()
+            || matches!(
+                self.as_str(),
+                "DATABASE_UNAVAILABLE"
+                    | "UPLOAD_BUSY"
+                    | "ANALYTICS_BUSY"
+                    | "ENV_BUSY"
+                    | "RESTORE_IN_PROGRESS"
+                    | "SNAPSHOT_IN_PROGRESS"
+                    | "CLUSTER_MAINTENANCE_TRY_LATER"
+                    | "CLUSTER_UNAVAILABLE"
+                    | "CLUSTER_TIMEOUT"
+                    | "VALIDATION_TIMEOUT"
+                    | "TOO_MANY_CONCURRENT_UPLOADS"
+                    | "PRIVATE_STORAGE_UNAVAILABLE"
+                    | "PUBLIC_STORAGE_UNAVAILABLE"
+            )
+    }
 }
 
 impl std::fmt::Display for ErrorCode {
@@ -75,7 +113,11 @@ impl<C: ServiceErrorCode> PartialEq<C> for ErrorCode {
 #[cfg(test)]
 mod tests {
     use super::ErrorCode;
-    use crate::http::errors::{BlobErrorCode, EnvErrorCode};
+    use crate::http::errors::{
+        AppErrorCode, BlobErrorCode, DatabaseErrorCode, EnvErrorCode,
+        NetworkErrorCode, ServiceErrorCode, SnapshotErrorCode,
+        UploadErrorCode,
+    };
 
     #[test]
     fn compares_with_domain_enums_and_strings() {
@@ -84,6 +126,59 @@ mod tests {
         assert!(code != BlobErrorCode::InvalidObject);
         assert!(code == "OBJECT_NOT_FOUND");
         assert!(code != EnvErrorCode::TooManyEnvVars);
+    }
+
+    #[test]
+    fn rate_limit_codes_are_rate_limited_and_retryable() {
+        for code in [
+            AppErrorCode::RateLimited.erase(),
+            AppErrorCode::KeepCalm.erase(),
+        ] {
+            assert!(code.is_rate_limited(), "{code}");
+            assert!(code.is_retryable(), "{code}");
+        }
+    }
+
+    #[test]
+    fn busy_and_unavailable_codes_are_retryable_only() {
+        // Built from the catalogue, so a misspelled entry in the list
+        // fails here instead of passing silently.
+        let catalogued = [
+            AppErrorCode::DatabaseUnavailable.erase(),
+            UploadErrorCode::UploadBusy.erase(),
+            NetworkErrorCode::AnalyticsBusy.erase(),
+            EnvErrorCode::EnvBusy.erase(),
+            AppErrorCode::RestoreInProgress.erase(),
+            DatabaseErrorCode::ClusterMaintenanceTryLater.erase(),
+            BlobErrorCode::TooManyConcurrentUploads.erase(),
+            BlobErrorCode::PrivateStorageUnavailable.erase(),
+            BlobErrorCode::PublicStorageUnavailable.erase(),
+        ];
+        // Not catalogued by any domain enum yet.
+        let uncatalogued = [
+            "SNAPSHOT_IN_PROGRESS",
+            "CLUSTER_UNAVAILABLE",
+            "CLUSTER_TIMEOUT",
+            "VALIDATION_TIMEOUT",
+        ]
+        .map(ErrorCode::from);
+        for code in catalogued.iter().chain(&uncatalogued) {
+            assert!(code.is_retryable(), "{code}");
+            assert!(!code.is_rate_limited(), "{code}");
+        }
+    }
+
+    #[test]
+    fn permanent_and_quota_codes_are_not_retryable() {
+        for code in [
+            AppErrorCode::AppNotFound.erase(),
+            AppErrorCode::InternalServerError.erase(),
+            AppErrorCode::DeleteFailed.erase(),
+            SnapshotErrorCode::DailySnapshotsLimitReached.erase(),
+        ] {
+            assert!(!code.is_retryable(), "{code}");
+            assert!(!code.is_rate_limited(), "{code}");
+        }
     }
 
     #[test]
