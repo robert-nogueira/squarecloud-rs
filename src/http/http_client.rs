@@ -182,7 +182,7 @@ impl Client {
     /// The token is set as the default `Authorization` header on all
     /// subsequent requests. Sourcing the token (from an environment
     /// variable, a `.env` file, a secrets manager, or anywhere else) is the
-    /// caller's responsibility — this crate never reads the environment or
+    /// caller's responsibility: this crate never reads the environment or
     /// any file on its own.
     ///
     /// # Panics
@@ -408,17 +408,25 @@ impl Client {
     ///
     /// # Parameters
     ///
-    /// - `name` — A human-readable name for the database.
-    /// - `memory` — RAM allocation in megabytes.
-    /// - `type` — The database engine ([`DatabaseType`]).
-    /// - `version` — The engine version string (e.g. `"7.0"` for Redis).
+    /// - `name`: a human-readable name for the database.
+    /// - `memory`: RAM allocation in megabytes, at least the engine's
+    ///   minimum (currently 512 for Redis and 1024 for MongoDB, MySQL and
+    ///   PostgreSQL).
+    /// - `type`: the database engine ([`DatabaseType`]).
+    /// - `version`: the engine's major version (currently `"8"` for Redis or
+    ///   `"17"` for PostgreSQL, for example), which resolves to its latest
+    ///   release. A full version must be the current one.
     ///
     /// # Errors
     ///
     /// Returns [`ApiError::Service`] with [`DatabaseErrorCode::InvalidMemory`]
     /// or [`DatabaseErrorCode::InsufficientMemory`] if the memory allocation
-    /// is not permitted, or [`ApiError::Transport`] if the request fails or
-    /// the reply does not decode.
+    /// is not permitted, [`DatabaseErrorCode::InvalidDatabaseVersion`] if
+    /// `version` is not the current version or a prefix of it,
+    /// [`DatabaseErrorCode::InvalidDatabaseType`] or
+    /// [`DatabaseErrorCode::InvalidName`] for a bad type or name, or
+    /// [`ApiError::Transport`] if the request fails or the reply does not
+    /// decode.
     pub async fn create_database(
         &self,
         name: String,

@@ -24,7 +24,7 @@ mod sealed {
 /// Implemented by every domain-scoped error code enum.
 ///
 /// This trait is sealed: it cannot be implemented outside this crate.
-/// [`ErrorCode`] deliberately does **not** implement it — that exclusion
+/// [`ErrorCode`] deliberately does **not** implement it: that exclusion
 /// is what allows the crate to provide a blanket conversion from any
 /// domain-scoped [`ApiError`] into `ApiError<ErrorCode>` without
 /// overlapping the standard library's identity `From` impl. Treat the

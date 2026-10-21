@@ -17,7 +17,8 @@ pub enum DatabaseErrorCode {
     DatabaseCreationFailed,
     /// `type` is not one of `mongo`, `mysql`, `redis`, `postgres`.
     InvalidDatabaseType,
-    /// `version` is not a supported version for the chosen `type`.
+    /// `version` is not the current version of the chosen `type`, nor a
+    /// prefix of it such as the major version.
     InvalidDatabaseVersion,
     /// The name fails the 1-32 character validation.
     InvalidName,

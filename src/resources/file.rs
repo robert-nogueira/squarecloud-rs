@@ -175,8 +175,8 @@ impl FileResource {
     /// # Errors
     ///
     /// Returns [`ApiError::Transport`] if the request fails or the reply does
-    /// not decode, or [`ApiError::Service`] if `path` is not a directory or
-    /// does not exist.
+    /// not decode, or [`ApiError::Service`] if `path` is not a directory
+    /// (with [`FileErrorCode::FileNotFound`] if it does not exist).
     pub async fn all_files(
         &self,
         path: &str,

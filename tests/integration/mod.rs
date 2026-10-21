@@ -17,7 +17,7 @@ static DATABASE_ID: OnceLock<Result<String, String>> = OnceLock::new();
 pub fn setup() {
     ENV.call_once(|| {
         dotenvy::from_filename(".env.test")
-            .expect(".env.test not found — copy .env.test.example");
+            .expect(".env.test not found; copy .env.test.example");
     });
 }
 
@@ -25,7 +25,7 @@ pub fn setup() {
 pub fn client() -> Client {
     setup();
     Client::new(std::env::var("API_TOKEN").expect(
-        ".env.test not found or API_TOKEN unset — copy .env.test.example to .env.test",
+        ".env.test not found or API_TOKEN unset; copy .env.test.example to .env.test",
     ))
 }
 
@@ -52,7 +52,7 @@ pub fn shared_app_id() -> &'static str {
             .unwrap_or_else(|_| Err("upload thread panicked".to_string()))
         })
         .as_deref()
-        .expect("shared app upload failed — check API token and rate limit")
+        .expect("shared app upload failed; check API token and rate limit")
 }
 
 /// Returns the shared app ID only if it was already initialized.

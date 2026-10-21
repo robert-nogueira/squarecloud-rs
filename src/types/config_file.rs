@@ -288,7 +288,7 @@ impl ConfigFileBuilder {
 /// has already passed SquareCloud's documented field limits, so
 /// [`content`](Self::content) cannot fail.
 ///
-/// This only generates the file's *content* — packaging it into a zip
+/// This only generates the file's *content*; packaging it into a zip
 /// alongside your application files, at the archive root, is up to you. See
 /// [`Client::upload_app`](crate::Client::upload_app) and
 /// [`AppResource::commit`](crate::resources::AppResource::commit), which

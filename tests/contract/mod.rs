@@ -3,7 +3,7 @@
 //!
 //! These tests fetch the spec at runtime so they catch upstream removals or
 //! renames without requiring the fixture to be manually updated. They do not
-//! check request/response schemas — only that the (method, path) pair is
+//! check request/response schemas, only that the (method, path) pair is
 //! present in the spec.
 
 use std::collections::HashMap;
@@ -37,7 +37,7 @@ fn normalize(path: &str) -> String {
 /// Downloads and returns the full OpenAPI spec.
 ///
 /// Cloudflare blocks the default reqwest TLS fingerprint with 403, so we
-/// identify as `curl` — a known-good UA that Cloudflare passes through.
+/// identify as `curl`, a known-good UA that Cloudflare passes through.
 pub async fn fetch_full_spec() -> Value {
     let client = reqwest::Client::builder()
         .user_agent("curl/8.0.0")

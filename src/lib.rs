@@ -8,7 +8,7 @@
 //! databases, organising workspaces, and inspecting account information.
 //!
 //! The main entry point is [`Client`]. Construct one with [`Client::new`],
-//! passing your SquareCloud API token explicitly — the crate never reads
+//! passing your SquareCloud API token explicitly. The crate never reads
 //! the environment or any file on its own; sourcing the token from wherever
 //! you like (an env var, a `.env` file, a secrets manager) is up to you.
 //!

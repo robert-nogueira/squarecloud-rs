@@ -3,7 +3,7 @@
 ## Prerequisites
 
 - Rust 1.85+ (edition 2024)
-- [pre-commit](https://pre-commit.com/) — enforces formatting, clippy, and commit conventions
+- [pre-commit](https://pre-commit.com/): enforces formatting, clippy, and commit conventions
 - A [SquareCloud](https://squarecloud.app) account and API token (integration tests only)
 
 ## Setup

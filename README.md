@@ -11,13 +11,13 @@ A lightweight, idiomatic, async Rust client for the [SquareCloud](https://square
 
 ```toml
 [dependencies]
-squarecloud = "0.2"
+squarecloud = "0.5"
 tokio = { version = "1", features = ["full"] }
 ```
 
 ## Configuration
 
-`Client::new` takes your API token directly — the crate never reads the environment or any file on its own. Source the token however you like, e.g. from an environment variable:
+`Client::new` takes your API token directly. The crate never reads the environment or any file on its own. Source the token however you like, e.g. from an environment variable:
 
 ```env
 API_TOKEN=your_squarecloud_api_token
