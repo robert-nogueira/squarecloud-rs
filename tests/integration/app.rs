@@ -2,7 +2,7 @@ use chrono::{Duration, Utc};
 use futures_util::StreamExt;
 use squarecloud::{
     ApiError,
-    errors::{AppErrorCode, SnapshotErrorCode},
+    errors::SnapshotErrorCode,
     types::{RealtimeEvent, RestoreState},
 };
 
@@ -349,8 +349,11 @@ async fn app_list_deploys_returns_vec() {
     assert!(result.is_ok(), "list_deploys() failed: {:?}", result.err());
 }
 
+// The `y_` prefix runs this right before cleanup: after a restore the
+// resource answers RESTORE_IN_PROGRESS for about two minutes, which only
+// the cleanup waits out.
 #[tokio::test]
-async fn app_snapshot_lifecycle() {
+async fn y_app_snapshot_lifecycle() {
     crate::setup();
     crate::throttle().await;
     let app_id = crate::shared_app_id();
@@ -362,7 +365,9 @@ async fn app_snapshot_lifecycle() {
         Err(ApiError::Service {
             code: SnapshotErrorCode::DailySnapshotsLimitReached,
         }) => {
-            eprintln!("Skipping app_snapshot_lifecycle: daily limit reached");
+            eprintln!(
+                "Skipping y_app_snapshot_lifecycle: daily limit reached"
+            );
             return;
         }
         Err(e) => panic!("create_snapshot failed: {e:?}"),
@@ -468,29 +473,9 @@ async fn app_file_operations() {
 async fn z_cleanup_shared_app() {
     if let Some(id) = crate::shared_app_id_if_initialized() {
         let app = crate::client().app(id);
-        for attempt in 0..3_u32 {
-            match app.delete().await {
-                Ok(_) => return,
-                Err(ApiError::Service {
-                    code: AppErrorCode::RestoreInProgress,
-                }) if attempt < 2 => {
-                    tokio::time::sleep(std::time::Duration::from_secs(15))
-                        .await;
-                }
-                Err(ApiError::Service {
-                    code: AppErrorCode::Unknown(ref raw),
-                }) => {
-                    eprintln!(
-                        "cleanup: uncatalogued API code on delete: {raw:?}"
-                    );
-                    return;
-                }
-                Err(e) => {
-                    eprintln!("cleanup: delete failed: {e:?}");
-                    return;
-                }
-            }
-        }
+        crate::delete_with_retry(|| app.delete())
+            .await
+            .expect("cleanup: app delete() should succeed");
     }
 }
 

@@ -79,9 +79,9 @@ pub fn shared_database_id() -> Option<&'static str> {
                         crate::client()
                             .create_database(
                                 "squarecloud-rs-test".to_string(),
-                                256,
+                                1024,
                                 squarecloud::DatabaseType::Postgres,
-                                "16".to_string(),
+                                "17".to_string(),
                             )
                             .await
                             .map(|d| d.id)
@@ -107,4 +107,30 @@ pub fn shared_database_id_if_initialized() -> Option<&'static str> {
 /// Waits briefly between tests to avoid hitting the SquareCloud rate limit.
 pub async fn throttle() {
     tokio::time::sleep(std::time::Duration::from_millis(5000)).await;
+}
+
+/// Deletes a resource, retrying while the API answers a retryable code.
+///
+/// After a snapshot restore reports `success`, the resource still answers
+/// `RESTORE_IN_PROGRESS` for about two more minutes, so a delete right
+/// after a restore needs to wait it out. Gives up after about four minutes.
+pub async fn delete_with_retry<F, Fut, C>(
+    delete: F,
+) -> Result<bool, squarecloud::ApiError<C>>
+where
+    F: Fn() -> Fut,
+    Fut: std::future::Future<Output = Result<bool, squarecloud::ApiError<C>>>,
+    C: squarecloud::ServiceErrorCode,
+{
+    let mut result = delete().await;
+    for _ in 0..16 {
+        match &result {
+            Err(e) if e.is_retryable() => {
+                tokio::time::sleep(std::time::Duration::from_secs(15)).await;
+                result = delete().await;
+            }
+            _ => break,
+        }
+    }
+    result
 }

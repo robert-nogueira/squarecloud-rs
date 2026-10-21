@@ -142,8 +142,11 @@ async fn database_redefine_credential_certificate() {
     );
 }
 
+// The `y_` prefix runs this right before cleanup: after a restore the
+// resource answers RESTORE_IN_PROGRESS for about two minutes, which only
+// the cleanup waits out.
 #[tokio::test]
-async fn database_snapshot_lifecycle() {
+async fn y_database_snapshot_lifecycle() {
     crate::setup();
     crate::throttle().await;
     let db_id = require_db!();
@@ -210,9 +213,8 @@ async fn database_stop_returns_true() {
 #[tokio::test]
 async fn z_cleanup_shared_database() {
     if let Some(id) = crate::shared_database_id_if_initialized() {
-        crate::client()
-            .database(id)
-            .delete()
+        let db = crate::client().database(id);
+        crate::delete_with_retry(|| db.delete())
             .await
             .expect("database delete() should succeed on cleanup");
     }
