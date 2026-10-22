@@ -332,6 +332,13 @@ impl Client {
     /// [`UploadErrorCode::FileTooLarge`] past the 100 MB limit. Returns
     /// [`ApiError::Transport`] if the request fails or the reply does not
     /// decode.
+    ///
+    /// Safe to retry, checked with [`ApiError::is_retryable`]:
+    /// [`UploadErrorCode::UploadBusy`] (too many uploads are being
+    /// processed), [`UploadErrorCode::ClusterMaintenanceTryLater`],
+    /// [`UploadErrorCode::KeepCalm`], [`UploadErrorCode::RateLimited`] and
+    /// [`UploadErrorCode::DatabaseUnavailable`]. The validation codes and
+    /// [`UploadErrorCode::UploadFailed`] are not classified as retryable.
     pub async fn upload_app(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,

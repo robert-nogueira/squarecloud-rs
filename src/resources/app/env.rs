@@ -35,6 +35,11 @@ impl AppResource {
     /// Returns [`ApiError::Service`] with [`EnvErrorCode::InvalidEnvContent`]
     /// if a key or value is rejected, or [`ApiError::Transport`] if the
     /// request fails or the reply does not decode.
+    ///
+    /// Safe to retry, checked with [`ApiError::is_retryable`]:
+    /// [`EnvErrorCode::EnvBusy`] (another request is changing the
+    /// variables), [`EnvErrorCode::RateLimited`] and
+    /// [`EnvErrorCode::DatabaseUnavailable`].
     pub async fn upsert_envs(
         &self,
         envs: &HashMap<String, String>,
@@ -56,6 +61,11 @@ impl AppResource {
     ///
     /// Returns [`ApiError::Transport`] if the request fails or the reply does
     /// not decode, or [`ApiError::Service`] on an API-level error.
+    ///
+    /// Safe to retry, checked with [`ApiError::is_retryable`]:
+    /// [`EnvErrorCode::EnvBusy`] (another request is changing the
+    /// variables), [`EnvErrorCode::RateLimited`] and
+    /// [`EnvErrorCode::DatabaseUnavailable`].
     pub async fn overwrite_envs(
         &self,
         envs: &HashMap<String, String>,
@@ -77,6 +87,11 @@ impl AppResource {
     ///
     /// Returns [`ApiError::Transport`] if the request fails or the reply does
     /// not decode, or [`ApiError::Service`] on an API-level error.
+    ///
+    /// Safe to retry, checked with [`ApiError::is_retryable`]:
+    /// [`EnvErrorCode::EnvBusy`] (another request is changing the
+    /// variables), [`EnvErrorCode::RateLimited`] and
+    /// [`EnvErrorCode::DatabaseUnavailable`].
     pub async fn delete_envs(
         &self,
         envs: &[String],

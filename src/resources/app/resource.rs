@@ -263,6 +263,14 @@ impl AppResource {
     ///
     /// Returns [`ApiError::Transport`] if the request fails or the reply does
     /// not decode, or [`ApiError::Service`] on an API-level error.
+    ///
+    /// Safe to retry, checked with [`ApiError::is_retryable`]:
+    /// [`AppErrorCode::RestoreInProgress`] (a snapshot restore is running,
+    /// and the lock can outlast `restore_status` reporting success),
+    /// [`AppErrorCode::KeepCalm`], [`AppErrorCode::RateLimited`] and
+    /// [`AppErrorCode::DatabaseUnavailable`]. [`AppErrorCode::ActionFailed`]
+    /// and the `Container*` codes describe the container's state and are
+    /// not classified as retryable.
     pub async fn start(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::app_start(&self.id))
@@ -279,6 +287,14 @@ impl AppResource {
     ///
     /// Returns [`ApiError::Transport`] if the request fails or the reply does
     /// not decode, or [`ApiError::Service`] on an API-level error.
+    ///
+    /// Safe to retry, checked with [`ApiError::is_retryable`]:
+    /// [`AppErrorCode::RestoreInProgress`] (a snapshot restore is running,
+    /// and the lock can outlast `restore_status` reporting success),
+    /// [`AppErrorCode::KeepCalm`], [`AppErrorCode::RateLimited`] and
+    /// [`AppErrorCode::DatabaseUnavailable`]. [`AppErrorCode::ActionFailed`]
+    /// and the `Container*` codes describe the container's state and are
+    /// not classified as retryable.
     pub async fn restart(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::app_restart(&self.id))
@@ -294,6 +310,14 @@ impl AppResource {
     ///
     /// Returns [`ApiError::Transport`] if the request fails or the reply does
     /// not decode, or [`ApiError::Service`] on an API-level error.
+    ///
+    /// Safe to retry, checked with [`ApiError::is_retryable`]:
+    /// [`AppErrorCode::RestoreInProgress`] (a snapshot restore is running,
+    /// and the lock can outlast `restore_status` reporting success),
+    /// [`AppErrorCode::KeepCalm`], [`AppErrorCode::RateLimited`] and
+    /// [`AppErrorCode::DatabaseUnavailable`]. [`AppErrorCode::ActionFailed`]
+    /// and the `Container*` codes describe the container's state and are
+    /// not classified as retryable.
     pub async fn stop(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::app_stop(&self.id))
@@ -388,6 +412,11 @@ impl AppResource {
     /// request cannot be built, fails or the reply does not decode, or
     /// [`CommitError::Api`] wrapping [`ApiError::Service`] if the archive is
     /// rejected by the API.
+    ///
+    /// Inside [`CommitError::Api`], the codes safe to retry (checked with
+    /// [`ApiError::is_retryable`] on the wrapped error) are the
+    /// [`UploadErrorCode`](crate::errors::UploadErrorCode) variants
+    /// `UploadBusy`, `KeepCalm`, `RateLimited` and `DatabaseUnavailable`.
     pub async fn commit(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
@@ -410,6 +439,11 @@ impl AppResource {
     /// [`UploadErrorCode::InvalidPath`](crate::errors::UploadErrorCode) if
     /// `path` contains traversal or shell metacharacters, or another code if
     /// the archive is rejected by the API.
+    ///
+    /// Inside [`CommitError::Api`], the codes safe to retry (checked with
+    /// [`ApiError::is_retryable`] on the wrapped error) are the
+    /// [`UploadErrorCode`](crate::errors::UploadErrorCode) variants
+    /// `UploadBusy`, `KeepCalm`, `RateLimited` and `DatabaseUnavailable`.
     pub async fn commit_to(
         &self,
         bytes: impl Into<Cow<'static, [u8]>>,
@@ -443,6 +477,13 @@ impl AppResource {
     ///
     /// Returns [`ApiError::Transport`] if the request fails or the reply does
     /// not decode, or [`ApiError::Service`] on an API-level error.
+    ///
+    /// Safe to retry, checked with [`ApiError::is_retryable`]:
+    /// [`AppErrorCode::RestoreInProgress`] (a snapshot restore is running,
+    /// and the lock can outlast `restore_status` reporting success),
+    /// [`AppErrorCode::KeepCalm`], [`AppErrorCode::RateLimited`] and
+    /// [`AppErrorCode::DatabaseUnavailable`]. [`AppErrorCode::DeleteFailed`]
+    /// is not classified as retryable.
     pub async fn delete(&self) -> Result<bool, ApiError<AppErrorCode>> {
         self.client
             .request_endpoint::<NoData>(Endpoint::app_delete(&self.id))

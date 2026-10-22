@@ -112,6 +112,50 @@ mod tests {
     }
 
     #[test]
+    fn retryable_codes_documented_per_method_are_classified() {
+        // start, restart, stop and delete
+        for code in [
+            AppErrorCode::RestoreInProgress,
+            AppErrorCode::KeepCalm,
+            AppErrorCode::RateLimited,
+            AppErrorCode::DatabaseUnavailable,
+        ] {
+            assert!(code.is_retryable(), "{code:?}");
+        }
+        // upload_app (the first four also apply to commit)
+        for code in [
+            UploadErrorCode::UploadBusy,
+            UploadErrorCode::KeepCalm,
+            UploadErrorCode::RateLimited,
+            UploadErrorCode::DatabaseUnavailable,
+            UploadErrorCode::ClusterMaintenanceTryLater,
+        ] {
+            assert!(code.is_retryable(), "{code:?}");
+        }
+        // upsert_envs, overwrite_envs and delete_envs
+        for code in [
+            EnvErrorCode::EnvBusy,
+            EnvErrorCode::RateLimited,
+            EnvErrorCode::DatabaseUnavailable,
+        ] {
+            assert!(code.is_retryable(), "{code:?}");
+        }
+    }
+
+    #[test]
+    fn state_and_failure_codes_documented_per_method_stay_definitive() {
+        for code in [
+            AppErrorCode::ActionFailed,
+            AppErrorCode::ContainerAlreadyStarted,
+            AppErrorCode::ContainerNotFound,
+            AppErrorCode::DeleteFailed,
+        ] {
+            assert!(!code.is_retryable(), "{code:?}");
+        }
+        assert!(!UploadErrorCode::UploadFailed.is_retryable());
+    }
+
+    #[test]
     fn domain_enums_classify_through_the_trait() {
         assert!(DatabaseErrorCode::RateLimited.is_rate_limited());
         assert!(UploadErrorCode::UploadBusy.is_retryable());

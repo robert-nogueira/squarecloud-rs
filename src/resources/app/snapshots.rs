@@ -86,9 +86,9 @@ impl AppResource {
     /// [`restore_snapshot`](AppResource::restore_snapshot) reported as
     /// [`SnapshotErrorCode::SnapshotRestoreProcessing`].
     ///
-    /// A `success` state does not free the resource right away: for about
-    /// two more minutes, actions such as delete keep answering
-    /// `RESTORE_IN_PROGRESS`.
+    /// In our tests a `success` state did not free the resource right away:
+    /// for about two more minutes, actions such as delete kept answering
+    /// `RESTORE_IN_PROGRESS`. The API does not document this.
     ///
     /// # Errors
     ///

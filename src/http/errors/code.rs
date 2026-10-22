@@ -54,6 +54,13 @@ impl ErrorCode {
     /// `RATE_LIMITED` is also what an IP gets after repeated invalid API
     /// keys; retrying with the same key keeps it blocked.
     pub fn is_retryable(&self) -> bool {
+        // A code is listed only when some documentation says a route
+        // answers it transiently: the OpenAPI spec, the Blob error
+        // reference (the Blob codes, which the spec does not cover) or the
+        // changelog (UPLOAD_BUSY on POST /v2/apps and its /commit). The
+        // spec's 504 "try again" on the GitHub App deploy route is
+        // VALIDATION_TIMEOUT, a route the crate does not implement yet. A
+        // code known only by name in the spec's global enum is not listed.
         self.is_rate_limited()
             || matches!(
                 self.as_str(),
@@ -64,8 +71,6 @@ impl ErrorCode {
                     | "RESTORE_IN_PROGRESS"
                     | "SNAPSHOT_IN_PROGRESS"
                     | "CLUSTER_MAINTENANCE_TRY_LATER"
-                    | "CLUSTER_UNAVAILABLE"
-                    | "CLUSTER_TIMEOUT"
                     | "VALIDATION_TIMEOUT"
                     | "TOO_MANY_CONCURRENT_UPLOADS"
                     | "PRIVATE_STORAGE_UNAVAILABLE"
@@ -155,15 +160,24 @@ mod tests {
             BlobErrorCode::PrivateStorageUnavailable.erase(),
             BlobErrorCode::PublicStorageUnavailable.erase(),
         ];
-        // Not catalogued by any domain enum yet.
-        let uncatalogued = [
-            "CLUSTER_UNAVAILABLE",
-            "CLUSTER_TIMEOUT",
-            "VALIDATION_TIMEOUT",
-        ]
-        .map(ErrorCode::from);
+        // Only documented for the GitHub App deploy route, which no domain
+        // enum covers yet.
+        let uncatalogued = ["VALIDATION_TIMEOUT"].map(ErrorCode::from);
         for code in catalogued.iter().chain(&uncatalogued) {
             assert!(code.is_retryable(), "{code}");
+            assert!(!code.is_rate_limited(), "{code}");
+        }
+    }
+
+    #[test]
+    fn codes_without_a_documented_route_are_not_retryable() {
+        // The two CLUSTER_* codes are known only by name in the spec's
+        // global enum: no route documents them as transient.
+        for code in
+            ["CLUSTER_UNAVAILABLE", "CLUSTER_TIMEOUT", "SOME_FUTURE_CODE"]
+        {
+            let code = ErrorCode::from(code);
+            assert!(!code.is_retryable(), "{code}");
             assert!(!code.is_rate_limited(), "{code}");
         }
     }
