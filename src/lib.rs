@@ -46,6 +46,14 @@
 //! | [`ApiError`] / [`errors`] | Errors returned by every API call; one error-code enum per domain. |
 //! | [`CommitError`] | Error type specific to [`resources::AppResource::commit`]. |
 
+// Every API base URL is HTTPS, so a build without a TLS backend could not
+// make a single call.
+#[cfg(not(any(feature = "native-tls", feature = "rustls-tls")))]
+compile_error!(
+    "squarecloud needs a TLS backend: enable the `native-tls` (default) or \
+     `rustls-tls` feature"
+);
+
 mod http;
 /// Resource handles returned by the factory methods on [`Client`].
 pub mod resources;

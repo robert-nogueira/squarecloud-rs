@@ -195,16 +195,19 @@ impl Client {
             "Authorization",
             HeaderValue::from_str(&token.into()).unwrap(),
         );
-        let client: ReqwestClient = ReqwestClient::builder()
+        let builder = ReqwestClient::builder()
             .default_headers(headers)
             .user_agent(concat!(
                 env!("CARGO_PKG_NAME"),
                 "/",
                 env!("CARGO_PKG_VERSION")
             ))
-            .http1_only()
-            .build()
-            .unwrap();
+            .http1_only();
+        // An explicit `rustls-tls` wins when the default `native-tls` is
+        // also enabled; reqwest would otherwise pick native-tls.
+        #[cfg(feature = "rustls-tls")]
+        let builder = builder.use_rustls_tls();
+        let client: ReqwestClient = builder.build().unwrap();
         Client {
             base_url: "https://api.squarecloud.app/v2".to_string(),
             blob_base_url: "https://blob.squarecloud.app/v1".to_string(),

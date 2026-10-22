@@ -54,6 +54,25 @@ jobs:
       - run: cargo test --lib --locked
       - run: cargo test --test mock --locked
 
+  rustls:
+    name: Build with rustls-tls
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --locked --no-default-features --features rustls-tls
+      - run: cargo test --locked --lib --no-default-features --features rustls-tls
+      - run: cargo test --locked --test mock --no-default-features --features rustls-tls
+      # Both backends on, the case where Client::new switches to rustls.
+      - run: cargo test --locked --lib --features rustls-tls
+      - name: No OpenSSL in the dependency tree
+        run: |
+          tree=$(cargo tree --locked -e normal --no-default-features --features rustls-tls --prefix none)
+          if grep -q '^openssl-sys ' <<<"$tree"; then
+            echo "openssl-sys is still in the tree" >&2
+            exit 1
+          fi
+
   doc:
     name: Docs
     runs-on: ubuntu-latest

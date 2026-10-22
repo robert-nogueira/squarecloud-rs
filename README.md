@@ -15,6 +15,23 @@ squarecloud = "0.5"
 tokio = { version = "1", features = ["full"] }
 ```
 
+### TLS backend
+
+HTTPS goes through `reqwest` with the system TLS library by default
+(`native-tls`, which is OpenSSL on Linux). For a pure Rust stack, for
+example a static musl build, switch to `rustls-tls` (available from 0.5.2):
+
+```toml
+[dependencies]
+squarecloud = { version = "0.5.2", default-features = false, features = ["rustls-tls"] }
+```
+
+Keep `default-features = false`: with the defaults still on, `rustls-tls`
+is the one used, but OpenSSL is still compiled and linked, which defeats a
+static build. `rustls-tls` trusts the Mozilla root certificates bundled
+into the binary, not the operating system's store, so a CA installed only
+on the machine (for example by a TLS-inspecting proxy) is not trusted.
+
 ## Configuration
 
 `Client::new` takes your API token directly. The crate never reads the environment or any file on its own. Source the token however you like, e.g. from an environment variable:
