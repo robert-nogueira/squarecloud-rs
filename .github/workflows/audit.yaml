@@ -8,16 +8,22 @@ on:
       - '**/Cargo.toml'
       - '**/Cargo.lock'
       - '.github/workflows/audit.yaml'
+      - 'deny.toml'
   pull_request:
     paths:
       - '**/Cargo.toml'
       - '**/Cargo.lock'
       - '.github/workflows/audit.yaml'
+      - 'deny.toml'
 jobs:
   security_audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: taiki-e/install-action@cargo-deny
+      # Both the action (v2.87.30) and cargo-deny are pinned, so the audit
+      # only changes when these lines do.
+      - uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177
+        with:
+          tool: cargo-deny@0.19.8
       - name: Scan for vulnerabilities
         run: cargo deny check advisories

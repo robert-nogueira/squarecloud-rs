@@ -39,6 +39,21 @@ jobs:
       - run: cargo test --lib
       - run: cargo test --test mock
 
+  msrv:
+    name: MSRV
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read rust-version from Cargo.toml
+        id: msrv
+        run: echo "version=$(sed -n 's/^rust-version = "\(.*\)"$/\1/p' Cargo.toml)" >> "$GITHUB_OUTPUT"
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.msrv.outputs.version }}
+      - run: cargo check --all-targets --all-features --locked
+      - run: cargo test --lib --locked
+      - run: cargo test --test mock --locked
+
   doc:
     name: Docs
     runs-on: ubuntu-latest

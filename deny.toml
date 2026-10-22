@@ -1,0 +1,14 @@
+# Settings for `cargo deny check advisories`, run by
+# .github/workflows/audit.yaml. The values match cargo-deny's defaults and
+# are spelled out so a new cargo-deny release cannot change them silently.
+#
+# Only the advisories check is configured: run `cargo deny check advisories`.
+# A bare `cargo deny check` also runs the licenses check, which fails
+# without an allow list.
+
+[advisories]
+# Advisories accepted on purpose, each as
+# { id = "RUSTSEC-YYYY-NNNN", reason = "..." }.
+ignore = []
+unmaintained = "all"
+yanked = "warn"
