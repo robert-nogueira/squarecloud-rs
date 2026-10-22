@@ -6,6 +6,7 @@ rust-version = "1.99"
 description = "Async Rust client for the SquareCloud API"
 license = "MIT"
 readme = "README.md"
+include = ["/src/**/*.rs", "/examples/**/*.rs", "/README.md", "/LICENSE"]
 repository = "https://github.com/robert-nogueira/squarecloud-rs"
 homepage = "https://docs.rs/squarecloud"
 documentation = "https://docs.rs/squarecloud"
