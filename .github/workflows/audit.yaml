@@ -7,11 +7,17 @@ on:
     paths:
       - '**/Cargo.toml'
       - '**/Cargo.lock'
+      - '.github/workflows/audit.yaml'
+  pull_request:
+    paths:
+      - '**/Cargo.toml'
+      - '**/Cargo.lock'
+      - '.github/workflows/audit.yaml'
 jobs:
   security_audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
       - uses: taiki-e/install-action@cargo-deny
       - name: Scan for vulnerabilities
         run: cargo deny check advisories

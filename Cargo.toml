@@ -296,7 +296,7 @@ test-utils = ["dep:inventory"]
 dotenvy = "0.15.7"
 inventory = "0.3"
 wiremock = "0.6"
-zip = "2"
+zip = { version = "9", default-features = false, features = ["deflate"] }
 
 [dependencies]
 inventory = { version = "0.3", optional = true }
